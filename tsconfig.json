@@ -7,5 +7,19 @@
     {
       "path": "./tsconfig.node.json"
     }
-  ]
+  ],
+  /* Duplicated from tsconfig.app.json so tooling that reads only the root
+     config -- the shadcn CLI resolves its ui/lib/hooks/utils aliases here --
+     can resolve them too. Keep the two in sync with vite.config.ts. */
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components": ["src/components"],
+      "@components/*": ["src/components/*"],
+      "@layouts": ["src/layouts"],
+      "@layouts/*": ["src/layouts/*"],
+      "@styles": ["src/styles"],
+      "@styles/*": ["src/styles/*"]
+    }
+  }
 }

@@ -18,8 +18,11 @@
     /* Path aliases (mirror vite.config.ts) */
     "baseUrl": ".",
     "paths": {
+      "@components": ["src/components"],
       "@components/*": ["src/components/*"],
+      "@layouts": ["src/layouts"],
       "@layouts/*": ["src/layouts/*"],
+      "@styles": ["src/styles"],
       "@styles/*": ["src/styles/*"]
     },
 

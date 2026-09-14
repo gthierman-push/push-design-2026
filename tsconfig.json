@@ -7,14 +7,5 @@
     {
       "path": "./tsconfig.node.json"
     }
-  ],
-  "include": ["src/*"],
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@components/*": ["src/components/*"],
-      "@layouts/*": ["src/layouts/*"],
-      "@styles/*": ["src/styles/*"]
-    }
-  }
+  ]
 }

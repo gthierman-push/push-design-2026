@@ -54,7 +54,7 @@ export function AppLayout() {
   return (
     <RightPanelProvider>
       <SidebarProvider>
-        <Sidebar collapsible="icon">
+        <Sidebar collapsible="offcanvas">
           <SidebarHeader>
             <SidebarMenu>
               <SidebarMenuItem>

@@ -155,12 +155,12 @@ export function RightPanel({ className }: { className?: string }) {
       {/* Keeps the main content from sliding under the fixed panel. */}
       <div
         data-slot="right-panel-gap"
-        className="relative w-(--right-panel-width) bg-transparent transition-[width] duration-200 ease-linear group-data-[state=collapsed]/right-panel:w-0"
+        className="relative w-(--right-panel-width) bg-transparent transition-[width] duration-[140ms] ease-out group-data-[state=collapsed]/right-panel:w-0"
       />
       <div
         data-slot="right-panel-container"
         className={cn(
-          "bg-sidebar text-sidebar-foreground fixed inset-y-0 right-0 z-10 flex h-svh w-(--right-panel-width) flex-col border-l transition-[right] duration-200 ease-linear",
+          "bg-sidebar text-sidebar-foreground fixed inset-y-0 right-0 z-10 flex h-svh w-(--right-panel-width) flex-col border-l transition-[right] duration-[140ms] ease-out",
           "group-data-[state=collapsed]/right-panel:right-[calc(var(--right-panel-width)*-1)]",
           className,
         )}

@@ -1,24 +1,16 @@
 import { Outlet } from "react-router";
-import { GalleryVerticalEndIcon } from "lucide-react";
 
 /**
- * Mirrors the page.tsx shipped with the shadcn login-02 block: brand mark
- * top-left, form centred in the left column, full-bleed image on the right
- * from lg up. The CLI skips a block's page.tsx in a Vite project (no app
- * router to put it in), so this layout stands in for it.
+ * Mirrors the page.tsx shipped with the shadcn login-02 block: form centred
+ * in the left column, full-bleed image on the right from lg up. The CLI
+ * skips a block's page.tsx in a Vite project (no app router to put it in),
+ * so this layout stands in for it. The block's top-left brand mark is
+ * dropped -- the login form carries the Push logo itself.
  */
 export function AuthLayout() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex justify-center gap-2 md:justify-start">
-          <span className="flex items-center gap-2 font-medium">
-            <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-              <GalleryVerticalEndIcon className="size-4" />
-            </span>
-            Push
-          </span>
-        </div>
+      <div className="flex flex-col p-6 md:p-10">
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
             <Outlet />

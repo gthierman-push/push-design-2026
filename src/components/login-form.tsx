@@ -1,6 +1,7 @@
 import { cn } from "cn";
 
 import { Button } from "@components/ui/button";
+import { PushLogo } from "@components/push-logo";
 import {
   Field,
   FieldDescription,
@@ -16,7 +17,8 @@ export function LoginForm({
   return (
     <form className={cn("flex flex-col gap-6", className)} noValidate {...props}>
       <FieldGroup>
-        <div className="flex flex-col">
+        <div className="flex flex-col items-start gap-10">
+          <PushLogo />
           <h1 className="text-2xl font-medium">Login to your account</h1>
         </div>
         <Field>

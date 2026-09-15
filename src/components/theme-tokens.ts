@@ -46,6 +46,11 @@ export const colorGroups = [
       { name: "--input", label: "Input" },
       { name: "--ring", label: "Ring" },
       { name: "--destructive", label: "Destructive" },
+      { name: "--notification", label: "Notification" },
+      {
+        name: "--notification-foreground",
+        label: "Notification foreground",
+      },
     ],
   },
   {

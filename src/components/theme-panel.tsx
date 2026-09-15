@@ -1,11 +1,33 @@
 import * as React from "react";
-import { CheckIcon, CopyIcon, MoonIcon, SunIcon, XIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronsUpDownIcon,
+  CopyIcon,
+  CopyPlusIcon,
+  MoonIcon,
+  PencilIcon,
+  PlusIcon,
+  SunIcon,
+  Trash2Icon,
+  Undo2Icon,
+  XIcon,
+} from "lucide-react";
 
 import { cn } from "cn";
 import { Button } from "@components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu";
 import { Input } from "@components/ui/input";
 import { Separator } from "@components/ui/separator";
 import { Slider } from "@components/ui/slider";
+import { useTheme } from "@components/theme-provider";
 import {
   RADIUS_TOKEN,
   colorGroups,
@@ -13,204 +35,130 @@ import {
   hexToOklch,
   oklchToHex,
   parseColor,
-  themeTokenNames,
-  type ThemeMode,
 } from "@components/theme-tokens";
 
-const STORAGE_KEY = "push-design:theme-overrides";
+/** Picks the theme to show and edit, and manages the saved list. */
+function ThemePicker() {
+  const {
+    themes,
+    activeId,
+    activeTheme,
+    selectTheme,
+    createTheme,
+    duplicateTheme,
+    renameTheme,
+    deleteTheme,
+  } = useTheme();
 
-type Overrides = Record<ThemeMode, Record<string, string>>;
+  const [renaming, setRenaming] = React.useState(false);
+  const [draft, setDraft] = React.useState("");
 
-const emptyOverrides = (): Overrides => ({ light: {}, dark: {} });
+  const startRename = () => {
+    if (!activeTheme) return;
+    setDraft(activeTheme.name);
+    setRenaming(true);
+  };
 
-const hasOverrides = (overrides: Overrides) =>
-  Object.keys(overrides.light).length > 0 ||
-  Object.keys(overrides.dark).length > 0;
+  const commitRename = () => {
+    if (activeTheme) renameTheme(activeTheme.id, draft);
+    setRenaming(false);
+  };
 
-type Stored = { mode: ThemeMode; overrides: Overrides; custom: boolean };
-
-/**
- * Reads a mode's authored token values straight out of the stylesheet. The
- * `.dark` block is scoped to a class, so an off-screen probe element wearing
- * that class reports the dark values even while the page is in light mode.
- */
-function readBaseline(mode: ThemeMode): Record<string, string> {
-  const probe = document.createElement("div");
-  probe.style.display = "none";
-  if (mode === "dark") probe.className = "dark";
-  document.body.append(probe);
-
-  const computed = getComputedStyle(probe);
-  const values = Object.fromEntries(
-    themeTokenNames.map((name) => [
-      name,
-      computed.getPropertyValue(name).trim(),
-    ]),
-  );
-
-  probe.remove();
-  return values;
-}
-
-function loadStored(): Stored | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<Stored>;
-    const overrides = { ...emptyOverrides(), ...parsed.overrides };
-    return {
-      mode: parsed.mode === "dark" ? "dark" : "light",
-      overrides,
-      // Themes saved before the switch existed were always applied.
-      custom: parsed.custom ?? hasOverrides(overrides),
-    };
-  } catch {
-    return null;
-  }
-}
-
-type ThemePanelContextValue = {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  mode: ThemeMode;
-  setMode: (mode: ThemeMode) => void;
-  /** False shows style.css untouched; true applies the edited tokens. */
-  custom: boolean;
-  setCustom: (custom: boolean) => void;
-  /** True once anything has been edited, whichever theme is showing. */
-  edited: boolean;
-  /** The value on screen right now for the active mode and theme. */
-  valueOf: (token: string) => string;
-  setToken: (token: string, value: string) => void;
-  isOverridden: (token: string) => boolean;
-  reset: () => void;
-  css: () => string;
-};
-
-const ThemePanelContext = React.createContext<ThemePanelContextValue | null>(
-  null,
-);
-
-export function useThemePanel() {
-  const context = React.useContext(ThemePanelContext);
-  if (!context) {
-    throw new Error("useThemePanel must be used within a ThemePanelProvider.");
-  }
-  return context;
-}
-
-export function ThemePanelProvider({ children }: React.PropsWithChildren) {
-  const [baselines] = React.useState(() => ({
-    light: readBaseline("light"),
-    dark: readBaseline("dark"),
-  }));
-  const [stored] = React.useState(loadStored);
-  const [open, setOpen] = React.useState(false);
-  const [mode, setMode] = React.useState<ThemeMode>(stored?.mode ?? "light");
-  const [overrides, setOverrides] = React.useState<Overrides>(
-    stored?.overrides ?? emptyOverrides(),
-  );
-  const [custom, setCustom] = React.useState(stored?.custom ?? false);
-
-  // Paint the active mode's overrides onto :root; everything else falls back
-  // to the stylesheet.
-  React.useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle("dark", mode === "dark");
-
-    for (const token of themeTokenNames) {
-      const value = custom ? overrides[mode][token] : undefined;
-      if (value) root.style.setProperty(token, value);
-      else root.style.removeProperty(token);
-    }
-  }, [custom, mode, overrides]);
-
-  React.useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ mode, overrides, custom } satisfies Stored),
+  if (renaming) {
+    return (
+      <Input
+        autoFocus
+        value={draft}
+        aria-label="Theme name"
+        className="h-8"
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commitRename}
+        onKeyDown={(event) => {
+          // The panel closes on Escape, so keep this one local.
+          event.stopPropagation();
+          if (event.key === "Enter") commitRename();
+          if (event.key === "Escape") setRenaming(false);
+        }}
+      />
     );
-  }, [custom, mode, overrides]);
-
-  // A bare "t" toggles the panel, so it stays out of the way while the user
-  // is typing anywhere -- a field, a menu, any editable surface.
-  React.useEffect(() => {
-    function isTyping(target: EventTarget | null) {
-      const element = target as HTMLElement | null;
-      if (!element?.tagName) return false;
-      return (
-        element.isContentEditable ||
-        ["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName)
-      );
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      if (isTyping(event.target)) return;
-
-      if (event.code === "KeyT") {
-        event.preventDefault();
-        setOpen((current) => !current);
-      }
-    }
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  const value = React.useMemo<ThemePanelContextValue>(() => {
-    // Mirror whatever the page is showing, so the rows never disagree with it.
-    const valueOf = (token: string) =>
-      (custom ? overrides[mode][token] : "") || baselines[mode][token] || "";
-
-    return {
-      open,
-      setOpen,
-      mode,
-      setMode,
-      custom,
-      setCustom,
-      edited: hasOverrides(overrides),
-      valueOf,
-      isOverridden: (token) => custom && Boolean(overrides[mode][token]),
-      // Editing is what the custom theme is for, so an edit switches to it.
-      setToken: (token, next) => {
-        setCustom(true);
-        setOverrides((current) => ({
-          ...current,
-          [mode]: { ...current[mode], [token]: next },
-        }));
-      },
-      reset: () => {
-        setOverrides(emptyOverrides());
-        setCustom(false);
-      },
-      css: () => {
-        const block = (target: ThemeMode) =>
-          themeTokenNames
-            .filter((token) => target === "light" || token !== RADIUS_TOKEN)
-            .map(
-              (token) =>
-                `  ${token}: ${(custom ? overrides[target][token] : "") || baselines[target][token]};`,
-            )
-            .join("\n");
-
-        return `:root {\n${block("light")}\n}\n\n.dark {\n${block("dark")}\n}\n`;
-      },
-    };
-  }, [baselines, custom, mode, open, overrides]);
+  }
 
   return (
-    <ThemePanelContext.Provider value={value}>
-      {children}
-      <ThemePanel />
-    </ThemePanelContext.Provider>
+    // Not modal: the point of the panel is to keep clicking around the app
+    // while it is open, and a modal menu locks scroll and blocks every
+    // pointer event outside itself.
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-between font-normal"
+          />
+        }
+      >
+        <span className="truncate">{activeTheme?.name ?? "Default"}</span>
+        <ChevronsUpDownIcon className="text-muted-foreground" />
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent>
+        {/* Menu labels have to sit inside a group -- Base UI reads the group
+            context to wire a label to its items. */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Themes</DropdownMenuLabel>
+
+          <DropdownMenuItem onClick={() => selectTheme(null)}>
+            <CheckIcon className={cn(activeId !== null && "invisible")} />
+            <span className="flex-1 truncate">Default</span>
+            <span className="text-muted-foreground font-mono text-[11px]">
+              style.css
+            </span>
+          </DropdownMenuItem>
+
+          {themes.map((theme) => (
+            <DropdownMenuItem
+              key={theme.id}
+              onClick={() => selectTheme(theme.id)}
+            >
+              <CheckIcon className={cn(activeId !== theme.id && "invisible")} />
+              <span className="flex-1 truncate">{theme.name}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem onClick={() => createTheme()}>
+          <PlusIcon />
+          New theme
+        </DropdownMenuItem>
+
+        {activeTheme ? (
+          <>
+            <DropdownMenuItem onClick={() => duplicateTheme(activeTheme.id)}>
+              <CopyPlusIcon />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={startRename}>
+              <PencilIcon />
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => deleteTheme(activeTheme.id)}
+            >
+              <Trash2Icon />
+              Delete
+            </DropdownMenuItem>
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
 function ColorRow({ token, label }: { token: string; label: string }) {
-  const { valueOf, setToken, isOverridden } = useThemePanel();
+  const { valueOf, setToken, isOverridden } = useTheme();
   const value = valueOf(token);
   const color = parseColor(value);
   const hex = color ? oklchToHex(color) : "#000000";
@@ -267,58 +215,14 @@ function ColorRow({ token, label }: { token: string; label: string }) {
   );
 }
 
-/** Flips between the stylesheet's own theme and the edited one. */
-function ThemeSourceSwitch() {
-  const { custom, setCustom, edited } = useThemePanel();
-
-  const options = [
-    { value: false, label: "Default", hint: "style.css as authored" },
-    { value: true, label: "Custom", hint: "your edited tokens" },
-  ];
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div
-        role="group"
-        aria-label="Theme source"
-        className="bg-muted flex gap-0.5 rounded-md p-0.5"
-      >
-        {options.map((option) => (
-          <button
-            key={option.label}
-            type="button"
-            aria-pressed={custom === option.value}
-            onClick={() => setCustom(option.value)}
-            className={cn(
-              "flex-1 rounded-sm px-2 py-1 text-xs transition-colors",
-              custom === option.value
-                ? "bg-background text-foreground font-medium shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {option.label}
-            {option.value && edited && !custom ? (
-              <span className="text-muted-foreground"> •</span>
-            ) : null}
-          </button>
-        ))}
-      </div>
-      <span className="text-muted-foreground text-[11px]">
-        Showing {custom ? options[1].hint : options[0].hint}
-        {!custom && edited ? " — edits are kept" : ""}
-      </span>
-    </div>
-  );
-}
-
 function RadiusRow() {
-  const { valueOf, setToken } = useThemePanel();
+  const { valueOf, setToken } = useTheme();
   const radius = Number.parseFloat(valueOf(RADIUS_TOKEN)) || 0;
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs">Radius</span>
+        <span className="font-mono text-[11px]">{RADIUS_TOKEN}</span>
         <span className="text-muted-foreground font-mono text-[11px]">
           {radius.toFixed(2)}rem
         </span>
@@ -337,9 +241,37 @@ function RadiusRow() {
   );
 }
 
-function ThemePanel() {
-  const { open, setOpen, mode, setMode, reset, css } = useThemePanel();
+export function ThemePanel() {
+  const { mode, setMode, activeTheme, revertTheme, css } = useTheme();
+  const [open, setOpen] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+
+  // A bare "t" toggles the panel, so it stays out of the way while the user
+  // is typing anywhere -- a field, a menu, any editable surface.
+  React.useEffect(() => {
+    function isTyping(target: EventTarget | null) {
+      const element = target as HTMLElement | null;
+      if (!element?.tagName) return false;
+      return (
+        element.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName)
+      );
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isTyping(event.target)) return;
+
+      if (event.code === "KeyT") {
+        event.preventDefault();
+        setOpen((current) => !current);
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const copy = async () => {
     await navigator.clipboard.writeText(css());
@@ -391,8 +323,11 @@ function ThemePanel() {
         </Button>
       </header>
 
+      <div className="shrink-0 border-b p-3">
+        <ThemePicker />
+      </div>
+
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-3">
-        <ThemeSourceSwitch />
         <RadiusRow />
 
         {colorGroups.map((group) => (
@@ -423,10 +358,12 @@ function ThemePanel() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={reset}
-          title="Discard every edit and go back to the default theme"
+          disabled={!activeTheme}
+          onClick={revertTheme}
+          title="Clear this theme's edits, back to the style.css values"
         >
-          Reset
+          <Undo2Icon data-icon="inline-start" />
+          Revert
         </Button>
       </footer>
     </aside>

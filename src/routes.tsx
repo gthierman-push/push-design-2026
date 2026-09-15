@@ -30,15 +30,90 @@ export const router = createBrowserRouter([
         path: "settings",
         element: <SettingsLayout />,
         children: [
-          { index: true, element: <Placeholder title="Profile" /> },
-          { path: "appearance", element: <Placeholder title="Appearance" /> },
+          { index: true, element: <Placeholder title="Company Setup" /> },
+          { path: "departments", element: <Placeholder title="Departments" /> },
+          { path: "positions", element: <Placeholder title="Positions" /> },
           {
-            path: "notifications",
-            element: <Placeholder title="Notifications" />,
+            path: "profit-centers",
+            element: <Placeholder title="Profit Centers" />,
           },
-          { path: "members", element: <Placeholder title="Members" /> },
-          { path: "billing", element: <Placeholder title="Billing" /> },
-          { path: "api-keys", element: <Placeholder title="API keys" /> },
+          {
+            path: "period-labels",
+            element: <Placeholder title="Period Labels" />,
+          },
+          { path: "alarms", element: <Placeholder title="Alarms" /> },
+          {
+            path: "administrators",
+            element: <Placeholder title="Administrators" />,
+          },
+          { path: "roles", element: <Placeholder title="Roles" /> },
+          {
+            path: "security",
+            element: <Placeholder title="Security Settings" />,
+          },
+          {
+            path: "fraud-reviews",
+            element: <Placeholder title="Fraud Reviews" />,
+          },
+          { path: "tax-setup", element: <Placeholder title="Tax Setup" /> },
+          {
+            path: "statutory-holidays",
+            element: <Placeholder title="Statutory Holidays" />,
+          },
+          {
+            path: "hours-structures",
+            element: <Placeholder title="Hours Structures" />,
+          },
+          {
+            path: "pay-stubs",
+            element: <Placeholder title="Pay Stub Settings" />,
+          },
+          {
+            path: "journal-entries",
+            element: <Placeholder title="Journal Entry Settings" />,
+          },
+          {
+            path: "bulk-salary-updates",
+            element: <Placeholder title="Bulk Salary Updates" />,
+          },
+          { path: "benefits", element: <Placeholder title="Benefits Setup" /> },
+          {
+            path: "clock-settings",
+            element: <Placeholder title="Clock Settings" />,
+          },
+          {
+            path: "clock-surveys",
+            element: <Placeholder title="Clock Surveys" />,
+          },
+          { path: "breaks", element: <Placeholder title="Breaks" /> },
+          { path: "tips", element: <Placeholder title="Tips Settings" /> },
+          { path: "time-off", element: <Placeholder title="Time Off" /> },
+          { path: "labor-guide", element: <Placeholder title="Labor Guide" /> },
+          {
+            path: "employee-settings",
+            element: <Placeholder title="Employee Settings" />,
+          },
+          {
+            path: "employee-attributes",
+            element: <Placeholder title="Employee Attributes" />,
+          },
+          {
+            path: "onboarding",
+            element: <Placeholder title="Onboarding Settings" />,
+          },
+          { path: "forms", element: <Placeholder title="Forms" /> },
+          {
+            path: "file-categories",
+            element: <Placeholder title="File Categories" />,
+          },
+          {
+            path: "company-files",
+            element: <Placeholder title="Company Files" />,
+          },
+          {
+            path: "integrations",
+            element: <Placeholder title="POS / Integrations" />,
+          },
         ],
       },
       {

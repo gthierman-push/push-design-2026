@@ -5,6 +5,7 @@ import { AuthLayout } from "@layouts/AuthLayout";
 import { DesignLayout } from "@layouts/DesignLayout";
 import { SettingsLayout } from "@layouts/SettingsLayout";
 import { Login } from "./pages/Login";
+import { Dashboard } from "./pages/Dashboard";
 import { Placeholder } from "./pages/Placeholder";
 import { RequireAuth } from "./auth";
 
@@ -20,7 +21,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { index: true, element: <Placeholder title="Dashboard" /> },
+          { index: true, element: <Dashboard /> },
           { path: "schedule", element: <Placeholder title="Schedule" /> },
           { path: "people", element: <Placeholder title="People" /> },
           { path: "reports", element: <Placeholder title="Reports" /> },

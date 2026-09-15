@@ -23,6 +23,12 @@ type Overrides = Record<ThemeMode, Record<string, string>>;
 
 const emptyOverrides = (): Overrides => ({ light: {}, dark: {} });
 
+const hasOverrides = (overrides: Overrides) =>
+  Object.keys(overrides.light).length > 0 ||
+  Object.keys(overrides.dark).length > 0;
+
+type Stored = { mode: ThemeMode; overrides: Overrides; custom: boolean };
+
 /**
  * Reads a mode's authored token values straight out of the stylesheet. The
  * `.dark` block is scoped to a class, so an off-screen probe element wearing
@@ -46,14 +52,17 @@ function readBaseline(mode: ThemeMode): Record<string, string> {
   return values;
 }
 
-function loadStored(): { mode: ThemeMode; overrides: Overrides } | null {
+function loadStored(): Stored | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as { mode: ThemeMode; overrides: Overrides };
+    const parsed = JSON.parse(raw) as Partial<Stored>;
+    const overrides = { ...emptyOverrides(), ...parsed.overrides };
     return {
       mode: parsed.mode === "dark" ? "dark" : "light",
-      overrides: { ...emptyOverrides(), ...parsed.overrides },
+      overrides,
+      // Themes saved before the switch existed were always applied.
+      custom: parsed.custom ?? hasOverrides(overrides),
     };
   } catch {
     return null;
@@ -65,7 +74,12 @@ type ThemePanelContextValue = {
   setOpen: (open: boolean) => void;
   mode: ThemeMode;
   setMode: (mode: ThemeMode) => void;
-  /** The value in effect for the active mode, override or authored default. */
+  /** False shows style.css untouched; true applies the edited tokens. */
+  custom: boolean;
+  setCustom: (custom: boolean) => void;
+  /** True once anything has been edited, whichever theme is showing. */
+  edited: boolean;
+  /** The value on screen right now for the active mode and theme. */
   valueOf: (token: string) => string;
   setToken: (token: string, value: string) => void;
   isOverridden: (token: string) => boolean;
@@ -96,6 +110,7 @@ export function ThemePanelProvider({ children }: React.PropsWithChildren) {
   const [overrides, setOverrides] = React.useState<Overrides>(
     stored?.overrides ?? emptyOverrides(),
   );
+  const [custom, setCustom] = React.useState(stored?.custom ?? false);
 
   // Paint the active mode's overrides onto :root; everything else falls back
   // to the stylesheet.
@@ -104,15 +119,18 @@ export function ThemePanelProvider({ children }: React.PropsWithChildren) {
     root.classList.toggle("dark", mode === "dark");
 
     for (const token of themeTokenNames) {
-      const value = overrides[mode][token];
+      const value = custom ? overrides[mode][token] : undefined;
       if (value) root.style.setProperty(token, value);
       else root.style.removeProperty(token);
     }
-  }, [mode, overrides]);
+  }, [custom, mode, overrides]);
 
   React.useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode, overrides }));
-  }, [mode, overrides]);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ mode, overrides, custom } satisfies Stored),
+    );
+  }, [custom, mode, overrides]);
 
   // A bare "t" toggles the panel, so it stays out of the way while the user
   // is typing anywhere -- a field, a menu, any editable surface.
@@ -142,36 +160,46 @@ export function ThemePanelProvider({ children }: React.PropsWithChildren) {
   }, []);
 
   const value = React.useMemo<ThemePanelContextValue>(() => {
+    // Mirror whatever the page is showing, so the rows never disagree with it.
     const valueOf = (token: string) =>
-      overrides[mode][token] || baselines[mode][token] || "";
+      (custom ? overrides[mode][token] : "") || baselines[mode][token] || "";
 
     return {
       open,
       setOpen,
       mode,
       setMode,
+      custom,
+      setCustom,
+      edited: hasOverrides(overrides),
       valueOf,
-      isOverridden: (token) => Boolean(overrides[mode][token]),
-      setToken: (token, next) =>
+      isOverridden: (token) => custom && Boolean(overrides[mode][token]),
+      // Editing is what the custom theme is for, so an edit switches to it.
+      setToken: (token, next) => {
+        setCustom(true);
         setOverrides((current) => ({
           ...current,
           [mode]: { ...current[mode], [token]: next },
-        })),
-      reset: () => setOverrides(emptyOverrides()),
+        }));
+      },
+      reset: () => {
+        setOverrides(emptyOverrides());
+        setCustom(false);
+      },
       css: () => {
         const block = (target: ThemeMode) =>
           themeTokenNames
             .filter((token) => target === "light" || token !== RADIUS_TOKEN)
             .map(
               (token) =>
-                `  ${token}: ${overrides[target][token] || baselines[target][token]};`,
+                `  ${token}: ${(custom ? overrides[target][token] : "") || baselines[target][token]};`,
             )
             .join("\n");
 
         return `:root {\n${block("light")}\n}\n\n.dark {\n${block("dark")}\n}\n`;
       },
     };
-  }, [baselines, mode, open, overrides]);
+  }, [baselines, custom, mode, open, overrides]);
 
   return (
     <ThemePanelContext.Provider value={value}>
@@ -235,6 +263,50 @@ function ColorRow({ token, label }: { token: string; label: string }) {
         onBlur={() => setDraft(hex)}
         className="h-7 w-[4.75rem] shrink-0 px-2 font-mono text-[11px]"
       />
+    </div>
+  );
+}
+
+/** Flips between the stylesheet's own theme and the edited one. */
+function ThemeSourceSwitch() {
+  const { custom, setCustom, edited } = useThemePanel();
+
+  const options = [
+    { value: false, label: "Default", hint: "style.css as authored" },
+    { value: true, label: "Custom", hint: "your edited tokens" },
+  ];
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div
+        role="group"
+        aria-label="Theme source"
+        className="bg-muted flex gap-0.5 rounded-md p-0.5"
+      >
+        {options.map((option) => (
+          <button
+            key={option.label}
+            type="button"
+            aria-pressed={custom === option.value}
+            onClick={() => setCustom(option.value)}
+            className={cn(
+              "flex-1 rounded-sm px-2 py-1 text-xs transition-colors",
+              custom === option.value
+                ? "bg-background text-foreground font-medium shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {option.label}
+            {option.value && edited && !custom ? (
+              <span className="text-muted-foreground"> •</span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+      <span className="text-muted-foreground text-[11px]">
+        Showing {custom ? options[1].hint : options[0].hint}
+        {!custom && edited ? " — edits are kept" : ""}
+      </span>
     </div>
   );
 }
@@ -320,6 +392,7 @@ function ThemePanel() {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-3">
+        <ThemeSourceSwitch />
         <RadiusRow />
 
         {colorGroups.map((group) => (
@@ -347,7 +420,12 @@ function ThemePanel() {
           )}
           {copied ? "Copied" : "Copy CSS"}
         </Button>
-        <Button variant="ghost" size="sm" onClick={reset}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={reset}
+          title="Discard every edit and go back to the default theme"
+        >
           Reset
         </Button>
       </footer>

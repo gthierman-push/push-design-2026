@@ -59,7 +59,7 @@ export function AppLayout() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton size="lg" render={<NavLink to="/" />}>
-                  <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-md">
+                  <div className="bg-primary-alt text-primary-alt-foreground flex aspect-square size-8 items-center justify-center rounded-md">
                     <LayoutDashboardIcon />
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">

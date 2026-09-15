@@ -29,6 +29,8 @@ export const colorGroups = [
     tokens: [
       { name: "--primary", label: "Primary" },
       { name: "--primary-foreground", label: "Primary foreground" },
+      { name: "--primary-alt", label: "Primary alt" },
+      { name: "--primary-alt-foreground", label: "Primary alt foreground" },
       { name: "--secondary", label: "Secondary" },
       { name: "--secondary-foreground", label: "Secondary foreground" },
       { name: "--accent", label: "Accent" },

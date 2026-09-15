@@ -486,7 +486,7 @@ const sidebarMenuButtonVariants = cva(
       size: {
         // Nav items carry the active marker; the logo and back-link sizes do not.
         default:
-          "h-7 gap-1 p-1 pl-4 text-sm before:absolute before:top-1/2 before:left-1 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-primary before:opacity-0 before:transition-opacity data-active:before:opacity-100 group-data-[collapsible=icon]:before:hidden",
+          "h-7 gap-1 p-1 pl-4 text-sm before:absolute before:top-1/2 before:left-1 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-primary-alt before:opacity-0 before:transition-opacity data-active:before:opacity-100 group-data-[collapsible=icon]:before:hidden",
         sm: "h-7 gap-2 p-2 text-xs",
         lg: "h-12 gap-2 p-2 text-sm group-data-[collapsible=icon]:p-0!",
       },

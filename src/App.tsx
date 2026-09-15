@@ -1,13 +1,17 @@
 import { RouterProvider } from "react-router";
 
+import { ThemePanelProvider } from "@components/theme-panel";
+
 import { AuthProvider } from "./auth";
 import { router } from "./routes";
 
 function App() {
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <ThemePanelProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ThemePanelProvider>
   );
 }
 

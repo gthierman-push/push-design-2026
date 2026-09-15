@@ -30,13 +30,13 @@ export function Dashboard() {
       </EmptyHeader>
       <EmptyContent>
         <div className="flex gap-2">
-          <Button render={<NavLink to="/schedule" />}>
+          <Button render={<NavLink to="/scheduler" />}>
             <CalendarPlusIcon data-icon="inline-start" />
             Create a schedule
           </Button>
-          <Button variant="outline" render={<NavLink to="/people" />}>
+          <Button variant="outline" render={<NavLink to="/employees" />}>
             <UserPlusIcon data-icon="inline-start" />
-            Add people
+            Add employees
           </Button>
         </div>
       </EmptyContent>

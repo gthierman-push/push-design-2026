@@ -1,10 +1,23 @@
 import { NavLink, Outlet, useLocation } from "react-router";
 import {
-  BarChart3Icon,
-  CalendarIcon,
+  BadgeDollarSignIcon,
+  BriefcaseIcon,
+  CalendarRangeIcon,
+  CircleHelpIcon,
+  ClipboardCheckIcon,
+  ClipboardListIcon,
+  ClockIcon,
+  FlagIcon,
   LayoutDashboardIcon,
+  ListChecksIcon,
+  NotebookTextIcon,
+  PalmtreeIcon,
   SettingsIcon,
   SparklesIcon,
+  TableIcon,
+  TrendingUpIcon,
+  TrophyIcon,
+  UserSearchIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -33,6 +46,7 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
@@ -40,16 +54,58 @@ import {
   SidebarTrigger,
 } from "@components/ui/sidebar";
 
-const navigation = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboardIcon },
-  { title: "Schedule", url: "/schedule", icon: CalendarIcon },
-  { title: "People", url: "/people", icon: UsersIcon },
-  { title: "Reports", url: "/reports", icon: BarChart3Icon },
+const sections = [
+  {
+    label: "Scheduling",
+    items: [
+      { title: "Scheduler", url: "/scheduler", icon: CalendarRangeIcon },
+      { title: "Clocks", url: "/clocks", icon: ClockIcon, badge: "12" },
+      { title: "Shifts", url: "/shifts", icon: ClipboardListIcon, badge: "12" },
+    ],
+  },
+  {
+    label: "Workforce Management",
+    items: [
+      { title: "Employees", url: "/employees", icon: UsersIcon },
+      { title: "Milestones", url: "/milestones", icon: FlagIcon },
+      { title: "Performance", url: "/performance", icon: TrophyIcon },
+      { title: "Surveys", url: "/surveys", icon: ClipboardCheckIcon },
+      { title: "Time Off", url: "/time-off", icon: PalmtreeIcon },
+      { title: "Tasks", url: "/tasks", icon: ListChecksIcon },
+      {
+        title: "Applicant Tracking",
+        url: "/applicant-tracking",
+        icon: UserSearchIcon,
+      },
+    ],
+  },
+  {
+    label: "Payroll",
+    items: [
+      { title: "Payroll", url: "/payroll", icon: BadgeDollarSignIcon },
+      { title: "Timesheets", url: "/timesheets", icon: TableIcon },
+    ],
+  },
+  {
+    label: "Reporting",
+    items: [
+      { title: "Sales", url: "/sales", icon: TrendingUpIcon },
+      { title: "Reports", url: "/reports", icon: BriefcaseIcon },
+      { title: "Logbook", url: "/logbook", icon: NotebookTextIcon },
+    ],
+  },
+];
+
+const footerNavigation = [
+  { title: "Help", url: "/help", icon: CircleHelpIcon },
+  { title: "Settings", url: "/settings", icon: SettingsIcon },
 ];
 
 export function AppLayout() {
   const { pathname } = useLocation();
-  const current = navigation.find((item) => item.url === pathname);
+  const current = sections
+    .flatMap((section) => section.items)
+    .find((item) => item.url === pathname);
 
   return (
     <RightPanelProvider>
@@ -64,7 +120,9 @@ export function AppLayout() {
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
                     <span className="font-medium">Push</span>
-                    <span className="text-muted-foreground text-xs">Workspace</span>
+                    <span className="text-muted-foreground text-xs">
+                      Workspace
+                    </span>
                   </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -72,38 +130,46 @@ export function AppLayout() {
           </SidebarHeader>
 
           <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>Platform</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {navigation.map((item) => (
-                    <SidebarMenuItem key={item.url}>
-                      <SidebarMenuButton
-                        isActive={pathname === item.url}
-                        tooltip={item.title}
-                        render={<NavLink to={item.url} />}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {sections.map((section) => (
+              <SidebarGroup key={section.label}>
+                <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((item) => (
+                      <SidebarMenuItem key={item.url}>
+                        <SidebarMenuButton
+                          isActive={pathname === item.url}
+                          tooltip={item.title}
+                          render={<NavLink to={item.url} />}
+                        >
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </SidebarMenuButton>
+                        {item.badge ? (
+                          <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+                        ) : null}
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))}
           </SidebarContent>
 
           <SidebarFooter>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip="Settings"
-                  render={<NavLink to="/settings" />}
-                >
-                  <SettingsIcon />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {footerNavigation.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton
+                    isActive={pathname === item.url}
+                    tooltip={item.title}
+                    render={<NavLink to={item.url} />}
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarFooter>
 
@@ -113,11 +179,16 @@ export function AppLayout() {
         <SidebarInset>
           <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4 self-center!" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 h-4 self-center!"
+            />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{current?.title ?? "Dashboard"}</BreadcrumbPage>
+                  <BreadcrumbPage>
+                    {current?.title ?? "Dashboard"}
+                  </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>

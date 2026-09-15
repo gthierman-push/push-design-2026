@@ -7,6 +7,7 @@ import { SettingsLayout } from "@layouts/SettingsLayout";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Placeholder } from "./pages/Placeholder";
+import { Scheduler } from "./pages/Scheduler";
 import { RequireAuth } from "./auth";
 
 export const router = createBrowserRouter([
@@ -22,7 +23,7 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { index: true, element: <Dashboard /> },
-          { path: "scheduler", element: <Placeholder title="Scheduler" /> },
+          { path: "scheduler", element: <Scheduler /> },
           { path: "clocks", element: <Placeholder title="Clocks" /> },
           { path: "shifts", element: <Placeholder title="Shifts" /> },
           { path: "employees", element: <Placeholder title="Employees" /> },

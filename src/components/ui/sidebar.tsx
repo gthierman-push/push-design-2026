@@ -486,7 +486,7 @@ const sidebarMenuButtonVariants = cva(
       size: {
         // Nav items carry the active marker; the logo and back-link sizes do not.
         default:
-          "h-7 gap-1 p-1 pl-4 text-sm before:absolute before:top-1/2 before:left-1 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-primary-alt before:opacity-0 before:transition-opacity data-active:before:opacity-100 group-data-[collapsible=icon]:before:hidden",
+          "h-7 gap-1 p-1 pl-4 text-sm group-has-data-[sidebar=menu-badge]/menu-item:pr-7 before:absolute before:top-1/2 before:left-1 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-primary-alt before:opacity-0 before:transition-opacity data-active:before:opacity-100 group-data-[collapsible=icon]:before:hidden",
         sm: "h-7 gap-2 p-2 text-xs",
         lg: "h-12 gap-2 p-2 text-sm group-data-[collapsible=icon]:p-0!",
       },
@@ -591,7 +591,7 @@ function SidebarMenuBadge({
       data-slot="sidebar-menu-badge"
       data-sidebar="menu-badge"
       className={cn(
-        "pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium bg-notification text-notification-foreground select-none group-data-[collapsible=icon]:hidden peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1",
+        "pointer-events-none absolute right-3 size-2 rounded-full bg-notification select-none group-data-[collapsible=icon]:hidden peer-data-[size=default]/menu-button:top-2.5 peer-data-[size=lg]/menu-button:top-5 peer-data-[size=sm]/menu-button:top-2.5",
         className
       )}
       {...props}

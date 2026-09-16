@@ -3,6 +3,7 @@ import {
   BadgeDollarSignIcon,
   BriefcaseIcon,
   CalendarRangeIcon,
+  ChartPieIcon,
   CircleHelpIcon,
   ClipboardCheckIcon,
   ClipboardListIcon,
@@ -59,8 +60,13 @@ const sections = [
     label: "Scheduling",
     items: [
       { title: "Scheduler", url: "/scheduler", icon: CalendarRangeIcon },
-      { title: "Clocks", url: "/clocks", icon: ClockIcon, badge: "12" },
-      { title: "Shifts", url: "/shifts", icon: ClipboardListIcon, badge: "12" },
+      { title: "Clocks", url: "/clocks", icon: ClockIcon, notify: true },
+      {
+        title: "Shifts",
+        url: "/shifts",
+        icon: ClipboardListIcon,
+        notify: true,
+      },
     ],
   },
   {
@@ -92,6 +98,11 @@ const sections = [
       { title: "Sales", url: "/sales", icon: TrendingUpIcon },
       { title: "Reports", url: "/reports", icon: BriefcaseIcon },
       { title: "Logbook", url: "/logbook", icon: NotebookTextIcon },
+      {
+        title: "Business Intelligence",
+        url: "/business-intelligence",
+        icon: ChartPieIcon,
+      },
     ],
   },
 ];
@@ -145,9 +156,7 @@ export function AppLayout() {
                           <item.icon />
                           <span>{item.title}</span>
                         </SidebarMenuButton>
-                        {item.badge ? (
-                          <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                        ) : null}
+                        {item.notify ? <SidebarMenuBadge /> : null}
                       </SidebarMenuItem>
                     ))}
                   </SidebarMenu>

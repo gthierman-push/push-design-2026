@@ -80,8 +80,8 @@ function TaxSeasonDialog() {
           <div className="divide-border flex flex-col divide-y rounded-lg border">
             {taxSeasonChecks.map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-start gap-3 px-5 py-4">
-                <Icon className="text-muted-foreground size-4 shrink-0" />
-                <p className="text-sm leading-4">{label}</p>
+                <Icon className="text-muted-foreground size-5 shrink-0" />
+                <p className="text-sm leading-5">{label}</p>
               </div>
             ))}
           </div>

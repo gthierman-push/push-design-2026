@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router";
 
-import { useAuth } from "../auth";
+import { useAuth } from "../../auth";
 import { LoginForm } from "@components/login-form";
 
 export function Login() {

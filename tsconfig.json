@@ -16,6 +16,8 @@
     "paths": {
       "@components": ["src/components"],
       "@components/*": ["src/components/*"],
+      "@features": ["src/features"],
+      "@features/*": ["src/features/*"],
       "@layouts": ["src/layouts"],
       "@layouts/*": ["src/layouts/*"],
       "@styles": ["src/styles"],

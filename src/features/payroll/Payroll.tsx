@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import {
   AlertTriangleIcon,
   BanknoteIcon,
@@ -28,14 +28,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@components/ui/dialog";
-import {
-  Item,
-  ItemContent,
-  ItemGroup,
-  ItemMedia,
-  ItemSeparator,
-  ItemTitle,
-} from "@components/ui/item";
 import { Label } from "@components/ui/label";
 import {
   NativeSelect,
@@ -78,7 +70,7 @@ function TaxSeasonDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-xl" showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle className="text-2xl">
+          <DialogTitle>
             Tax season is approaching
           </DialogTitle>
           <DialogDescription>
@@ -86,23 +78,14 @@ function TaxSeasonDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <ItemGroup className="gap-0 rounded-lg border">
-          {taxSeasonChecks.map(({ icon: Icon, label }, index) => (
-            <Fragment key={label}>
-              {index > 0 && <ItemSeparator className="my-0" />}
-              <Item>
-                <ItemMedia variant="icon">
-                  <Icon className="text-muted-foreground" />
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle className="font-normal whitespace-normal">
-                    {label}
-                  </ItemTitle>
-                </ItemContent>
-              </Item>
-            </Fragment>
+        <div className="divide-border flex flex-col divide-y rounded-lg border">
+          {taxSeasonChecks.map(({ icon: Icon, label }) => (
+            <div key={label} className="flex items-start gap-3 px-5 py-4">
+              <Icon className="text-muted-foreground size-4 shrink-0" />
+              <p className="text-sm leading-4">{label}</p>
+            </div>
           ))}
-        </ItemGroup>
+        </div>
 
         <DialogFooter>
           <DialogClose render={<Button className="w-full" />}>Got It</DialogClose>

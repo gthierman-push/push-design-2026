@@ -70,21 +70,21 @@ function TaxSeasonDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-xl" showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>
-            Tax season is approaching
-          </DialogTitle>
-          <DialogDescription>
-            Ensure your T4s are processed on time by ensuring:
-          </DialogDescription>
+          <DialogTitle>Tax season is approaching</DialogTitle>
         </DialogHeader>
 
-        <div className="divide-border flex flex-col divide-y rounded-lg border">
-          {taxSeasonChecks.map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-start gap-3 px-5 py-4">
-              <Icon className="text-muted-foreground size-4 shrink-0" />
-              <p className="text-sm leading-4">{label}</p>
-            </div>
-          ))}
+        <div className="flex flex-col gap-2">
+          <DialogDescription className="font-medium">
+            Your T4 checklist
+          </DialogDescription>
+          <div className="divide-border flex flex-col divide-y rounded-lg border">
+            {taxSeasonChecks.map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-start gap-3 px-5 py-4">
+                <Icon className="text-muted-foreground size-4 shrink-0" />
+                <p className="text-sm leading-4">{label}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <DialogFooter>

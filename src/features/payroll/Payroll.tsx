@@ -48,16 +48,19 @@ const setupIssues: { severity: Severity; label: string }[] = [
 const taxSeasonChecks = [
   {
     icon: ListChecksIcon,
-    label: "All taxable benefits have been entered into Push",
+    task: "Enter all taxable benefits",
+    attestation: "All taxable benefits have been entered into Push",
   },
   {
     icon: BanknoteIcon,
-    label:
+    task: "Complete all payruns and offruns",
+    attestation:
       "Everyone has been paid and there are no further payruns or offruns to run",
   },
   {
     icon: UserRoundCheckIcon,
-    label:
+    task: "Enter all external payroll data (e.g. from a previous payroll system)",
+    attestation:
       "Anyone paid outside of Push that requires a T4 has been entered into Push (for example, someone paid in a previous payroll system)",
   },
 ];
@@ -98,10 +101,10 @@ function TaxSeasonDialogs() {
           </DialogHeader>
 
           <ChecklistCard>
-            {taxSeasonChecks.map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-start gap-3 px-5 py-4">
+            {taxSeasonChecks.map(({ icon: Icon, task }) => (
+              <div key={task} className="flex items-start gap-3 px-5 py-3">
                 <Icon className="text-muted-foreground size-5 shrink-0" />
-                <p className="text-sm leading-5">{label}</p>
+                <p className="text-sm leading-5">{task}</p>
               </div>
             ))}
           </ChecklistCard>
@@ -121,24 +124,24 @@ function TaxSeasonDialogs() {
           </DialogHeader>
 
           <ChecklistCard>
-            {taxSeasonChecks.map(({ label }) => (
+            {taxSeasonChecks.map(({ attestation }) => (
               <label
-                key={label}
-                className="flex cursor-pointer items-start gap-3 px-5 py-4"
+                key={attestation}
+                className="flex cursor-pointer items-start gap-3 px-5 py-3"
               >
                 <span className="flex size-5 shrink-0 items-center justify-center">
                   <Checkbox
-                    checked={acknowledged.includes(label)}
+                    checked={acknowledged.includes(attestation)}
                     onCheckedChange={(checked) =>
                       setAcknowledged((current) =>
                         checked
-                          ? [...current, label]
-                          : current.filter((item) => item !== label),
+                          ? [...current, attestation]
+                          : current.filter((item) => item !== attestation),
                       )
                     }
                   />
                 </span>
-                <span className="text-sm leading-5">{label}</span>
+                <span className="text-sm leading-5">{attestation}</span>
               </label>
             ))}
           </ChecklistCard>

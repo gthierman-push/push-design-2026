@@ -62,36 +62,98 @@ const taxSeasonChecks = [
   },
 ];
 
-/** Tax-season reminder, shown once on arrival at the payroll screen. */
-function TaxSeasonDialog() {
-  const [open, setOpen] = useState(true);
+/** The checklist, under its shared label. Rows differ between the two steps. */
+function ChecklistCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <DialogDescription className="font-medium">
+        Your T4 checklist
+      </DialogDescription>
+      <div className="divide-border flex flex-col divide-y rounded-lg border">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Two steps on arrival at the payroll screen: a tax-season reminder, then a
+ * confirmation that gates processing on every item being acknowledged.
+ */
+function TaxSeasonDialogs() {
+  const [step, setStep] = useState<"reminder" | "confirm" | null>("reminder");
+  const [acknowledged, setAcknowledged] = useState<string[]>([]);
+  const allAcknowledged = acknowledged.length === taxSeasonChecks.length;
+
+  const dismiss = (open: boolean) => {
+    if (!open) setStep(null);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-xl" showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>Tax season is approaching</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={step === "reminder"} onOpenChange={dismiss}>
+        <DialogContent className="sm:max-w-xl" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Tax season is approaching</DialogTitle>
+          </DialogHeader>
 
-        <div className="flex flex-col gap-2">
-          <DialogDescription className="font-medium">
-            Your T4 checklist
-          </DialogDescription>
-          <div className="divide-border flex flex-col divide-y rounded-lg border">
+          <ChecklistCard>
             {taxSeasonChecks.map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-start gap-3 px-5 py-4">
                 <Icon className="text-muted-foreground size-5 shrink-0" />
                 <p className="text-sm leading-5">{label}</p>
               </div>
             ))}
-          </div>
-        </div>
+          </ChecklistCard>
 
-        <DialogFooter>
-          <DialogClose render={<Button className="w-full" />}>Got It</DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button className="w-full" onClick={() => setStep("confirm")}>
+              Got It
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={step === "confirm"} onOpenChange={dismiss}>
+        <DialogContent className="sm:max-w-xl" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Can we start processing T4s?</DialogTitle>
+          </DialogHeader>
+
+          <ChecklistCard>
+            {taxSeasonChecks.map(({ label }) => (
+              <label
+                key={label}
+                className="flex cursor-pointer items-start gap-3 px-5 py-4"
+              >
+                <span className="flex size-5 shrink-0 items-center justify-center">
+                  <Checkbox
+                    checked={acknowledged.includes(label)}
+                    onCheckedChange={(checked) =>
+                      setAcknowledged((current) =>
+                        checked
+                          ? [...current, label]
+                          : current.filter((item) => item !== label),
+                      )
+                    }
+                  />
+                </span>
+                <span className="text-sm leading-5">{label}</span>
+              </label>
+            ))}
+          </ChecklistCard>
+
+          <DialogFooter>
+            <DialogClose render={<Button variant="ghost" />}>
+              I Need More Time
+            </DialogClose>
+            <Button disabled={!allAcknowledged} onClick={() => setStep(null)}>
+              I&apos;m Ready To Process T4s
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -176,7 +238,7 @@ export function Payroll() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
-      <TaxSeasonDialog />
+      <TaxSeasonDialogs />
 
       <Card className="gap-0 overflow-hidden py-0">
         {/* Pay period picker and the dates that follow from it. */}

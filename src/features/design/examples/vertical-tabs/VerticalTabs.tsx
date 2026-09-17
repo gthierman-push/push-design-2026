@@ -1,4 +1,7 @@
+import { useState } from "react";
+
 import { Button } from "@components/ui/button";
+import { TabSelect } from "@components/ui/tab-select";
 import {
   TabVertical,
   TabVerticalContent,
@@ -15,9 +18,15 @@ const tabs = [
 ];
 
 export function VerticalTabs() {
+  const [tab, setTab] = useState(tabs[0].value);
+
   return (
-    <TabVertical defaultValue="general" className="gap-8">
-      <TabVerticalList className="w-48 shrink-0">
+    <TabVertical
+      value={tab}
+      onValueChange={(value) => setTab(value as string)}
+      className="flex-col gap-6 md:flex-row md:gap-8"
+    >
+      <TabVerticalList className="hidden w-48 shrink-0 md:inline-flex">
         {tabs.map((tab) => (
           <TabVerticalTrigger key={tab.value} value={tab.value}>
             {tab.label}
@@ -35,6 +44,13 @@ export function VerticalTabs() {
             <Button>Primary</Button>
           </div>
         </div>
+
+        <TabSelect
+          tabs={tabs}
+          value={tab}
+          onValueChange={setTab}
+          className="md:hidden"
+        />
 
         {tabs.map((tab) => (
           <TabVerticalContent key={tab.value} value={tab.value}>

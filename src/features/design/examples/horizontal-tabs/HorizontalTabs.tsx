@@ -1,4 +1,7 @@
+import { useState } from "react";
+
 import { Button } from "@components/ui/button";
+import { TabSelect } from "@components/ui/tab-select";
 import {
   TabHorizontal,
   TabHorizontalContent,
@@ -15,6 +18,8 @@ const tabs = [
 ];
 
 export function HorizontalTabs() {
+  const [tab, setTab] = useState(tabs[0].value);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
@@ -27,8 +32,18 @@ export function HorizontalTabs() {
         </div>
       </div>
 
-      <TabHorizontal defaultValue="overview">
-        <TabHorizontalList>
+      <TabHorizontal
+        value={tab}
+        onValueChange={(value) => setTab(value as string)}
+      >
+        <TabSelect
+          tabs={tabs}
+          value={tab}
+          onValueChange={setTab}
+          className="md:hidden"
+        />
+
+        <TabHorizontalList className="hidden md:inline-flex">
           {tabs.map((tab) => (
             <TabHorizontalTrigger key={tab.value} value={tab.value}>
               {tab.label}

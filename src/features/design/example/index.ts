@@ -1,1 +1,1 @@
-export { Example } from "./Example";
+export { DesignPage, Example } from "./Example";

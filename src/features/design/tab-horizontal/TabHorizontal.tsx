@@ -4,7 +4,7 @@ import {
   TabHorizontalList as TabList,
   TabHorizontalTrigger as TabTrigger,
 } from "@components/ui/tab-horizontal";
-import { Example } from "@features/design/example";
+import { DesignPage, Example } from "@features/design/example";
 
 const panels = [
   {
@@ -26,7 +26,7 @@ const panels = [
 
 export function TabHorizontalPage() {
   return (
-    <div className="flex flex-col gap-4">
+    <DesignPage title="TabHorizontal">
       <Example
         title="Default"
         description="Labels on a full-width rule, with a primary-alt bar sitting on the rule under the active one."
@@ -90,6 +90,6 @@ export function TabHorizontalPage() {
           ))}
         </Tab>
       </Example>
-    </div>
+    </DesignPage>
   );
 }

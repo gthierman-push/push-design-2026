@@ -6,7 +6,7 @@ import {
   TabVerticalList as TabList,
   TabVerticalTrigger as TabTrigger,
 } from "@components/ui/tab-vertical";
-import { Example } from "@features/design/example";
+import { DesignPage, Example } from "@features/design/example";
 
 const panels = [
   {
@@ -31,7 +31,7 @@ const panels = [
 
 export function TabVerticalPage() {
   return (
-    <div className="flex flex-col gap-4">
+    <DesignPage title="TabVertical">
       <Example
         title="Default"
         description="A column that reads like the sidebar: an accent fill on the active row and a primary-alt marker in the list's left gutter."
@@ -92,6 +92,6 @@ export function TabVerticalPage() {
           ))}
         </Tab>
       </Example>
-    </div>
+    </DesignPage>
   );
 }

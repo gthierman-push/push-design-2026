@@ -6,7 +6,7 @@ import {
   TabDefaultList as TabList,
   TabDefaultTrigger as TabTrigger,
 } from "@components/ui/tab-default";
-import { Example } from "@features/design/example";
+import { DesignPage, Example } from "@features/design/example";
 
 const panels = [
   {
@@ -31,7 +31,7 @@ const panels = [
 
 export function TabDefaultPage() {
   return (
-    <div className="flex flex-col gap-4">
+    <DesignPage title="TabDefault">
       <Example
         title="Default"
         description="A segmented control on a muted track. Triggers share the track's width, so it reads as a switch rather than as navigation."
@@ -92,6 +92,6 @@ export function TabDefaultPage() {
           ))}
         </Tab>
       </Example>
-    </div>
+    </DesignPage>
   );
 }

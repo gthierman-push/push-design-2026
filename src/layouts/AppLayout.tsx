@@ -13,6 +13,8 @@ import {
   FlagIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
+  MegaphoneIcon,
+  MessagesSquareIcon,
   NotebookTextIcon,
   PalmtreeIcon,
   SettingsIcon,
@@ -88,6 +90,13 @@ const sections = [
       { title: "Jobs", url: "/jobs", icon: BriefcaseBusinessIcon },
       { title: "Candidates", url: "/candidates", icon: UserSearchIcon },
       { title: "Interviews", url: "/interviews", icon: CalendarCheckIcon },
+    ],
+  },
+  {
+    label: "Communication",
+    items: [
+      { title: "Chat", url: "/chat", icon: MessagesSquareIcon },
+      { title: "Message Board", url: "/message-board", icon: MegaphoneIcon },
     ],
   },
   {

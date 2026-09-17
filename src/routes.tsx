@@ -9,6 +9,7 @@ import { RequireAuth } from "./auth";
 import { Login } from "@features/login";
 import { BusinessIntelligence } from "@features/business-intelligence";
 import { Candidates } from "@features/candidates";
+import { Chat } from "@features/chat";
 import { Clocks } from "@features/clocks";
 import { Dashboard } from "@features/dashboard";
 import { Employees } from "@features/employees";
@@ -16,6 +17,7 @@ import { Help } from "@features/help";
 import { Interviews } from "@features/interviews";
 import { Jobs } from "@features/jobs";
 import { Logbook } from "@features/logbook";
+import { MessageBoard } from "@features/message-board";
 import { Milestones } from "@features/milestones";
 import { Payroll } from "@features/payroll";
 import { Performance } from "@features/performance";
@@ -99,6 +101,8 @@ export const router = createBrowserRouter([
           { path: "jobs", element: <Jobs /> },
           { path: "candidates", element: <Candidates /> },
           { path: "interviews", element: <Interviews /> },
+          { path: "chat", element: <Chat /> },
+          { path: "message-board", element: <MessageBoard /> },
           { path: "payroll", element: <Payroll /> },
           { path: "timesheets", element: <Timesheets /> },
           { path: "sales", element: <Sales /> },

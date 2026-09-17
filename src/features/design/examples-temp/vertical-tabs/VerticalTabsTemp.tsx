@@ -1,15 +1,20 @@
+import { useState } from "react";
+
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import {
   Field,
+  FieldContent,
   FieldDescription,
   FieldGroup,
   FieldLabel,
+  FieldTitle,
 } from "@components/ui/field";
+import { FieldRows } from "@components/ui/field-rows";
 import { Input } from "@components/ui/input";
-import { Separator } from "@components/ui/separator";
 import { Switch } from "@components/ui/switch";
+import { TabSelect } from "@components/ui/tab-select";
 import {
   TabVertical,
   TabVerticalContent,
@@ -17,18 +22,28 @@ import {
   TabVerticalTrigger,
 } from "@components/ui/tab-vertical";
 
+const tabs = [
+  { value: "general", label: "General" },
+  { value: "notifications", label: "Notifications" },
+  { value: "roles", label: "Roles" },
+  { value: "integrations", label: "Integrations" },
+];
+
 const notifications = [
   {
+    id: "shift-reminders",
     title: "Shift reminders",
     description: "Text employees two hours before a shift starts.",
     enabled: true,
   },
   {
+    id: "missed-punch-alerts",
     title: "Missed punch alerts",
     description: "Email the manager when someone forgets to clock out.",
     enabled: true,
   },
   {
+    id: "overtime-warnings",
     title: "Overtime warnings",
     description: "Warn when a schedule pushes anyone past 40 hours.",
     enabled: false,
@@ -49,17 +64,20 @@ const integrations = [
 ];
 
 export function VerticalTabsTemp() {
+  const [tab, setTab] = useState(tabs[0].value);
+
   return (
-    <TabVertical defaultValue="general" className="gap-8">
-      <TabVerticalList className="w-48 shrink-0">
-        <TabVerticalTrigger value="general">General</TabVerticalTrigger>
-        <TabVerticalTrigger value="notifications">
-          Notifications
-        </TabVerticalTrigger>
-        <TabVerticalTrigger value="roles">Roles</TabVerticalTrigger>
-        <TabVerticalTrigger value="integrations">
-          Integrations
-        </TabVerticalTrigger>
+    <TabVertical
+      value={tab}
+      onValueChange={(value) => setTab(value as string)}
+      className="flex-col gap-6 md:flex-row md:gap-8"
+    >
+      <TabVerticalList className="hidden w-48 shrink-0 md:inline-flex">
+        {tabs.map((item) => (
+          <TabVerticalTrigger key={item.value} value={item.value}>
+            {item.label}
+          </TabVerticalTrigger>
+        ))}
       </TabVerticalList>
 
       <div className="flex min-w-0 flex-1 flex-col gap-6">
@@ -72,6 +90,13 @@ export function VerticalTabsTemp() {
             <Button>Save changes</Button>
           </div>
         </div>
+
+        <TabSelect
+          tabs={tabs}
+          value={tab}
+          onValueChange={setTab}
+          className="md:hidden"
+        />
 
         <TabVerticalContent value="general">
           <Card>
@@ -113,26 +138,25 @@ export function VerticalTabsTemp() {
             <CardHeader>
               <CardTitle>Alerts</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col">
-              {notifications.map((notification, index) => (
-                <div key={notification.title}>
-                  {index > 0 ? <Separator /> : null}
-                  <Field orientation="horizontal" className="py-4">
-                    <div className="flex flex-1 flex-col gap-0.5">
-                      <FieldLabel htmlFor={notification.title}>
+            <CardContent>
+              <FieldRows>
+                {notifications.map((notification) => (
+                  <Field key={notification.id} orientation="horizontal">
+                    <FieldContent>
+                      <FieldLabel htmlFor={notification.id}>
                         {notification.title}
                       </FieldLabel>
                       <FieldDescription>
                         {notification.description}
                       </FieldDescription>
-                    </div>
+                    </FieldContent>
                     <Switch
-                      id={notification.title}
+                      id={notification.id}
                       defaultChecked={notification.enabled}
                     />
                   </Field>
-                </div>
-              ))}
+                ))}
+              </FieldRows>
             </CardContent>
           </Card>
         </TabVerticalContent>
@@ -142,23 +166,20 @@ export function VerticalTabsTemp() {
             <CardHeader>
               <CardTitle>Permission groups</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col">
-              {roles.map((role, index) => (
-                <div key={role.name}>
-                  {index > 0 ? <Separator /> : null}
-                  <div className="flex items-center justify-between py-3">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">{role.name}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {role.scope}
-                      </span>
-                    </div>
+            <CardContent>
+              <FieldRows>
+                {roles.map((role) => (
+                  <Field key={role.name} orientation="horizontal">
+                    <FieldContent>
+                      <FieldTitle>{role.name}</FieldTitle>
+                      <FieldDescription>{role.scope}</FieldDescription>
+                    </FieldContent>
                     <span className="text-muted-foreground text-sm">
                       {role.members}
                     </span>
-                  </div>
-                </div>
-              ))}
+                  </Field>
+                ))}
+              </FieldRows>
             </CardContent>
           </Card>
         </TabVerticalContent>
@@ -168,19 +189,14 @@ export function VerticalTabsTemp() {
             <CardHeader>
               <CardTitle>Connected apps</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col">
-              {integrations.map((integration, index) => (
-                <div key={integration.name}>
-                  {index > 0 ? <Separator /> : null}
-                  <div className="flex items-center justify-between py-3">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
-                        {integration.name}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        {integration.detail}
-                      </span>
-                    </div>
+            <CardContent>
+              <FieldRows>
+                {integrations.map((integration) => (
+                  <Field key={integration.name} orientation="horizontal">
+                    <FieldContent>
+                      <FieldTitle>{integration.name}</FieldTitle>
+                      <FieldDescription>{integration.detail}</FieldDescription>
+                    </FieldContent>
                     {integration.connected ? (
                       <Badge variant="secondary">Connected</Badge>
                     ) : (
@@ -188,9 +204,9 @@ export function VerticalTabsTemp() {
                         Connect
                       </Button>
                     )}
-                  </div>
-                </div>
-              ))}
+                  </Field>
+                ))}
+              </FieldRows>
             </CardContent>
           </Card>
         </TabVerticalContent>

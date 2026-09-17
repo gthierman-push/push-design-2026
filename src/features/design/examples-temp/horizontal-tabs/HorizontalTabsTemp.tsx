@@ -1,7 +1,15 @@
+import { useState } from "react";
+
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
-import { Separator } from "@components/ui/separator";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldTitle,
+} from "@components/ui/field";
+import { FieldRows } from "@components/ui/field-rows";
 import {
   Table,
   TableBody,
@@ -10,12 +18,20 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table";
+import { TabSelect } from "@components/ui/tab-select";
 import {
   TabHorizontal,
   TabHorizontalContent,
   TabHorizontalList,
   TabHorizontalTrigger,
 } from "@components/ui/tab-horizontal";
+
+const tabs = [
+  { value: "overview", label: "Overview" },
+  { value: "schedule", label: "Schedule" },
+  { value: "time-off", label: "Time off" },
+  { value: "documents", label: "Documents" },
+];
 
 const shifts = [
   { date: "Mon, Sep 15", role: "Line cook", hours: "8.0", status: "Approved" },
@@ -46,6 +62,8 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 export function HorizontalTabsTemp() {
+  const [tab, setTab] = useState(tabs[0].value);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
@@ -58,14 +76,23 @@ export function HorizontalTabsTemp() {
         </div>
       </div>
 
-      <TabHorizontal defaultValue="overview">
-        <TabHorizontalList>
-          <TabHorizontalTrigger value="overview">Overview</TabHorizontalTrigger>
-          <TabHorizontalTrigger value="schedule">Schedule</TabHorizontalTrigger>
-          <TabHorizontalTrigger value="time-off">Time off</TabHorizontalTrigger>
-          <TabHorizontalTrigger value="documents">
-            Documents
-          </TabHorizontalTrigger>
+      <TabHorizontal
+        value={tab}
+        onValueChange={(value) => setTab(value as string)}
+      >
+        <TabSelect
+          tabs={tabs}
+          value={tab}
+          onValueChange={setTab}
+          className="md:hidden"
+        />
+
+        <TabHorizontalList className="hidden md:inline-flex">
+          {tabs.map((item) => (
+            <TabHorizontalTrigger key={item.value} value={item.value}>
+              {item.label}
+            </TabHorizontalTrigger>
+          ))}
         </TabHorizontalList>
 
         <TabHorizontalContent value="overview" className="pt-6">
@@ -175,25 +202,20 @@ export function HorizontalTabsTemp() {
             <CardHeader>
               <CardTitle>Files</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col">
-              {documents.map((document, index) => (
-                <div key={document.name}>
-                  {index > 0 ? <Separator /> : null}
-                  <div className="flex items-center justify-between py-3">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
-                        {document.name}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        {document.updated}
-                      </span>
-                    </div>
+            <CardContent>
+              <FieldRows>
+                {documents.map((document) => (
+                  <Field key={document.name} orientation="horizontal">
+                    <FieldContent>
+                      <FieldTitle>{document.name}</FieldTitle>
+                      <FieldDescription>{document.updated}</FieldDescription>
+                    </FieldContent>
                     <Button variant="ghost" size="sm">
                       Download
                     </Button>
-                  </div>
-                </div>
-              ))}
+                  </Field>
+                ))}
+              </FieldRows>
             </CardContent>
           </Card>
         </TabHorizontalContent>

@@ -33,6 +33,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@components/ui/native-select";
+import { toast } from "@components/ui/toast";
 import { Progress } from "@components/ui/progress";
 
 type Severity = "critical" | "warning";
@@ -150,7 +151,18 @@ function TaxSeasonDialogs() {
             <DialogClose render={<Button variant="ghost" />}>
               I Need More Time
             </DialogClose>
-            <Button disabled={!allAcknowledged} onClick={() => setStep(null)}>
+            <Button
+              disabled={!allAcknowledged}
+              onClick={() => {
+                setStep(null);
+                toast.add({
+                  type: "success",
+                  title: "2026 T4s are being processed.",
+                  description:
+                    "You will receive an email when the T4s have been issued.",
+                });
+              }}
+            >
               I&apos;m Ready To Process T4s
             </Button>
           </DialogFooter>

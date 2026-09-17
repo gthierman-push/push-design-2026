@@ -2,6 +2,7 @@ import { RouterProvider } from "react-router";
 
 import { ThemePanel } from "@components/theme-panel";
 import { ThemeProvider } from "@components/theme-provider";
+import { Toaster } from "@components/ui/toast";
 
 import { AuthProvider } from "./auth";
 import { router } from "./routes";
@@ -13,6 +14,7 @@ function App() {
         <RouterProvider router={router} />
       </AuthProvider>
       <ThemePanel />
+      <Toaster />
     </ThemeProvider>
   );
 }

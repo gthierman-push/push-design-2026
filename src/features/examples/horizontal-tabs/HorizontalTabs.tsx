@@ -10,7 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
+import {
+  TabHorizontal,
+  TabHorizontalContent,
+  TabHorizontalList,
+  TabHorizontalTrigger,
+} from "@components/ui/tab-horizontal";
 
 const shifts = [
   { date: "Mon, Sep 15", role: "Line cook", hours: "8.0", status: "Approved" },
@@ -45,15 +50,15 @@ export function HorizontalTabs() {
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">Horizontal tabs</h1>
 
-      <Tabs defaultValue="overview">
-        <TabsList variant="line">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule</TabsTrigger>
-          <TabsTrigger value="time-off">Time off</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-        </TabsList>
+      <TabHorizontal defaultValue="overview">
+        <TabHorizontalList>
+          <TabHorizontalTrigger value="overview">Overview</TabHorizontalTrigger>
+          <TabHorizontalTrigger value="schedule">Schedule</TabHorizontalTrigger>
+          <TabHorizontalTrigger value="time-off">Time off</TabHorizontalTrigger>
+          <TabHorizontalTrigger value="documents">Documents</TabHorizontalTrigger>
+        </TabHorizontalList>
 
-        <TabsContent value="overview" className="pt-6">
+        <TabHorizontalContent value="overview" className="pt-6">
           <div className="flex flex-col gap-4">
             <Card>
               <CardContent className="flex flex-wrap gap-10">
@@ -73,9 +78,9 @@ export function HorizontalTabs() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </TabHorizontalContent>
 
-        <TabsContent value="schedule" className="pt-6">
+        <TabHorizontalContent value="schedule" className="pt-6">
           <Card>
             <CardHeader>
               <CardTitle>Upcoming shifts</CardTitle>
@@ -111,9 +116,9 @@ export function HorizontalTabs() {
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabHorizontalContent>
 
-        <TabsContent value="time-off" className="pt-6">
+        <TabHorizontalContent value="time-off" className="pt-6">
           <Card>
             <CardHeader>
               <CardTitle>Requests</CardTitle>
@@ -151,9 +156,9 @@ export function HorizontalTabs() {
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabHorizontalContent>
 
-        <TabsContent value="documents" className="pt-6">
+        <TabHorizontalContent value="documents" className="pt-6">
           <Card>
             <CardHeader>
               <CardTitle>Files</CardTitle>
@@ -179,8 +184,8 @@ export function HorizontalTabs() {
               ))}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </TabHorizontalContent>
+      </TabHorizontal>
     </div>
   );
 }

@@ -10,7 +10,12 @@ import {
 import { Input } from "@components/ui/input";
 import { Separator } from "@components/ui/separator";
 import { Switch } from "@components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
+import {
+  TabVertical,
+  TabVerticalContent,
+  TabVerticalList,
+  TabVerticalTrigger,
+} from "@components/ui/tab-vertical";
 
 const notifications = [
   {
@@ -48,15 +53,15 @@ export function VerticalTabs() {
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">Vertical tabs</h1>
 
-      <Tabs defaultValue="general" orientation="vertical" className="gap-8">
-        <TabsList variant="line" className="w-48 shrink-0">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="roles">Roles</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
-        </TabsList>
+      <TabVertical defaultValue="general" className="gap-8">
+        <TabVerticalList className="w-48 shrink-0">
+          <TabVerticalTrigger value="general">General</TabVerticalTrigger>
+          <TabVerticalTrigger value="notifications">Notifications</TabVerticalTrigger>
+          <TabVerticalTrigger value="roles">Roles</TabVerticalTrigger>
+          <TabVerticalTrigger value="integrations">Integrations</TabVerticalTrigger>
+        </TabVerticalList>
 
-        <TabsContent value="general">
+        <TabVerticalContent value="general">
           <Card>
             <CardHeader>
               <CardTitle>Business details</CardTitle>
@@ -89,9 +94,9 @@ export function VerticalTabs() {
               </FieldGroup>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabVerticalContent>
 
-        <TabsContent value="notifications">
+        <TabVerticalContent value="notifications">
           <Card>
             <CardHeader>
               <CardTitle>Alerts</CardTitle>
@@ -118,9 +123,9 @@ export function VerticalTabs() {
               ))}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabVerticalContent>
 
-        <TabsContent value="roles">
+        <TabVerticalContent value="roles">
           <Card>
             <CardHeader>
               <CardTitle>Permission groups</CardTitle>
@@ -144,9 +149,9 @@ export function VerticalTabs() {
               ))}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabVerticalContent>
 
-        <TabsContent value="integrations">
+        <TabVerticalContent value="integrations">
           <Card>
             <CardHeader>
               <CardTitle>Connected apps</CardTitle>
@@ -176,8 +181,8 @@ export function VerticalTabs() {
               ))}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </TabVerticalContent>
+      </TabVertical>
     </div>
   );
 }

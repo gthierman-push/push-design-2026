@@ -73,7 +73,9 @@ import { Overlays } from "@features/design/overlays";
 import { Radius } from "@features/design/radius";
 import { Spacing } from "@features/design/spacing";
 import { Table } from "@features/design/table";
-import { Tabs } from "@features/design/tabs";
+import { TabDefault } from "@features/design/tab-default";
+import { TabHorizontal } from "@features/design/tab-horizontal";
+import { TabVertical } from "@features/design/tab-vertical";
 import { Typography } from "@features/design/typography";
 
 import { HorizontalTabs } from "@features/examples/horizontal-tabs";
@@ -170,7 +172,9 @@ export const router = createBrowserRouter([
       { path: "card", element: <Card /> },
       { path: "fields", element: <Fields /> },
       { path: "table", element: <Table /> },
-      { path: "tabs", element: <Tabs /> },
+      { path: "tab-default", element: <TabDefault /> },
+      { path: "tab-horizontal", element: <TabHorizontal /> },
+      { path: "tab-vertical", element: <TabVertical /> },
       { path: "overlays", element: <Overlays /> },
       { path: "empty-states", element: <EmptyStates /> },
       { path: "data-display", element: <DataDisplay /> },

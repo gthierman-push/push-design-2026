@@ -125,13 +125,13 @@ const sections = [
     label: "Examples",
     items: [
       {
-        title: "Employee Profile",
-        url: "/examples/employee-profile",
+        title: "Horizontal tabs",
+        url: "/examples/horizontal-tabs",
         icon: GalleryHorizontalEndIcon,
       },
       {
-        title: "Company Settings",
-        url: "/examples/company-settings",
+        title: "Vertical tabs",
+        url: "/examples/vertical-tabs",
         icon: GalleryVerticalEndIcon,
       },
     ],

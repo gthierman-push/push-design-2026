@@ -1,1 +1,1 @@
-export { CompanySettings } from "./CompanySettings";
+export { VerticalTabs } from "./VerticalTabs";

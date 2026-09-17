@@ -43,19 +43,16 @@ const integrations = [
   { name: "Slack", detail: "Not connected", connected: false },
 ];
 
-export function CompanySettings() {
+export function VerticalTabs() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Company settings
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Vertical tabs</h1>
         <p className="text-muted-foreground text-sm">
-          Applies to every location on the account.
+          Line tabs down the side of a settings form, styled as nav items with
+          a marker on the left.
         </p>
       </div>
-
-      <Separator />
 
       <Tabs defaultValue="general" orientation="vertical" className="gap-8">
         <TabsList variant="line" className="w-48 shrink-0">

@@ -76,8 +76,8 @@ import { Table } from "@features/design/table";
 import { Tabs } from "@features/design/tabs";
 import { Typography } from "@features/design/typography";
 
-import { CompanySettings } from "@features/examples/company-settings";
-import { EmployeeProfile } from "@features/examples/employee-profile";
+import { HorizontalTabs } from "@features/examples/horizontal-tabs";
+import { VerticalTabs } from "@features/examples/vertical-tabs";
 
 export const router = createBrowserRouter([
   {
@@ -111,12 +111,12 @@ export const router = createBrowserRouter([
       { path: "business-intelligence", element: <BusinessIntelligence /> },
       { path: "help", element: <Help /> },
       {
-        path: "examples/employee-profile",
-        element: <EmployeeProfile />,
+        path: "examples/horizontal-tabs",
+        element: <HorizontalTabs />,
       },
       {
-        path: "examples/company-settings",
-        element: <CompanySettings />,
+        path: "examples/vertical-tabs",
+        element: <VerticalTabs />,
       },
     ],
   },

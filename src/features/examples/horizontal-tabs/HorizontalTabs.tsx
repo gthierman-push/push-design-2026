@@ -1,6 +1,3 @@
-import { MailIcon, MapPinIcon, PhoneIcon } from "lucide-react";
-
-import { Avatar, AvatarFallback } from "@components/ui/avatar";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
@@ -43,45 +40,18 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function EmployeeProfile() {
+export function HorizontalTabs() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start gap-4">
-        <Avatar className="size-14">
-          <AvatarFallback>DR</AvatarFallback>
-        </Avatar>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Dana Reyes
-            </h1>
-            <Badge variant="secondary">Full time</Badge>
-          </div>
-          <p className="text-muted-foreground text-sm">
-            Line cook · Kitchen · Started Jan 9, 2024
-          </p>
-          <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-            <span className="inline-flex items-center gap-1.5">
-              <MailIcon className="size-3.5" />
-              dana.reyes@example.com
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <PhoneIcon className="size-3.5" />
-              (604) 555-0148
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <MapPinIcon className="size-3.5" />
-              Gastown
-            </span>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Message</Button>
-          <Button>Edit profile</Button>
-        </div>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Horizontal tabs
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Line tabs across the sections of a single record. The header stays
+          put and the panel below it swaps.
+        </p>
       </div>
-
-      <Separator />
 
       <Tabs defaultValue="overview">
         <TabsList variant="line">

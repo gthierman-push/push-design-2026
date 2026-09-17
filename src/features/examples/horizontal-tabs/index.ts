@@ -1,1 +1,1 @@
-export { EmployeeProfile } from "./EmployeeProfile";
+export { HorizontalTabs } from "./HorizontalTabs";

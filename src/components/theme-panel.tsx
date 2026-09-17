@@ -53,9 +53,15 @@ function ThemePicker() {
   const [renaming, setRenaming] = React.useState(false);
   const [draft, setDraft] = React.useState("");
 
+  // Renaming swaps the trigger out for an input. The menu restores focus as
+  // it closes, which lands on the body once the trigger has gone, blurring
+  // the input and committing the rename before it can be typed in.
+  const skipFocusReturn = React.useRef(false);
+
   const startRename = () => {
     if (!activeTheme) return;
     setDraft(activeTheme.name);
+    skipFocusReturn.current = true;
     setRenaming(true);
   };
 
@@ -101,7 +107,13 @@ function ThemePicker() {
         <ChevronsUpDownIcon className="text-muted-foreground" />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent>
+      <DropdownMenuContent
+        finalFocus={() => {
+          const restore = !skipFocusReturn.current;
+          skipFocusReturn.current = false;
+          return restore;
+        }}
+      >
         {/* Menu labels have to sit inside a group -- Base UI reads the group
             context to wire a label to its items. */}
         <DropdownMenuGroup>

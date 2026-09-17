@@ -76,6 +76,9 @@ import { Table } from "@features/design/table";
 import { Tabs } from "@features/design/tabs";
 import { Typography } from "@features/design/typography";
 
+import { CompanySettings } from "@features/examples/company-settings";
+import { EmployeeProfile } from "@features/examples/employee-profile";
+
 export const router = createBrowserRouter([
   {
     path: "login",
@@ -107,6 +110,14 @@ export const router = createBrowserRouter([
       { path: "logbook", element: <Logbook /> },
       { path: "business-intelligence", element: <BusinessIntelligence /> },
       { path: "help", element: <Help /> },
+      {
+        path: "examples/employee-profile",
+        element: <EmployeeProfile />,
+      },
+      {
+        path: "examples/company-settings",
+        element: <CompanySettings />,
+      },
     ],
   },
   {

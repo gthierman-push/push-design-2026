@@ -11,6 +11,8 @@ import {
   ClipboardListIcon,
   ClockIcon,
   FlagIcon,
+  GalleryHorizontalEndIcon,
+  GalleryVerticalEndIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
   MegaphoneIcon,
@@ -116,6 +118,21 @@ const sections = [
         title: "Business Intelligence",
         url: "/business-intelligence",
         icon: ChartPieIcon,
+      },
+    ],
+  },
+  {
+    label: "Examples",
+    items: [
+      {
+        title: "Employee Profile",
+        url: "/examples/employee-profile",
+        icon: GalleryHorizontalEndIcon,
+      },
+      {
+        title: "Company Settings",
+        url: "/examples/company-settings",
+        icon: GalleryVerticalEndIcon,
       },
     ],
   },

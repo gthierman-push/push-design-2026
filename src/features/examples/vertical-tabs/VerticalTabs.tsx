@@ -50,16 +50,20 @@ const integrations = [
 
 export function VerticalTabs() {
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Vertical tabs</h1>
+    <TabVertical defaultValue="general" className="gap-8">
+      <TabVerticalList className="w-48 shrink-0">
+        <TabVerticalTrigger value="general">General</TabVerticalTrigger>
+        <TabVerticalTrigger value="notifications">
+          Notifications
+        </TabVerticalTrigger>
+        <TabVerticalTrigger value="roles">Roles</TabVerticalTrigger>
+        <TabVerticalTrigger value="integrations">
+          Integrations
+        </TabVerticalTrigger>
+      </TabVerticalList>
 
-      <TabVertical defaultValue="general" className="gap-8">
-        <TabVerticalList className="w-48 shrink-0">
-          <TabVerticalTrigger value="general">General</TabVerticalTrigger>
-          <TabVerticalTrigger value="notifications">Notifications</TabVerticalTrigger>
-          <TabVerticalTrigger value="roles">Roles</TabVerticalTrigger>
-          <TabVerticalTrigger value="integrations">Integrations</TabVerticalTrigger>
-        </TabVerticalList>
+      <div className="flex min-w-0 flex-1 flex-col gap-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Vertical tabs</h1>
 
         <TabVerticalContent value="general">
           <Card>
@@ -182,7 +186,7 @@ export function VerticalTabs() {
             </CardContent>
           </Card>
         </TabVerticalContent>
-      </TabVertical>
-    </div>
+      </div>
+    </TabVertical>
   );
 }

@@ -25,6 +25,7 @@ const sections = [
       { title: "Card", url: "/design/card" },
       { title: "Form fields", url: "/design/fields" },
       { title: "Table", url: "/design/table" },
+      { title: "Tabs", url: "/design/tabs" },
       { title: "Overlays", url: "/design/overlays" },
     ],
   },

@@ -74,6 +74,7 @@ import { Overlays } from "@features/design/overlays";
 import { Radius } from "@features/design/radius";
 import { Spacing } from "@features/design/spacing";
 import { Table } from "@features/design/table";
+import { Tabs } from "@features/design/tabs";
 import { Typography } from "@features/design/typography";
 
 export const router = createBrowserRouter([
@@ -162,6 +163,7 @@ export const router = createBrowserRouter([
           { path: "card", element: <Card /> },
           { path: "fields", element: <Fields /> },
           { path: "table", element: <Table /> },
+          { path: "tabs", element: <Tabs /> },
           { path: "overlays", element: <Overlays /> },
           { path: "empty-states", element: <EmptyStates /> },
           { path: "data-display", element: <DataDisplay /> },

@@ -79,6 +79,8 @@ import { TabVertical } from "@features/design/tab-vertical";
 import { Typography } from "@features/design/typography";
 import { HorizontalTabs } from "@features/design/examples/horizontal-tabs";
 import { VerticalTabs } from "@features/design/examples/vertical-tabs";
+import { HorizontalTabsTemp } from "@features/design/examples-temp/horizontal-tabs";
+import { VerticalTabsTemp } from "@features/design/examples-temp/vertical-tabs";
 
 export const router = createBrowserRouter([
   {
@@ -172,6 +174,11 @@ export const router = createBrowserRouter([
       { path: "navigation", element: <Navigation /> },
       { path: "examples/horizontal-tabs", element: <HorizontalTabs /> },
       { path: "examples/vertical-tabs", element: <VerticalTabs /> },
+      {
+        path: "examples-temp/horizontal-tabs",
+        element: <HorizontalTabsTemp />,
+      },
+      { path: "examples-temp/vertical-tabs", element: <VerticalTabsTemp /> },
     ],
   },
 ]);

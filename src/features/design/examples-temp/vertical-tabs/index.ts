@@ -1,0 +1,1 @@
+export { VerticalTabsTemp } from "./VerticalTabsTemp";

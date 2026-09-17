@@ -43,4 +43,14 @@ export const designSections = [
       { title: "Vertical tabs", url: "/design/examples/vertical-tabs" },
     ],
   },
+  {
+    label: "Examples - temp",
+    items: [
+      {
+        title: "Horizontal tabs",
+        url: "/design/examples-temp/horizontal-tabs",
+      },
+      { title: "Vertical tabs", url: "/design/examples-temp/vertical-tabs" },
+    ],
+  },
 ];

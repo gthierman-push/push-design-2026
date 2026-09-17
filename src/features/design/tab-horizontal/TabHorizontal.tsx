@@ -41,34 +41,10 @@ export function TabHorizontalPage() {
             ))}
           </TabList>
           {panels.map((panel) => (
-            <TabContent key={panel.value} value={panel.value}>
+            <TabContent key={panel.value} value={panel.value} className="pt-6">
               <PlaceholderContent>{panel.label}</PlaceholderContent>
             </TabContent>
           ))}
-        </Tab>
-      </Example>
-
-      <Example
-        title="Marker width"
-        description="Triggers size to their label rather than sharing the width, so the bar always matches the text it sits under."
-      >
-        <Tab defaultValue="scheduling">
-          <TabList>
-            <TabTrigger value="scheduling">Scheduling</TabTrigger>
-            <TabTrigger value="pay">Pay</TabTrigger>
-            <TabTrigger value="documents-and-forms">
-              Documents and forms
-            </TabTrigger>
-          </TabList>
-          <TabContent value="scheduling">
-            Shifts, availability and trade requests.
-          </TabContent>
-          <TabContent value="pay">
-            Rates, premiums and year-end tax forms.
-          </TabContent>
-          <TabContent value="documents-and-forms">
-            Signed agreements and onboarding paperwork.
-          </TabContent>
         </Tab>
       </Example>
 
@@ -85,7 +61,7 @@ export function TabHorizontalPage() {
             </TabTrigger>
           </TabList>
           {panels.map((panel) => (
-            <TabContent key={panel.value} value={panel.value}>
+            <TabContent key={panel.value} value={panel.value} className="pt-6">
               <PlaceholderContent>{panel.label}</PlaceholderContent>
             </TabContent>
           ))}

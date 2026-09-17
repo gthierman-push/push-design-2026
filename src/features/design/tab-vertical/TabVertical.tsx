@@ -37,7 +37,7 @@ export function TabVerticalPage() {
         title="Default"
         description="A column that reads like the sidebar: an accent fill on the active row and a primary-alt marker in the list's left gutter."
       >
-        <Tab defaultValue="overview">
+        <Tab defaultValue="overview" className="gap-8">
           <TabList className="w-40 shrink-0">
             {panels.map((panel) => (
               <TabTrigger key={panel.value} value={panel.value}>
@@ -57,7 +57,7 @@ export function TabVerticalPage() {
         title="With icons"
         description="An icon marked data-icon='inline-start' tightens the padding on that side."
       >
-        <Tab defaultValue="overview">
+        <Tab defaultValue="overview" className="gap-8">
           <TabList className="w-40 shrink-0">
             {panels.map((panel) => (
               <TabTrigger key={panel.value} value={panel.value}>
@@ -78,7 +78,7 @@ export function TabVerticalPage() {
         title="Disabled tab"
         description="A disabled trigger drops to 50% and stops taking pointer events."
       >
-        <Tab defaultValue="overview">
+        <Tab defaultValue="overview" className="gap-8">
           <TabList className="w-40 shrink-0">
             <TabTrigger value="overview">Overview</TabTrigger>
             <TabTrigger value="team">Team</TabTrigger>

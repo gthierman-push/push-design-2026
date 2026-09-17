@@ -46,7 +46,7 @@ export function TabDefaultPage() {
             ))}
           </TabList>
           {panels.map((panel) => (
-            <TabContent key={panel.value} value={panel.value}>
+            <TabContent key={panel.value} value={panel.value} className="pt-6">
               <PlaceholderContent>{panel.label}</PlaceholderContent>
             </TabContent>
           ))}
@@ -67,7 +67,7 @@ export function TabDefaultPage() {
             ))}
           </TabList>
           {panels.map((panel) => (
-            <TabContent key={panel.value} value={panel.value}>
+            <TabContent key={panel.value} value={panel.value} className="pt-6">
               <PlaceholderContent>{panel.label}</PlaceholderContent>
             </TabContent>
           ))}
@@ -87,7 +87,7 @@ export function TabDefaultPage() {
             </TabTrigger>
           </TabList>
           {panels.map((panel) => (
-            <TabContent key={panel.value} value={panel.value}>
+            <TabContent key={panel.value} value={panel.value} className="pt-6">
               <PlaceholderContent>{panel.label}</PlaceholderContent>
             </TabContent>
           ))}

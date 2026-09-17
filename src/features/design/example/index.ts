@@ -1,1 +1,1 @@
-export { DesignPage, Example } from "./Example";
+export { DesignPage, Example, PlaceholderContent } from "./Example";

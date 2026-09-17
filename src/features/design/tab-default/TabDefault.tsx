@@ -6,26 +6,27 @@ import {
   TabDefaultList as TabList,
   TabDefaultTrigger as TabTrigger,
 } from "@components/ui/tab-default";
-import { DesignPage, Example } from "@features/design/example";
+import {
+  DesignPage,
+  Example,
+  PlaceholderContent,
+} from "@features/design/example";
 
 const panels = [
   {
     value: "overview",
     label: "Overview",
     icon: ChartPieIcon,
-    body: "Hours, labour cost and coverage for the current pay period.",
   },
   {
     value: "team",
     label: "Team",
     icon: UsersIcon,
-    body: "Everyone scheduled this week, grouped by department.",
   },
   {
     value: "alerts",
     label: "Alerts",
     icon: BellIcon,
-    body: "Missed punches and overtime that need a manager to sign off.",
   },
 ];
 
@@ -46,7 +47,7 @@ export function TabDefaultPage() {
           </TabList>
           {panels.map((panel) => (
             <TabContent key={panel.value} value={panel.value}>
-              {panel.body}
+              <PlaceholderContent>{panel.label}</PlaceholderContent>
             </TabContent>
           ))}
         </Tab>
@@ -67,7 +68,7 @@ export function TabDefaultPage() {
           </TabList>
           {panels.map((panel) => (
             <TabContent key={panel.value} value={panel.value}>
-              {panel.body}
+              <PlaceholderContent>{panel.label}</PlaceholderContent>
             </TabContent>
           ))}
         </Tab>
@@ -87,7 +88,7 @@ export function TabDefaultPage() {
           </TabList>
           {panels.map((panel) => (
             <TabContent key={panel.value} value={panel.value}>
-              {panel.body}
+              <PlaceholderContent>{panel.label}</PlaceholderContent>
             </TabContent>
           ))}
         </Tab>

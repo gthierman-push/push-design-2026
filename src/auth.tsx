@@ -1,9 +1,8 @@
 import * as React from "react";
-import { Navigate, Outlet, useLocation } from "react-router";
 
 /**
  * Stub session state. There is no backend yet: signIn() just flips a flag,
- * and because it lives in React state a reload drops you back at /login.
+ * and no route is gated on it — every page renders signed in or out.
  * Swap the internals for a real token check when there is an API to call.
  */
 type AuthContextValue = {
@@ -35,16 +34,4 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-/** Route guard: sends signed-out visitors to /login, remembering where they were headed. */
-export function RequireAuth() {
-  const { isAuthenticated } = useAuth();
-  const location = useLocation();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return <Outlet />;
 }

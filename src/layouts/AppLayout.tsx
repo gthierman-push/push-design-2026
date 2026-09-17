@@ -11,8 +11,6 @@ import {
   ClipboardListIcon,
   ClockIcon,
   FlagIcon,
-  GalleryHorizontalEndIcon,
-  GalleryVerticalEndIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
   MegaphoneIcon,
@@ -118,21 +116,6 @@ const sections = [
         title: "Business Intelligence",
         url: "/business-intelligence",
         icon: ChartPieIcon,
-      },
-    ],
-  },
-  {
-    label: "Examples",
-    items: [
-      {
-        title: "Horizontal tabs",
-        url: "/examples/horizontal-tabs",
-        icon: GalleryHorizontalEndIcon,
-      },
-      {
-        title: "Vertical tabs",
-        url: "/examples/vertical-tabs",
-        icon: GalleryVerticalEndIcon,
       },
     ],
   },

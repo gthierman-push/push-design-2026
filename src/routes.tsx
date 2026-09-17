@@ -77,9 +77,8 @@ import { TabDefault } from "@features/design/tab-default";
 import { TabHorizontal } from "@features/design/tab-horizontal";
 import { TabVertical } from "@features/design/tab-vertical";
 import { Typography } from "@features/design/typography";
-
-import { HorizontalTabs } from "@features/examples/horizontal-tabs";
-import { VerticalTabs } from "@features/examples/vertical-tabs";
+import { HorizontalTabs } from "@features/design/examples/horizontal-tabs";
+import { VerticalTabs } from "@features/design/examples/vertical-tabs";
 
 export const router = createBrowserRouter([
   {
@@ -112,14 +111,6 @@ export const router = createBrowserRouter([
       { path: "logbook", element: <Logbook /> },
       { path: "business-intelligence", element: <BusinessIntelligence /> },
       { path: "help", element: <Help /> },
-      {
-        path: "examples/horizontal-tabs",
-        element: <HorizontalTabs />,
-      },
-      {
-        path: "examples/vertical-tabs",
-        element: <VerticalTabs />,
-      },
     ],
   },
   {
@@ -179,6 +170,8 @@ export const router = createBrowserRouter([
       { path: "empty-states", element: <EmptyStates /> },
       { path: "data-display", element: <DataDisplay /> },
       { path: "navigation", element: <Navigation /> },
+      { path: "examples/horizontal-tabs", element: <HorizontalTabs /> },
+      { path: "examples/vertical-tabs", element: <VerticalTabs /> },
     ],
   },
 ]);

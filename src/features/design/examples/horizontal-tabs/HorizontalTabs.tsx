@@ -55,7 +55,9 @@ export function HorizontalTabs() {
           <TabHorizontalTrigger value="overview">Overview</TabHorizontalTrigger>
           <TabHorizontalTrigger value="schedule">Schedule</TabHorizontalTrigger>
           <TabHorizontalTrigger value="time-off">Time off</TabHorizontalTrigger>
-          <TabHorizontalTrigger value="documents">Documents</TabHorizontalTrigger>
+          <TabHorizontalTrigger value="documents">
+            Documents
+          </TabHorizontalTrigger>
         </TabHorizontalList>
 
         <TabHorizontalContent value="overview" className="pt-6">
@@ -104,7 +106,9 @@ export function HorizontalTabs() {
                       <TableCell>
                         <Badge
                           variant={
-                            shift.status === "Approved" ? "secondary" : "outline"
+                            shift.status === "Approved"
+                              ? "secondary"
+                              : "outline"
                           }
                         >
                           {shift.status}

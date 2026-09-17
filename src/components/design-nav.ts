@@ -37,14 +37,14 @@ export const designSections = [
     ],
   },
   {
-    label: "Examples",
+    label: "Page Layouts",
     items: [
       { title: "Horizontal tabs", url: "/design/examples/horizontal-tabs" },
       { title: "Vertical tabs", url: "/design/examples/vertical-tabs" },
     ],
   },
   {
-    label: "Examples - temp",
+    label: "Page Layouts - temp",
     items: [
       {
         title: "Horizontal tabs",

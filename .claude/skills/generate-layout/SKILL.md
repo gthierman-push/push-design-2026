@@ -24,9 +24,9 @@ Ask whether this is replacing an existing screen or adding a new one.
 
 ## 2. Layout
 
-Ask which layout to generate, sourced from the example pages. Read the
-directories before asking — the list below is what exists today, not a fixed
-menu:
+Ask which layout to generate, sourced from the Page Layouts section of the
+design system. Read those directories before asking — the list below is what
+exists today, not a fixed menu:
 
 - `src/features/design/examples-temp/horizontal-tabs` — tabs across the top, the
   title above them, panels holding cards, stat rows and tables.
@@ -35,6 +35,9 @@ menu:
 - `src/features/design/examples/*` — the same two shapes with placeholder panels,
   for when the content is not the point.
 - A plain page with no tabs — a title and content, like `src/features/dashboard`.
+
+The sidebar lists the first three under **Page Layouts** and **Page Layouts -
+temp**; the directories are still named `examples` and `examples-temp`.
 
 Offer high-fidelity (cards, tables, fields — realistic fixture data) or
 placeholder panels (`PlaceholderContent` from `@features/design/example`) as part

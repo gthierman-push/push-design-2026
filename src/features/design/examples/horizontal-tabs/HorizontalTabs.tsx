@@ -1,3 +1,4 @@
+import { Button } from "@components/ui/button";
 import {
   TabHorizontal,
   TabHorizontalContent,
@@ -16,7 +17,15 @@ const tabs = [
 export function HorizontalTabs() {
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Horizontal tabs</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Horizontal tabs
+        </h1>
+        <div className="flex items-center gap-2">
+          <Button variant="outline">Secondary</Button>
+          <Button>Primary</Button>
+        </div>
+      </div>
 
       <TabHorizontal defaultValue="overview">
         <TabHorizontalList>

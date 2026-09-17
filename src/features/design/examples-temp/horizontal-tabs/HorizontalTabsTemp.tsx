@@ -48,7 +48,15 @@ function Stat({ label, value }: { label: string; value: string }) {
 export function HorizontalTabsTemp() {
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Horizontal tabs</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Horizontal tabs
+        </h1>
+        <div className="flex items-center gap-2">
+          <Button variant="outline">Export</Button>
+          <Button>Edit employee</Button>
+        </div>
+      </div>
 
       <TabHorizontal defaultValue="overview">
         <TabHorizontalList>

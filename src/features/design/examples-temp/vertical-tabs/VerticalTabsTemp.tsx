@@ -63,7 +63,15 @@ export function VerticalTabsTemp() {
       </TabVerticalList>
 
       <div className="flex min-w-0 flex-1 flex-col gap-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Vertical tabs</h1>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Vertical tabs
+          </h1>
+          <div className="flex items-center gap-2">
+            <Button variant="outline">Discard</Button>
+            <Button>Save changes</Button>
+          </div>
+        </div>
 
         <TabVerticalContent value="general">
           <Card>

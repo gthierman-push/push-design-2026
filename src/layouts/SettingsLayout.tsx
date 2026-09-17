@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import {
   AlarmClockIcon,
@@ -209,6 +210,11 @@ export function SettingsLayout() {
   const current = sections
     .flatMap((section) => section.items)
     .find((item) => item.url === pathname);
+  const activeItem = useRef<HTMLLIElement>(null);
+
+  useEffect(() => {
+    activeItem.current?.scrollIntoView({ block: "center" });
+  }, [pathname]);
 
   return (
     <SidebarProvider>
@@ -240,7 +246,10 @@ export function SettingsLayout() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {section.items.map((item) => (
-                    <SidebarMenuItem key={item.url}>
+                    <SidebarMenuItem
+                      key={item.url}
+                      ref={pathname === item.url ? activeItem : undefined}
+                    >
                       <SidebarMenuButton
                         isActive={pathname === item.url}
                         tooltip={item.title}

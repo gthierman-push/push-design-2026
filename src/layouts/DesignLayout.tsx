@@ -1,14 +1,33 @@
 import { NavLink, Outlet, useLocation } from "react-router";
-import { ArrowLeftIcon } from "lucide-react";
+import { BoxIcon, LayersIcon, PaletteIcon } from "lucide-react";
 
-import { cn } from "cn";
-import { Button } from "@components/ui/button";
-import { ScrollArea } from "@components/ui/scroll-area";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "@components/ui/breadcrumb";
 import { Separator } from "@components/ui/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+} from "@components/ui/sidebar";
 
 const sections = [
   {
     label: "Foundations",
+    icon: PaletteIcon,
     items: [
       { title: "Colors", url: "/design" },
       { title: "Typography", url: "/design/typography" },
@@ -19,6 +38,7 @@ const sections = [
   },
   {
     label: "Components",
+    icon: BoxIcon,
     items: [
       { title: "Button", url: "/design/button" },
       { title: "Badge", url: "/design/badge" },
@@ -31,6 +51,7 @@ const sections = [
   },
   {
     label: "Patterns",
+    icon: LayersIcon,
     items: [
       { title: "Empty states", url: "/design/empty-states" },
       { title: "Data display", url: "/design/data-display" },
@@ -46,57 +67,66 @@ export function DesignLayout() {
     .find((item) => item.url === pathname);
 
   return (
-    <div className="bg-background flex min-h-svh flex-col">
-      <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b px-4 backdrop-blur md:px-6">
-        <Button variant="ghost" size="sm" render={<NavLink to="/" />}>
-          <ArrowLeftIcon data-icon="inline-start" />
-          Back to app
-        </Button>
-        <Separator orientation="vertical" className="h-4 self-center!" />
-        <span className="font-medium">Design system</span>
-      </header>
+    <SidebarProvider>
+      <Sidebar collapsible="offcanvas">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" render={<NavLink to="/" />}>
+                <span>Back to app</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
 
-      <div className="flex flex-1">
-        <aside className="hidden w-60 shrink-0 border-r md:block">
-          <ScrollArea className="h-[calc(100svh-3.5rem)]">
-            <nav className="flex flex-col gap-6 p-4">
-              {sections.map((section) => (
-                <div key={section.label} className="flex flex-col gap-1">
-                  <span className="text-muted-foreground px-2 text-xs font-medium">
-                    {section.label}
-                  </span>
+        <SidebarContent>
+          {sections.map((section) => (
+            <SidebarGroup key={section.label}>
+              <SidebarGroupLabel className="gap-2">
+                <section.icon />
+                {section.label}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
                   {section.items.map((item) => (
-                    <NavLink
-                      key={item.url}
-                      to={item.url}
-                      end
-                      className={cn(
-                        "rounded-md px-2 py-1.5 text-sm transition-colors",
-                        pathname === item.url
-                          ? "bg-accent text-accent-foreground font-medium"
-                          : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-                      )}
-                    >
-                      {item.title}
-                    </NavLink>
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton
+                        // Indent past the section label's icon so the two
+                        // text columns line up: pl-4 + icon 1rem + gap-2.
+                        className="pl-10"
+                        isActive={pathname === item.url}
+                        tooltip={item.title}
+                        render={<NavLink to={item.url} end />}
+                      >
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                   ))}
-                </div>
-              ))}
-            </nav>
-          </ScrollArea>
-        </aside>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
+        </SidebarContent>
 
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto flex max-w-4xl flex-col gap-8 px-4 py-8 md:px-8 md:py-12">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-semibold tracking-tight">
-                {current?.title ?? "Colors"}
-              </h1>
-            </div>
-            <Outlet />
-          </div>
-        </main>
-      </div>
-    </div>
+        <SidebarRail />
+      </Sidebar>
+
+      <SidebarInset>
+        <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4 self-center!" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbPage>{current?.title ?? "Colors"}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4">
+          <Outlet />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

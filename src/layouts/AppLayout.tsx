@@ -1,7 +1,9 @@
 import { NavLink, Outlet, useLocation } from "react-router";
 import {
   BadgeDollarSignIcon,
+  BriefcaseBusinessIcon,
   BriefcaseIcon,
+  CalendarCheckIcon,
   CalendarRangeIcon,
   ChartPieIcon,
   CircleHelpIcon,
@@ -78,11 +80,14 @@ const sections = [
       { title: "Surveys", url: "/surveys", icon: ClipboardCheckIcon },
       { title: "Time Off", url: "/time-off", icon: PalmtreeIcon },
       { title: "Tasks", url: "/tasks", icon: ListChecksIcon },
-      {
-        title: "Applicant Tracking",
-        url: "/applicant-tracking",
-        icon: UserSearchIcon,
-      },
+    ],
+  },
+  {
+    label: "Hiring",
+    items: [
+      { title: "Jobs", url: "/jobs", icon: BriefcaseBusinessIcon },
+      { title: "Candidates", url: "/candidates", icon: UserSearchIcon },
+      { title: "Interviews", url: "/interviews", icon: CalendarCheckIcon },
     ],
   },
   {

@@ -7,12 +7,14 @@ import { SettingsLayout } from "@layouts/SettingsLayout";
 import { RequireAuth } from "./auth";
 
 import { Login } from "@features/login";
-import { ApplicantTracking } from "@features/applicant-tracking";
 import { BusinessIntelligence } from "@features/business-intelligence";
+import { Candidates } from "@features/candidates";
 import { Clocks } from "@features/clocks";
 import { Dashboard } from "@features/dashboard";
 import { Employees } from "@features/employees";
 import { Help } from "@features/help";
+import { Interviews } from "@features/interviews";
+import { Jobs } from "@features/jobs";
 import { Logbook } from "@features/logbook";
 import { Milestones } from "@features/milestones";
 import { Payroll } from "@features/payroll";
@@ -94,7 +96,9 @@ export const router = createBrowserRouter([
           { path: "surveys", element: <Surveys /> },
           { path: "time-off", element: <TimeOff /> },
           { path: "tasks", element: <Tasks /> },
-          { path: "applicant-tracking", element: <ApplicantTracking /> },
+          { path: "jobs", element: <Jobs /> },
+          { path: "candidates", element: <Candidates /> },
+          { path: "interviews", element: <Interviews /> },
           { path: "payroll", element: <Payroll /> },
           { path: "timesheets", element: <Timesheets /> },
           { path: "sales", element: <Sales /> },

@@ -43,15 +43,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 export function HorizontalTabs() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Horizontal tabs
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Line tabs across the sections of a single record. The header stays
-          put and the panel below it swaps.
-        </p>
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight">Horizontal tabs</h1>
 
       <Tabs defaultValue="overview">
         <TabsList variant="line">

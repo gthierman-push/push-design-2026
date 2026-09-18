@@ -226,7 +226,7 @@ export function AppLayout() {
               </RightPanelTrigger>
             </div>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-5">
+          <div className="bg-muted flex flex-1 flex-col gap-4 p-5">
             <Outlet />
           </div>
         </SidebarInset>

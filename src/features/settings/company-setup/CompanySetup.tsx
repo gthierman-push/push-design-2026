@@ -42,6 +42,20 @@ const tabs = [
   { value: "history", label: "History" },
 ];
 
+/**
+ * Every input-shaped control lines up on the same edge, whatever it is. The
+ * width is important because `Field`'s responsive orientation sets
+ * `*:w-auto` on its children, and a child combinator out-specifies a plain
+ * width class.
+ */
+const controlWidth = "w-96!";
+
+/** Selects hug their value rather than sitting on the input measure. */
+const selectWidth = "w-fit!";
+
+/** A date is a fixed, short value, so it does not need the input measure. */
+const dateWidth = "w-48!";
+
 const provinces = ["AB", "BC", "MB", "NB", "NL", "NS", "ON", "PE", "QC", "SK"];
 
 const completedBy = ["Push Operations", "Company"];
@@ -212,7 +226,7 @@ export function CompanySetup() {
                       <Input
                         id="company-name"
                         defaultValue="Crumbl Cookie"
-                        className="w-72"
+                        className={controlWidth}
                       />
                     </Field>
 
@@ -223,7 +237,7 @@ export function CompanySetup() {
                           Leave blank if this is the same as the company name
                         </FieldDescription>
                       </FieldContent>
-                      <Input id="legal-name" className="w-72" />
+                      <Input id="legal-name" className={controlWidth} />
                     </Field>
                   </FieldRows>
                 </CardContent>
@@ -242,7 +256,7 @@ export function CompanySetup() {
                       <Input
                         id="street"
                         defaultValue="123 Robson St"
-                        className="w-72"
+                        className={controlWidth}
                       />
                     </Field>
 
@@ -253,7 +267,7 @@ export function CompanySetup() {
                       <Input
                         id="city"
                         defaultValue="Vancouver"
-                        className="w-72"
+                        className={controlWidth}
                       />
                     </Field>
 
@@ -262,7 +276,7 @@ export function CompanySetup() {
                         <FieldLabel htmlFor="province">Province</FieldLabel>
                       </FieldContent>
                       <Select defaultValue="BC">
-                        <SelectTrigger id="province" className="w-72">
+                        <SelectTrigger id="province" className={selectWidth}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -280,7 +294,7 @@ export function CompanySetup() {
                         <FieldLabel htmlFor="country">Country</FieldLabel>
                       </FieldContent>
                       <Select defaultValue="Canada">
-                        <SelectTrigger id="country" className="w-72">
+                        <SelectTrigger id="country" className={selectWidth}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -301,7 +315,7 @@ export function CompanySetup() {
                       <Input
                         id="postal-code"
                         defaultValue="V50 090"
-                        className="w-72"
+                        className={controlWidth}
                       />
                     </Field>
                   </FieldRows>
@@ -323,7 +337,7 @@ export function CompanySetup() {
                       <FieldLabel htmlFor="timezone">Timezone</FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Pacific Standard Time (PST) Vancouver">
-                      <SelectTrigger id="timezone" className="w-80">
+                      <SelectTrigger id="timezone" className={selectWidth}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -347,7 +361,10 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Kelowna, BC">
-                      <SelectTrigger id="temperature-location" className="w-80">
+                      <SelectTrigger
+                        id="temperature-location"
+                        className={selectWidth}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -369,7 +386,10 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Celsius">
-                      <SelectTrigger id="temperature-units" className="w-80">
+                      <SelectTrigger
+                        id="temperature-units"
+                        className={selectWidth}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -400,7 +420,7 @@ export function CompanySetup() {
                     <Input
                       id="roe-first-name"
                       defaultValue="Geoff"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
 
@@ -411,7 +431,7 @@ export function CompanySetup() {
                     <Input
                       id="roe-last-name"
                       defaultValue="Thierman"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
 
@@ -423,7 +443,7 @@ export function CompanySetup() {
                       id="roe-phone"
                       type="tel"
                       defaultValue="123-456-7890"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
 
@@ -434,7 +454,7 @@ export function CompanySetup() {
                     <Input
                       id="roe-extension"
                       defaultValue="123"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
                 </FieldRows>
@@ -459,7 +479,7 @@ export function CompanySetup() {
                     <Input
                       id="federal-account"
                       defaultValue="84920 1174 RP0001"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
 
@@ -472,7 +492,7 @@ export function CompanySetup() {
                     <Input
                       id="health-tax"
                       defaultValue="BC-4471-882"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
                 </FieldRows>
@@ -495,7 +515,7 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Bi-weekly">
-                      <SelectTrigger id="pay-frequency" className="w-72">
+                      <SelectTrigger id="pay-frequency" className={selectWidth}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -518,7 +538,7 @@ export function CompanySetup() {
                       id="yearly-pay-periods"
                       type="number"
                       defaultValue={24}
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
                 </FieldRows>
@@ -541,7 +561,10 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Push Operations">
-                      <SelectTrigger id="vacation-payroll" className="w-72">
+                      <SelectTrigger
+                        id="vacation-payroll"
+                        className={selectWidth}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -561,7 +584,10 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Push Operations">
-                      <SelectTrigger id="govt-remittance" className="w-72">
+                      <SelectTrigger
+                        id="govt-remittance"
+                        className={selectWidth}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -581,7 +607,10 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Monthly">
-                      <SelectTrigger id="remittance-due" className="w-72">
+                      <SelectTrigger
+                        id="remittance-due"
+                        className={selectWidth}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -599,7 +628,10 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Company">
-                      <SelectTrigger id="wcb-completed-by" className="w-72">
+                      <SelectTrigger
+                        id="wcb-completed-by"
+                        className={selectWidth}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -619,7 +651,10 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Company">
-                      <SelectTrigger id="eht-completed-by" className="w-72">
+                      <SelectTrigger
+                        id="eht-completed-by"
+                        className={selectWidth}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -641,7 +676,7 @@ export function CompanySetup() {
                     <Input
                       id="wcb-account"
                       defaultValue="123445678"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
 
@@ -695,7 +730,7 @@ export function CompanySetup() {
                       <FieldLabel htmlFor="industry">Industry</FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Restaurant">
-                      <SelectTrigger id="industry" className="w-72">
+                      <SelectTrigger id="industry" className={selectWidth}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -713,7 +748,10 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Pending - Onboarding">
-                      <SelectTrigger id="account-status" className="w-72">
+                      <SelectTrigger
+                        id="account-status"
+                        className={selectWidth}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -737,7 +775,7 @@ export function CompanySetup() {
                       <Input
                         id="cancel-date"
                         type="date"
-                        className="w-72"
+                        className={dateWidth}
                         aria-label="Cancel date"
                       />
                     </div>
@@ -750,7 +788,10 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Inactive">
-                      <SelectTrigger id="inactivation-status" className="w-72">
+                      <SelectTrigger
+                        id="inactivation-status"
+                        className={selectWidth}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -769,7 +810,7 @@ export function CompanySetup() {
                     <Input
                       id="inactivation-date"
                       type="date"
-                      className="w-72"
+                      className={dateWidth}
                     />
                   </Field>
 
@@ -816,7 +857,7 @@ export function CompanySetup() {
                       </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Demo Enterprises">
-                      <SelectTrigger id="organization" className="w-72">
+                      <SelectTrigger id="organization" className={selectWidth}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -867,7 +908,7 @@ export function CompanySetup() {
                     <Input
                       id="institution"
                       defaultValue="Coastal Credit Union"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
 
@@ -880,7 +921,7 @@ export function CompanySetup() {
                     <Input
                       id="transit-number"
                       defaultValue="00412"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
 
@@ -893,7 +934,7 @@ export function CompanySetup() {
                     <Input
                       id="account-number"
                       defaultValue="•••• •••• 7741"
-                      className="w-72"
+                      className={controlWidth}
                     />
                   </Field>
                 </FieldRows>

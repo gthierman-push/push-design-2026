@@ -21,7 +21,6 @@ import {
 } from "@components/ui/collapsible";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -29,19 +28,26 @@ import {
   DialogTitle,
 } from "@components/ui/dialog";
 import { Label } from "@components/ui/label";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@components/ui/native-select";
+import { Textarea } from "@components/ui/textarea";
+import { NativeSelect, NativeSelectOption } from "@components/ui/native-select";
 import { toast } from "@components/ui/toast";
 import { Progress } from "@components/ui/progress";
 
 type Severity = "critical" | "warning";
 
 const setupIssues: { severity: Severity; label: string }[] = [
-  { severity: "critical", label: "20 Active Employees do not have a valid address" },
-  { severity: "critical", label: "20 Active Employees have an invalid tax setup" },
-  { severity: "critical", label: "2 Positions are missing minimum wage information" },
+  {
+    severity: "critical",
+    label: "20 Active Employees do not have a valid address",
+  },
+  {
+    severity: "critical",
+    label: "20 Active Employees have an invalid tax setup",
+  },
+  {
+    severity: "critical",
+    label: "2 Positions are missing minimum wage information",
+  },
   { severity: "warning", label: "21 Active Employees have an invalid SSN" },
   { severity: "warning", label: "2 Active Employees have invalid hire dates." },
 ];
@@ -51,28 +57,39 @@ const taxSeasonChecks = [
     icon: ListChecksIcon,
     task: "Enter all taxable benefits",
     attestation: "All taxable benefits have been entered into Push",
+    reason: "I haven't entered all taxable benefits into Push",
   },
   {
     icon: BanknoteIcon,
     task: "Complete all payruns and offruns",
     attestation:
       "Everyone has been paid and there are no further payruns or offruns to run",
+    reason: "I still have payruns or offruns left to run",
   },
   {
     icon: UserRoundCheckIcon,
     task: "Enter all external payroll data (e.g. from a previous payroll system)",
     attestation:
       "Anyone paid outside of Push that requires a T4 has been entered into Push (for example, someone paid in a previous payroll system)",
+    reason:
+      "I haven't entered everyone who was paid outside of Push and needs a T4",
   },
 ];
 
+/** The reasons list ends in a free-text escape hatch the checklist has no need for. */
+const otherReason = "Other";
+
 /** The checklist, under its shared label. Rows differ between the two steps. */
-function ChecklistCard({ children }: { children: React.ReactNode }) {
+function ChecklistCard({
+  label = "Your T4 checklist",
+  children,
+}: {
+  label?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-2">
-      <DialogDescription className="font-medium">
-        Your T4 checklist
-      </DialogDescription>
+      <DialogDescription className="font-medium">{label}</DialogDescription>
       <div className="divide-border flex flex-col divide-y rounded-lg border">
         {children}
       </div>
@@ -80,14 +97,58 @@ function ChecklistCard({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** One checkbox row of a checklist. `children` sits under it when revealed. */
+function CheckRow({
+  label,
+  checked,
+  onCheckedChange,
+  children,
+}: {
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3 px-5 py-3">
+      <label className="flex cursor-pointer items-start gap-3">
+        <span className="flex size-5 shrink-0 items-center justify-center">
+          <Checkbox
+            checked={checked}
+            onCheckedChange={(value) => onCheckedChange(value === true)}
+          />
+        </span>
+        <span className="text-sm leading-5">{label}</span>
+      </label>
+      {children}
+    </div>
+  );
+}
+
+/** Adds or removes one value from a list of checked items. */
+function toggle(current: string[], value: string, checked: boolean) {
+  return checked
+    ? [...current, value]
+    : current.filter((item) => item !== value);
+}
+
 /**
- * Two steps on arrival at the payroll screen: a tax-season reminder, then a
- * confirmation that gates processing on every item being acknowledged.
+ * Three steps on arrival at the payroll screen: a tax-season reminder, a
+ * confirmation that gates processing on every item being acknowledged, and —
+ * for anyone who needs more time — the same checklist asked the other way, so
+ * we learn what is holding them up.
  */
 function TaxSeasonDialogs() {
-  const [step, setStep] = useState<"reminder" | "confirm" | null>("reminder");
+  const [step, setStep] = useState<"reminder" | "confirm" | "reasons" | null>(
+    "reminder",
+  );
   const [acknowledged, setAcknowledged] = useState<string[]>([]);
+  const [reasons, setReasons] = useState<string[]>([]);
+  const [otherDetail, setOtherDetail] = useState("");
   const allAcknowledged = acknowledged.length === taxSeasonChecks.length;
+  const needsDetail = reasons.includes(otherReason);
+  const canSubmitReasons =
+    reasons.length > 0 && (!needsDetail || otherDetail.trim() !== "");
 
   const dismiss = (open: boolean) => {
     if (!open) setStep(null);
@@ -126,31 +187,23 @@ function TaxSeasonDialogs() {
 
           <ChecklistCard>
             {taxSeasonChecks.map(({ attestation }) => (
-              <label
+              <CheckRow
                 key={attestation}
-                className="flex cursor-pointer items-start gap-3 px-5 py-3"
-              >
-                <span className="flex size-5 shrink-0 items-center justify-center">
-                  <Checkbox
-                    checked={acknowledged.includes(attestation)}
-                    onCheckedChange={(checked) =>
-                      setAcknowledged((current) =>
-                        checked
-                          ? [...current, attestation]
-                          : current.filter((item) => item !== attestation),
-                      )
-                    }
-                  />
-                </span>
-                <span className="text-sm leading-5">{attestation}</span>
-              </label>
+                label={attestation}
+                checked={acknowledged.includes(attestation)}
+                onCheckedChange={(checked) =>
+                  setAcknowledged((current) =>
+                    toggle(current, attestation, checked),
+                  )
+                }
+              />
             ))}
           </ChecklistCard>
 
           <DialogFooter>
-            <DialogClose render={<Button variant="ghost" />}>
+            <Button variant="ghost" onClick={() => setStep("reasons")}>
               I Need More Time
-            </DialogClose>
+            </Button>
             <Button
               disabled={!allAcknowledged}
               onClick={() => {
@@ -164,6 +217,68 @@ function TaxSeasonDialogs() {
               }}
             >
               I&apos;m Ready To Process T4s
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={step === "reasons"} onOpenChange={dismiss}>
+        <DialogContent className="sm:max-w-xl" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>What do you still need to do?</DialogTitle>
+          </DialogHeader>
+
+          <ChecklistCard label="Tell us what is outstanding">
+            {taxSeasonChecks.map(({ reason }) => (
+              <CheckRow
+                key={reason}
+                label={reason}
+                checked={reasons.includes(reason)}
+                onCheckedChange={(checked) =>
+                  setReasons((current) => toggle(current, reason, checked))
+                }
+              />
+            ))}
+
+            <CheckRow
+              label={otherReason}
+              checked={needsDetail}
+              onCheckedChange={(checked) =>
+                setReasons((current) => toggle(current, otherReason, checked))
+              }
+            >
+              {needsDetail ? (
+                <Textarea
+                  value={otherDetail}
+                  onChange={(event) => setOtherDetail(event.target.value)}
+                  placeholder="What is holding you up?"
+                  aria-label="Your reason"
+                  // Textarea is w-full by default, which the indent would
+                  // push past the row's edge; stretching fills what is left.
+                  className="ml-8 w-auto"
+                  rows={3}
+                />
+              ) : null}
+            </CheckRow>
+          </ChecklistCard>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setStep("confirm")}>
+              Back
+            </Button>
+            <Button
+              disabled={!canSubmitReasons}
+              onClick={() => {
+                setStep(null);
+                toast.add({
+                  type: "success",
+                  title: "Thanks — we will hold off on your T4s.",
+                  description:
+                    "We will check back with you before the filing deadline.",
+                });
+              }}
+            >
+              Submit
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -280,7 +395,10 @@ export function Payroll() {
             <PeriodFact label="Payroll period">Jul 1 - Jul 15</PeriodFact>
             <PeriodFact label="Submission Deadline">
               Jul 15 2026 2:00 PM
-              <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+              <Badge
+                variant="outline"
+                className="bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
+              >
                 Due in 7 days
               </Badge>
             </PeriodFact>

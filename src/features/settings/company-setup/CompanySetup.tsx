@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { CopyIcon, SearchIcon } from "lucide-react";
 
-import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
+import { Card, CardContent } from "@components/ui/card";
 import {
   Field,
   FieldContent,
@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { Switch } from "@components/ui/switch";
+import { Textarea } from "@components/ui/textarea";
 import { TabSelect } from "@components/ui/tab-select";
 import {
   TabVertical,
@@ -41,96 +42,110 @@ const tabs = [
   { value: "history", label: "History" },
 ];
 
-const weatherAlerts = [
+const provinces = ["AB", "BC", "MB", "NB", "NL", "NS", "ON", "PE", "QC", "SK"];
+
+const completedBy = ["Push Operations", "Company"];
+
+/** The toggles the account tab lists below its main card, in design order. */
+const accountToggles = [
+  { id: "show-employee-numbers", label: "Show Employee Numbers" },
+  { id: "covers-applicable", label: "Covers Applicable" },
+  { id: "employees-compose-messages", label: "Employees Compose Messages" },
+  { id: "roe-access", label: "ROE Access" },
+  { id: "timesheet-approvals", label: "Timesheet Approvals" },
+  { id: "rooms-applicable", label: "Rooms Applicable" },
+  { id: "contractors-only", label: "Contractors Only" },
+];
+
+const companyGroups = [
   {
-    id: "severe-weather",
-    title: "Severe weather warnings",
-    description: "Notify managers when a warning covers a work location.",
-    enabled: true,
+    name: "Demo Enterprises (organization)",
+    id: "93010305-8ba0-4876-9c03-9ca4d1a0d536",
   },
   {
-    id: "forecast-on-scheduler",
-    title: "Forecast on the scheduler",
-    description: "Show the daily forecast above each scheduled day.",
-    enabled: true,
-  },
-  {
-    id: "snow-day-prompt",
-    title: "Snow day prompt",
-    description: "Ask managers to confirm coverage when snowfall is forecast.",
-    enabled: false,
+    name: "Demo Enterprises (company)",
+    id: "6f2b1c44-1f0e-4a51-9d77-2c0a5e8b31af",
   },
 ];
 
-const taxAccounts = [
+/** `field` is bolded inside the sentence; `deleted` colors the row's marker. */
+const changes = [
   {
-    name: "Federal payroll account",
-    number: "84920 1174 RP0001",
-    verified: true,
-  },
-  { name: "Provincial health tax", number: "BC-4471-882", verified: true },
-  { name: "Workers' compensation", number: "WCB 992-114", verified: false },
-];
-
-const payrollRules = [
-  {
-    id: "auto-approve-timesheets",
-    title: "Auto-approve timesheets",
-    description: "Approve timesheets with no exceptions the night they close.",
-    enabled: false,
+    id: "change-1",
+    actor: "Push Payroll (228117)",
+    verb: "updated",
+    field: "Company Name",
+    detail: "from 0000-00-00 to 2026-06-21",
+    at: "2026-07-27 3:01:02 PM",
   },
   {
-    id: "stat-holiday-averaging",
-    title: "Statutory holiday averaging",
-    description: "Average the last 30 days when calculating holiday pay.",
-    enabled: true,
+    id: "change-2",
+    actor: "Push Payroll (228117)",
+    verb: "updated",
+    field: "Yearly Pay Periods",
+    detail: "from 52 to 24",
+    at: "2026-07-27 3:01:02 PM",
   },
   {
-    id: "overtime-daily",
-    title: "Daily overtime",
-    description: "Pay 1.5× after 8 hours in a single day.",
-    enabled: true,
-  },
-];
-
-const filings = [
-  {
-    name: "T4 slips",
-    description: "2025 tax year · due Feb 28, 2026",
-    status: "Not started",
+    id: "change-3",
+    actor: "Push Payroll (228117)",
+    verb: "deleted",
+    field: "Company Name",
+    detail: "",
+    at: "2026-07-27 3:01:02 PM",
+    deleted: true,
   },
   {
-    name: "ROE web submissions",
-    description: "Continuous · due 5 days after a departure",
-    status: "On track",
+    id: "change-4",
+    actor: "Push Payroll (228117)",
+    verb: "updated",
+    field: "Legal Name",
+    detail: "from Crumbl Cookie to Crumbl Cookie Ltd.",
+    at: "2026-07-26 11:42:18 AM",
   },
   {
-    name: "WCB quarterly return",
-    description: "Q3 2026 · due Oct 20, 2026",
-    status: "On track",
+    id: "change-5",
+    actor: "Push Payroll (228117)",
+    verb: "updated",
+    field: "Remittance Due",
+    detail: "from Quarterly to Monthly",
+    at: "2026-07-24 9:15:40 AM",
   },
 ];
 
-const departments = [
-  { name: "Front of house", locations: "4 locations", people: "112 people" },
-  { name: "Kitchen", locations: "4 locations", people: "68 people" },
-  { name: "Roastery", locations: "1 location", people: "19 people" },
-  { name: "Head office", locations: "1 location", people: "14 people" },
-];
+/** The heading that names a card, above it rather than inside it. */
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return <h2 className="text-base font-medium">{children}</h2>;
+}
 
-const history = [
-  {
-    change: "Pay period frequency changed to bi-weekly",
-    who: "Dana Whitlock",
-    when: "Sep 12, 2026",
-  },
-  { change: "ROE contact updated", who: "Priya Raman", when: "Aug 30, 2026" },
-  { change: "EFT debit account verified", who: "System", when: "Aug 14, 2026" },
-  { change: "Legal name updated", who: "Dana Whitlock", when: "Jul 2, 2026" },
-];
+/** Every editable panel closes with the same right-aligned pair. */
+function PanelActions() {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <Button variant="outline">Cancel</Button>
+      <Button>Update</Button>
+    </div>
+  );
+}
+
+/** An identifier the user copies rather than edits. */
+function IdentityTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-muted/50 flex flex-1 flex-col gap-1 rounded-lg border p-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium">{label}</span>
+        <Button variant="ghost" size="icon-xs" aria-label={`Copy ${label}`}>
+          <CopyIcon />
+        </Button>
+      </div>
+      <span className="text-muted-foreground text-sm">{value}</span>
+    </div>
+  );
+}
 
 export function CompanySetup() {
   const [tab, setTab] = useState(tabs[0].value);
+  const title = tabs.find((item) => item.value === tab)?.label;
 
   return (
     <TabVertical
@@ -147,7 +162,20 @@ export function CompanySetup() {
       </TabVerticalList>
 
       <div className="flex w-full max-w-5xl min-w-0 flex-1 flex-col gap-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Company Setup</h1>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          {tab === "history" ? (
+            <div className="relative w-64">
+              <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
+              <Input
+                type="search"
+                placeholder="Search history..."
+                aria-label="Search history"
+                className="pl-8"
+              />
+            </div>
+          ) : null}
+        </div>
 
         <TabSelect
           tabs={tabs}
@@ -157,107 +185,156 @@ export function CompanySetup() {
         />
 
         <TabVerticalContent value="company-setup">
-          <Card>
-            <CardHeader>
-              <CardTitle>Business details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FieldRows>
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="company-name">Company name</FieldLabel>
-                    <FieldDescription>
-                      What employees see across the app.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="company-name"
-                    defaultValue="Harbour Coffee Co."
-                    className="w-64"
-                  />
-                </Field>
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <SectionHeading>Company Profile</SectionHeading>
+              <Card>
+                <CardContent>
+                  <FieldRows>
+                    <Field orientation="responsive">
+                      <FieldContent>
+                        <FieldTitle>Logo</FieldTitle>
+                        <FieldDescription>
+                          Shown on pay stubs and the employee app.
+                        </FieldDescription>
+                      </FieldContent>
+                      <Button variant="outline" size="sm">
+                        Upload
+                      </Button>
+                    </Field>
 
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="legal-name">Legal name</FieldLabel>
-                    <FieldDescription>
-                      Shows on pay stubs and year-end tax forms.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="legal-name"
-                    defaultValue="Harbour Coffee Holdings Ltd."
-                    className="w-64"
-                  />
-                </Field>
+                    <Field orientation="responsive">
+                      <FieldContent>
+                        <FieldLabel htmlFor="company-name">
+                          Company Name
+                        </FieldLabel>
+                      </FieldContent>
+                      <Input
+                        id="company-name"
+                        defaultValue="Crumbl Cookie"
+                        className="w-72"
+                      />
+                    </Field>
 
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="business-number">
-                      Business number
-                    </FieldLabel>
-                    <FieldDescription>
-                      Issued by the Canada Revenue Agency.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="business-number"
-                    defaultValue="84920 1174"
-                    className="w-40"
-                  />
-                </Field>
+                    <Field orientation="responsive">
+                      <FieldContent>
+                        <FieldLabel htmlFor="legal-name">Legal Name</FieldLabel>
+                        <FieldDescription>
+                          Leave blank if this is the same as the company name
+                        </FieldDescription>
+                      </FieldContent>
+                      <Input id="legal-name" className="w-72" />
+                    </Field>
+                  </FieldRows>
+                </CardContent>
+              </Card>
+            </div>
 
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="head-office">Head office</FieldLabel>
-                    <FieldDescription>
-                      The mailing address on official correspondence.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="head-office"
-                    defaultValue="220 Water Street, Vancouver, BC"
-                    className="w-64"
-                  />
-                </Field>
-              </FieldRows>
-            </CardContent>
-          </Card>
+            <div className="flex flex-col gap-4">
+              <SectionHeading>Company Address</SectionHeading>
+              <Card>
+                <CardContent>
+                  <FieldRows>
+                    <Field orientation="responsive">
+                      <FieldContent>
+                        <FieldLabel htmlFor="street">Street</FieldLabel>
+                      </FieldContent>
+                      <Input
+                        id="street"
+                        defaultValue="123 Robson St"
+                        className="w-72"
+                      />
+                    </Field>
+
+                    <Field orientation="responsive">
+                      <FieldContent>
+                        <FieldLabel htmlFor="city">City</FieldLabel>
+                      </FieldContent>
+                      <Input
+                        id="city"
+                        defaultValue="Vancouver"
+                        className="w-72"
+                      />
+                    </Field>
+
+                    <Field orientation="responsive">
+                      <FieldContent>
+                        <FieldLabel htmlFor="province">Province</FieldLabel>
+                      </FieldContent>
+                      <Select defaultValue="BC">
+                        <SelectTrigger id="province" className="w-72">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {provinces.map((province) => (
+                            <SelectItem key={province} value={province}>
+                              {province}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+
+                    <Field orientation="responsive">
+                      <FieldContent>
+                        <FieldLabel htmlFor="country">Country</FieldLabel>
+                      </FieldContent>
+                      <Select defaultValue="Canada">
+                        <SelectTrigger id="country" className="w-72">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Canada">Canada</SelectItem>
+                          <SelectItem value="United States">
+                            United States
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+
+                    <Field orientation="responsive">
+                      <FieldContent>
+                        <FieldLabel htmlFor="postal-code">
+                          Postal Code
+                        </FieldLabel>
+                      </FieldContent>
+                      <Input
+                        id="postal-code"
+                        defaultValue="V50 090"
+                        className="w-72"
+                      />
+                    </Field>
+                  </FieldRows>
+                </CardContent>
+              </Card>
+            </div>
+
+            <PanelActions />
+          </div>
         </TabVerticalContent>
 
         <TabVerticalContent value="timezone-weather">
           <div className="flex flex-col gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Timezone</CardTitle>
-              </CardHeader>
               <CardContent>
                 <FieldRows>
                   <Field orientation="responsive">
                     <FieldContent>
-                      <FieldLabel htmlFor="timezone">
-                        Company timezone
-                      </FieldLabel>
-                      <FieldDescription>
-                        Locations can override this on their own profile.
-                      </FieldDescription>
+                      <FieldLabel htmlFor="timezone">Timezone</FieldLabel>
                     </FieldContent>
-                    <Select defaultValue="Pacific Time">
-                      <SelectTrigger id="timezone" className="w-48">
+                    <Select defaultValue="Pacific Standard Time (PST) Vancouver">
+                      <SelectTrigger id="timezone" className="w-80">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Pacific Time">
-                          Pacific Time
+                        <SelectItem value="Pacific Standard Time (PST) Vancouver">
+                          Pacific Standard Time (PST) Vancouver
                         </SelectItem>
-                        <SelectItem value="Mountain Time">
-                          Mountain Time
+                        <SelectItem value="Mountain Standard Time (MST) Edmonton">
+                          Mountain Standard Time (MST) Edmonton
                         </SelectItem>
-                        <SelectItem value="Central Time">
-                          Central Time
-                        </SelectItem>
-                        <SelectItem value="Eastern Time">
-                          Eastern Time
+                        <SelectItem value="Eastern Standard Time (EST) Toronto">
+                          Eastern Standard Time (EST) Toronto
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -265,20 +342,39 @@ export function CompanySetup() {
 
                   <Field orientation="responsive">
                     <FieldContent>
-                      <FieldLabel htmlFor="week-start">
-                        Week starts on
+                      <FieldLabel htmlFor="temperature-location">
+                        Temperature Location
                       </FieldLabel>
-                      <FieldDescription>
-                        Sets the first column on the scheduler.
-                      </FieldDescription>
                     </FieldContent>
-                    <Select defaultValue="Monday">
-                      <SelectTrigger id="week-start" className="w-40">
+                    <Select defaultValue="Kelowna, BC">
+                      <SelectTrigger id="temperature-location" className="w-80">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Sunday">Sunday</SelectItem>
-                        <SelectItem value="Monday">Monday</SelectItem>
+                        <SelectItem value="Kelowna, BC">Kelowna, BC</SelectItem>
+                        <SelectItem value="Vancouver, BC">
+                          Vancouver, BC
+                        </SelectItem>
+                        <SelectItem value="Victoria, BC">
+                          Victoria, BC
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="temperature-units">
+                        Temperature Units
+                      </FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Celsius">
+                      <SelectTrigger id="temperature-units" className="w-80">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Celsius">Celsius</SelectItem>
+                        <SelectItem value="Fahrenheit">Fahrenheit</SelectItem>
                       </SelectContent>
                     </Select>
                   </Field>
@@ -286,140 +382,120 @@ export function CompanySetup() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Weather</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FieldRows>
-                  {weatherAlerts.map((alert) => (
-                    <Field key={alert.id} orientation="responsive">
-                      <FieldContent>
-                        <FieldLabel htmlFor={alert.id}>
-                          {alert.title}
-                        </FieldLabel>
-                        <FieldDescription>{alert.description}</FieldDescription>
-                      </FieldContent>
-                      <Switch id={alert.id} defaultChecked={alert.enabled} />
-                    </Field>
-                  ))}
-                </FieldRows>
-              </CardContent>
-            </Card>
+            <PanelActions />
           </div>
         </TabVerticalContent>
 
         <TabVerticalContent value="roe-contact">
-          <Card>
-            <CardHeader>
-              <CardTitle>Record of employment contact</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FieldRows>
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="roe-name">Contact name</FieldLabel>
-                    <FieldDescription>
-                      Named on every ROE this company issues.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="roe-name"
-                    defaultValue="Priya Raman"
-                    className="w-64"
-                  />
-                </Field>
+          <div className="flex flex-col gap-6">
+            <Card>
+              <CardContent>
+                <FieldRows>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="roe-first-name">
+                        First Name
+                      </FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="roe-first-name"
+                      defaultValue="Geoff"
+                      className="w-72"
+                    />
+                  </Field>
 
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="roe-email">Email</FieldLabel>
-                    <FieldDescription>
-                      Service Canada sends ROE confirmations here.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="roe-email"
-                    type="email"
-                    defaultValue="priya.raman@harbourcoffee.example"
-                    className="w-64"
-                  />
-                </Field>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="roe-last-name">Last Name</FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="roe-last-name"
+                      defaultValue="Thierman"
+                      className="w-72"
+                    />
+                  </Field>
 
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="roe-phone">Phone</FieldLabel>
-                    <FieldDescription>
-                      Reachable during business hours.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="roe-phone"
-                    type="tel"
-                    defaultValue="604-555-0148"
-                    className="w-40"
-                  />
-                </Field>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="roe-phone">Phone Number</FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="roe-phone"
+                      type="tel"
+                      defaultValue="123-456-7890"
+                      className="w-72"
+                    />
+                  </Field>
 
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="roe-extension">Extension</FieldLabel>
-                    <FieldDescription>Optional.</FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="roe-extension"
-                    defaultValue="212"
-                    className="w-24"
-                  />
-                </Field>
-              </FieldRows>
-            </CardContent>
-          </Card>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="roe-extension">Extension</FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="roe-extension"
+                      defaultValue="123"
+                      className="w-72"
+                    />
+                  </Field>
+                </FieldRows>
+              </CardContent>
+            </Card>
+
+            <PanelActions />
+          </div>
         </TabVerticalContent>
 
         <TabVerticalContent value="taxes">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tax accounts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FieldRows>
-                {taxAccounts.map((account) => (
-                  <Field key={account.name} orientation="responsive">
+          <div className="flex flex-col gap-6">
+            <Card>
+              <CardContent>
+                <FieldRows>
+                  <Field orientation="responsive">
                     <FieldContent>
-                      <FieldTitle>{account.name}</FieldTitle>
-                      <FieldDescription>{account.number}</FieldDescription>
+                      <FieldLabel htmlFor="federal-account">
+                        Federal Payroll Account
+                      </FieldLabel>
                     </FieldContent>
-                    {account.verified ? (
-                      <Badge variant="secondary">Verified</Badge>
-                    ) : (
-                      <Button variant="outline" size="sm">
-                        Review
-                      </Button>
-                    )}
+                    <Input
+                      id="federal-account"
+                      defaultValue="84920 1174 RP0001"
+                      className="w-72"
+                    />
                   </Field>
-                ))}
-              </FieldRows>
-            </CardContent>
-          </Card>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="health-tax">
+                        Provincial Health Tax
+                      </FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="health-tax"
+                      defaultValue="BC-4471-882"
+                      className="w-72"
+                    />
+                  </Field>
+                </FieldRows>
+              </CardContent>
+            </Card>
+
+            <PanelActions />
+          </div>
         </TabVerticalContent>
 
         <TabVerticalContent value="payroll-configuration">
           <div className="flex flex-col gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Pay periods</CardTitle>
-              </CardHeader>
               <CardContent>
                 <FieldRows>
                   <Field orientation="responsive">
                     <FieldContent>
-                      <FieldLabel htmlFor="pay-frequency">Frequency</FieldLabel>
-                      <FieldDescription>
-                        How often a pay period closes.
-                      </FieldDescription>
+                      <FieldLabel htmlFor="pay-frequency">
+                        Pay Frequency
+                      </FieldLabel>
                     </FieldContent>
                     <Select defaultValue="Bi-weekly">
-                      <SelectTrigger id="pay-frequency" className="w-40">
+                      <SelectTrigger id="pay-frequency" className="w-72">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -434,234 +510,424 @@ export function CompanySetup() {
 
                   <Field orientation="responsive">
                     <FieldContent>
-                      <FieldLabel htmlFor="next-pay-date">
-                        Next pay date
+                      <FieldLabel htmlFor="yearly-pay-periods">
+                        Yearly Pay Periods
                       </FieldLabel>
-                      <FieldDescription>
-                        Payroll must be submitted three business days before.
-                      </FieldDescription>
                     </FieldContent>
                     <Input
-                      id="next-pay-date"
-                      type="date"
-                      defaultValue="2026-09-25"
-                      className="w-44"
+                      id="yearly-pay-periods"
+                      type="number"
+                      defaultValue={24}
+                      className="w-72"
                     />
                   </Field>
                 </FieldRows>
               </CardContent>
             </Card>
 
+            <PanelActions />
+          </div>
+        </TabVerticalContent>
+
+        <TabVerticalContent value="compliance-filing">
+          <div className="flex flex-col gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Rules</CardTitle>
-              </CardHeader>
               <CardContent>
                 <FieldRows>
-                  {payrollRules.map((rule) => (
-                    <Field key={rule.id} orientation="responsive">
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="vacation-payroll">
+                        Vacation Payroll Managed By
+                      </FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Push Operations">
+                      <SelectTrigger id="vacation-payroll" className="w-72">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {completedBy.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="govt-remittance">
+                        Gov&apos;t Remittance Completed By
+                      </FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Push Operations">
+                      <SelectTrigger id="govt-remittance" className="w-72">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {completedBy.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="remittance-due">
+                        Remittance Due
+                      </FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Monthly">
+                      <SelectTrigger id="remittance-due" className="w-72">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Monthly">Monthly</SelectItem>
+                        <SelectItem value="Quarterly">Quarterly</SelectItem>
+                        <SelectItem value="Annually">Annually</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="wcb-completed-by">
+                        WCB/WSIB Completed By
+                      </FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Company">
+                      <SelectTrigger id="wcb-completed-by" className="w-72">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {completedBy.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="eht-completed-by">
+                        EHT Completed By
+                      </FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Company">
+                      <SelectTrigger id="eht-completed-by" className="w-72">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {completedBy.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="wcb-account">
+                        WCB Account #
+                      </FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="wcb-account"
+                      defaultValue="123445678"
+                      className="w-72"
+                    />
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="require-paystub-delivery">
+                        Require Paystub Delivery?
+                      </FieldLabel>
+                    </FieldContent>
+                    <Switch id="require-paystub-delivery" defaultChecked />
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="require-roe">Require ROE</FieldLabel>
+                    </FieldContent>
+                    <Switch id="require-roe" defaultChecked />
+                  </Field>
+                </FieldRows>
+              </CardContent>
+            </Card>
+
+            <PanelActions />
+          </div>
+        </TabVerticalContent>
+
+        <TabVerticalContent value="account">
+          <div className="flex flex-col gap-6">
+            <Card>
+              <CardContent className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <IdentityTile
+                    label="Company UUID"
+                    value="f5f4056e-37c6-414e-afc4-45a0a4f0218a"
+                  />
+                  <IdentityTile label="Company ID" value="21877" />
+                </div>
+
+                <FieldRows>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="demo-account">
+                        Demo Account?
+                      </FieldLabel>
+                    </FieldContent>
+                    <Switch id="demo-account" defaultChecked />
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="industry">Industry</FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Restaurant">
+                      <SelectTrigger id="industry" className="w-72">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Restaurant">Restaurant</SelectItem>
+                        <SelectItem value="Retail">Retail</SelectItem>
+                        <SelectItem value="Hospitality">Hospitality</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="account-status">
+                        Account Status
+                      </FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Pending - Onboarding">
+                      <SelectTrigger id="account-status" className="w-72">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pending - Onboarding">
+                          Pending - Onboarding
+                        </SelectItem>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="cancel-date">Cancel Date</FieldLabel>
+                    </FieldContent>
+                    <div className="flex items-center gap-3">
+                      <Button variant="link" size="sm" className="px-0">
+                        Find Date
+                      </Button>
+                      <Input
+                        id="cancel-date"
+                        type="date"
+                        className="w-72"
+                        aria-label="Cancel date"
+                      />
+                    </div>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="inactivation-status">
+                        Inactivation Status
+                      </FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Inactive">
+                      <SelectTrigger id="inactivation-status" className="w-72">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="inactivation-date">
+                        Inactivation Date
+                      </FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="inactivation-date"
+                      type="date"
+                      className="w-72"
+                    />
+                  </Field>
+
+                  {/* The note is prose rather than a value, so it takes the
+                      full row instead of sitting opposite its label. */}
+                  <Field>
+                    <FieldLabel htmlFor="account-note">Note</FieldLabel>
+                    <Textarea id="account-note" rows={6} />
+                  </Field>
+                </FieldRows>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <FieldRows>
+                  {accountToggles.map((toggle) => (
+                    <Field key={toggle.id} orientation="responsive">
                       <FieldContent>
-                        <FieldLabel htmlFor={rule.id}>{rule.title}</FieldLabel>
-                        <FieldDescription>{rule.description}</FieldDescription>
+                        <FieldLabel htmlFor={toggle.id}>
+                          {toggle.label}
+                        </FieldLabel>
                       </FieldContent>
-                      <Switch id={rule.id} defaultChecked={rule.enabled} />
+                      <Switch id={toggle.id} defaultChecked />
                     </Field>
                   ))}
                 </FieldRows>
               </CardContent>
             </Card>
+
+            <PanelActions />
           </div>
         </TabVerticalContent>
 
-        <TabVerticalContent value="compliance-filing">
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming filings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FieldRows>
-                {filings.map((filing) => (
-                  <Field key={filing.name} orientation="responsive">
-                    <FieldContent>
-                      <FieldTitle>{filing.name}</FieldTitle>
-                      <FieldDescription>{filing.description}</FieldDescription>
-                    </FieldContent>
-                    <Badge
-                      variant={
-                        filing.status === "On track" ? "secondary" : "outline"
-                      }
-                    >
-                      {filing.status}
-                    </Badge>
-                  </Field>
-                ))}
-              </FieldRows>
-            </CardContent>
-          </Card>
-        </TabVerticalContent>
-
-        <TabVerticalContent value="account">
-          <Card>
-            <CardHeader>
-              <CardTitle>Plan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FieldRows>
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldTitle>Workforce Premium</FieldTitle>
-                    <FieldDescription>
-                      213 active employees · renews Jan 1, 2027
-                    </FieldDescription>
-                  </FieldContent>
-                  <Button variant="outline" size="sm">
-                    Change plan
-                  </Button>
-                </Field>
-
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="billing-contact">
-                      Billing contact
-                    </FieldLabel>
-                    <FieldDescription>
-                      Invoices and receipts go here.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="billing-contact"
-                    type="email"
-                    defaultValue="accounts@harbourcoffee.example"
-                    className="w-64"
-                  />
-                </Field>
-
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldTitle>Invoices</FieldTitle>
-                    <FieldDescription>
-                      Last issued Sep 1, 2026.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Button variant="outline" size="sm">
-                    View
-                  </Button>
-                </Field>
-              </FieldRows>
-            </CardContent>
-          </Card>
-        </TabVerticalContent>
-
         <TabVerticalContent value="organization">
-          <Card>
-            <CardHeader>
-              <CardTitle>Departments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FieldRows>
-                {departments.map((department) => (
-                  <Field key={department.name} orientation="responsive">
+          <div className="flex flex-col gap-8">
+            <Card>
+              <CardContent>
+                <FieldRows>
+                  <Field orientation="responsive">
                     <FieldContent>
-                      <FieldTitle>{department.name}</FieldTitle>
-                      <FieldDescription>
-                        {department.locations} · {department.people}
-                      </FieldDescription>
+                      <FieldLabel htmlFor="organization">
+                        Organization
+                      </FieldLabel>
                     </FieldContent>
-                    <Button variant="outline" size="sm">
-                      Edit
-                    </Button>
+                    <Select defaultValue="Demo Enterprises">
+                      <SelectTrigger id="organization" className="w-72">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Demo Enterprises">
+                          Demo Enterprises
+                        </SelectItem>
+                        <SelectItem value="Harbour Coffee Holdings">
+                          Harbour Coffee Holdings
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
-                ))}
-              </FieldRows>
-            </CardContent>
-          </Card>
+                </FieldRows>
+              </CardContent>
+            </Card>
+
+            <div className="flex flex-col gap-4">
+              <SectionHeading>Company Groups</SectionHeading>
+              <Card>
+                <CardContent>
+                  <FieldRows>
+                    {companyGroups.map((group) => (
+                      <Field key={group.id} orientation="responsive">
+                        <FieldContent>
+                          <FieldTitle>{group.name}</FieldTitle>
+                        </FieldContent>
+                        <span className="text-muted-foreground text-xs">
+                          {group.id}
+                        </span>
+                      </Field>
+                    ))}
+                  </FieldRows>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabVerticalContent>
 
         <TabVerticalContent value="eft-debit">
-          <Card>
-            <CardHeader>
-              <CardTitle>Debit account</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FieldRows>
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="institution">Institution</FieldLabel>
-                    <FieldDescription>
-                      The bank holding the account.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="institution"
-                    defaultValue="Coastal Credit Union"
-                    className="w-64"
-                  />
-                </Field>
+          <div className="flex flex-col gap-6">
+            <Card>
+              <CardContent>
+                <FieldRows>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="institution">Institution</FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="institution"
+                      defaultValue="Coastal Credit Union"
+                      className="w-72"
+                    />
+                  </Field>
 
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="transit-number">
-                      Transit number
-                    </FieldLabel>
-                    <FieldDescription>
-                      Five digits, from a void cheque.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="transit-number"
-                    defaultValue="00412"
-                    className="w-32"
-                  />
-                </Field>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="transit-number">
+                        Transit Number
+                      </FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="transit-number"
+                      defaultValue="00412"
+                      className="w-72"
+                    />
+                  </Field>
 
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="account-number">
-                      Account number
-                    </FieldLabel>
-                    <FieldDescription>
-                      Payroll and remittances are drawn from this account.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Input
-                    id="account-number"
-                    defaultValue="•••• •••• 7741"
-                    className="w-48"
-                  />
-                </Field>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="account-number">
+                        Account Number
+                      </FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="account-number"
+                      defaultValue="•••• •••• 7741"
+                      className="w-72"
+                    />
+                  </Field>
+                </FieldRows>
+              </CardContent>
+            </Card>
 
-                <Field orientation="responsive">
-                  <FieldContent>
-                    <FieldLabel htmlFor="pre-note">Pre-note new</FieldLabel>
-                    <FieldDescription>
-                      Send a zero-dollar test before the first real debit.
-                    </FieldDescription>
-                  </FieldContent>
-                  <Switch id="pre-note" defaultChecked />
-                </Field>
-              </FieldRows>
-            </CardContent>
-          </Card>
+            <PanelActions />
+          </div>
         </TabVerticalContent>
 
         <TabVerticalContent value="history">
           <Card>
-            <CardHeader>
-              <CardTitle>Change log</CardTitle>
-            </CardHeader>
             <CardContent>
               <FieldRows>
-                {history.map((entry) => (
-                  <Field key={entry.change} orientation="responsive">
+                {changes.map((change) => (
+                  <Field key={change.id} orientation="responsive">
+                    <div
+                      aria-hidden="true"
+                      className={
+                        change.deleted
+                          ? "bg-destructive w-0.5 shrink-0 self-stretch rounded-full"
+                          : "bg-primary-alt w-0.5 shrink-0 self-stretch rounded-full"
+                      }
+                    />
                     <FieldContent>
-                      <FieldTitle>{entry.change}</FieldTitle>
-                      <FieldDescription>
-                        {entry.who} · {entry.when}
-                      </FieldDescription>
+                      <FieldTitle className="font-normal">
+                        {change.actor} {change.verb}{" "}
+                        <span className="font-medium">{change.field}</span>
+                        {change.detail ? ` ${change.detail}` : null}
+                      </FieldTitle>
                     </FieldContent>
-                    <Button variant="outline" size="sm">
-                      View
-                    </Button>
+                    <span className="text-muted-foreground shrink-0 text-xs">
+                      {change.at}
+                    </span>
                   </Field>
                 ))}
               </FieldRows>

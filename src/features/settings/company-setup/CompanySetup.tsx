@@ -1,7 +1,7 @@
 import { CopyIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "@components/ui/button";
-import { Card, CardContent } from "@components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import {
   Field,
   FieldContent,
@@ -42,19 +42,21 @@ const tabs = [
   { value: "history", label: "History" },
 ];
 
-/**
- * Every input-shaped control lines up on the same edge, whatever it is. The
- * width is important because `Field`'s responsive orientation sets
- * `*:w-auto` on its children, and a child combinator out-specifies a plain
- * width class.
- */
-const controlWidth = "w-96!";
+/** Every input-shaped control lines up on the same edge, whatever it is. */
+const controlWidth = "w-96";
 
 /** Selects hug their value rather than sitting on the input measure. */
-const selectWidth = "w-fit!";
+const selectWidth = "w-fit";
 
 /** A date is a fixed, short value, so it does not need the input measure. */
-const dateWidth = "w-48!";
+const dateWidth = "w-48";
+
+/**
+ * FieldRows gives its first and last row their own padding, so the card's
+ * own would sit on top of it. A card that opens with a title keeps its top
+ * padding, since the title has no row padding of its own.
+ */
+const cardPadding = "pb-0 [&:not(:has([data-slot=card-header]))]:pt-0";
 
 const provinces = ["AB", "BC", "MB", "NB", "NL", "NS", "ON", "PE", "QC", "SK"];
 
@@ -130,11 +132,6 @@ const changes = [
   },
 ];
 
-/** The heading that names a card, above it rather than inside it. */
-function SectionHeading({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-base font-medium">{children}</h2>;
-}
-
 /** Every editable panel closes with the same right-aligned pair. */
 function PanelActions() {
   return (
@@ -202,129 +199,127 @@ export function CompanySetup() {
         />
 
         <TabVerticalContent value="company-setup">
-          <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-4">
-              <SectionHeading>Company Profile</SectionHeading>
-              <Card>
-                <CardContent>
-                  <FieldRows>
-                    <Field id="logo" orientation="responsive">
-                      <FieldContent>
-                        <FieldTitle>Logo</FieldTitle>
-                        <FieldDescription>
-                          Shown on pay stubs and the employee app.
-                        </FieldDescription>
-                      </FieldContent>
-                      <Button variant="outline" size="sm">
-                        Upload
-                      </Button>
-                    </Field>
+          <div className="flex flex-col gap-6">
+            <Card className={cardPadding}>
+              <CardHeader>
+                <CardTitle>Company Profile</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FieldRows>
+                  <Field id="logo" orientation="responsive">
+                    <FieldContent>
+                      <FieldTitle>Logo</FieldTitle>
+                      <FieldDescription>
+                        Shown on pay stubs and the employee app.
+                      </FieldDescription>
+                    </FieldContent>
+                    <Button variant="outline" size="sm">
+                      Upload
+                    </Button>
+                  </Field>
 
-                    <Field orientation="responsive">
-                      <FieldContent>
-                        <FieldLabel htmlFor="company-name">
-                          Company Name
-                        </FieldLabel>
-                      </FieldContent>
-                      <Input
-                        id="company-name"
-                        defaultValue="Crumbl Cookie"
-                        className={controlWidth}
-                      />
-                    </Field>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="company-name">
+                        Company Name
+                      </FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="company-name"
+                      defaultValue="Crumbl Cookie"
+                      className={controlWidth}
+                    />
+                  </Field>
 
-                    <Field orientation="responsive">
-                      <FieldContent>
-                        <FieldLabel htmlFor="legal-name">Legal Name</FieldLabel>
-                        <FieldDescription>
-                          Leave blank if this is the same as the company name
-                        </FieldDescription>
-                      </FieldContent>
-                      <Input id="legal-name" className={controlWidth} />
-                    </Field>
-                  </FieldRows>
-                </CardContent>
-              </Card>
-            </div>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="legal-name">Legal Name</FieldLabel>
+                      <FieldDescription>
+                        Leave blank if this is the same as the company name
+                      </FieldDescription>
+                    </FieldContent>
+                    <Input id="legal-name" className={controlWidth} />
+                  </Field>
+                </FieldRows>
+              </CardContent>
+            </Card>
 
-            <div className="flex flex-col gap-4">
-              <SectionHeading>Company Address</SectionHeading>
-              <Card>
-                <CardContent>
-                  <FieldRows>
-                    <Field orientation="responsive">
-                      <FieldContent>
-                        <FieldLabel htmlFor="street">Street</FieldLabel>
-                      </FieldContent>
-                      <Input
-                        id="street"
-                        defaultValue="123 Robson St"
-                        className={controlWidth}
-                      />
-                    </Field>
+            <Card className={cardPadding}>
+              <CardHeader>
+                <CardTitle>Company Address</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FieldRows>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="street">Street</FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="street"
+                      defaultValue="123 Robson St"
+                      className={controlWidth}
+                    />
+                  </Field>
 
-                    <Field orientation="responsive">
-                      <FieldContent>
-                        <FieldLabel htmlFor="city">City</FieldLabel>
-                      </FieldContent>
-                      <Input
-                        id="city"
-                        defaultValue="Vancouver"
-                        className={controlWidth}
-                      />
-                    </Field>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="city">City</FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="city"
+                      defaultValue="Vancouver"
+                      className={controlWidth}
+                    />
+                  </Field>
 
-                    <Field orientation="responsive">
-                      <FieldContent>
-                        <FieldLabel htmlFor="province">Province</FieldLabel>
-                      </FieldContent>
-                      <Select defaultValue="BC">
-                        <SelectTrigger id="province" className={selectWidth}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {provinces.map((province) => (
-                            <SelectItem key={province} value={province}>
-                              {province}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-
-                    <Field orientation="responsive">
-                      <FieldContent>
-                        <FieldLabel htmlFor="country">Country</FieldLabel>
-                      </FieldContent>
-                      <Select defaultValue="Canada">
-                        <SelectTrigger id="country" className={selectWidth}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Canada">Canada</SelectItem>
-                          <SelectItem value="United States">
-                            United States
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="province">Province</FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="BC">
+                      <SelectTrigger id="province" className={selectWidth}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {provinces.map((province) => (
+                          <SelectItem key={province} value={province}>
+                            {province}
                           </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </Field>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
 
-                    <Field orientation="responsive">
-                      <FieldContent>
-                        <FieldLabel htmlFor="postal-code">
-                          Postal Code
-                        </FieldLabel>
-                      </FieldContent>
-                      <Input
-                        id="postal-code"
-                        defaultValue="V50 090"
-                        className={controlWidth}
-                      />
-                    </Field>
-                  </FieldRows>
-                </CardContent>
-              </Card>
-            </div>
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="country">Country</FieldLabel>
+                    </FieldContent>
+                    <Select defaultValue="Canada">
+                      <SelectTrigger id="country" className={selectWidth}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Canada">Canada</SelectItem>
+                        <SelectItem value="United States">
+                          United States
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field orientation="responsive">
+                    <FieldContent>
+                      <FieldLabel htmlFor="postal-code">Postal Code</FieldLabel>
+                    </FieldContent>
+                    <Input
+                      id="postal-code"
+                      defaultValue="V50 090"
+                      className={controlWidth}
+                    />
+                  </Field>
+                </FieldRows>
+              </CardContent>
+            </Card>
 
             <PanelActions />
           </div>
@@ -332,7 +327,7 @@ export function CompanySetup() {
 
         <TabVerticalContent value="timezone-weather">
           <div className="flex flex-col gap-6">
-            <Card>
+            <Card className={cardPadding}>
               <CardContent>
                 <FieldRows>
                   <Field orientation="responsive">
@@ -411,7 +406,7 @@ export function CompanySetup() {
 
         <TabVerticalContent value="roe-contact">
           <div className="flex flex-col gap-6">
-            <Card>
+            <Card className={cardPadding}>
               <CardContent>
                 <FieldRows>
                   <Field orientation="responsive">
@@ -470,7 +465,7 @@ export function CompanySetup() {
 
         <TabVerticalContent value="taxes">
           <div className="flex flex-col gap-6">
-            <Card>
+            <Card className={cardPadding}>
               <CardContent>
                 <FieldRows>
                   <Field orientation="responsive">
@@ -508,7 +503,7 @@ export function CompanySetup() {
 
         <TabVerticalContent value="payroll-configuration">
           <div className="flex flex-col gap-6">
-            <Card>
+            <Card className={cardPadding}>
               <CardContent>
                 <FieldRows>
                   <Field orientation="responsive">
@@ -554,7 +549,7 @@ export function CompanySetup() {
 
         <TabVerticalContent value="compliance-filing">
           <div className="flex flex-col gap-6">
-            <Card>
+            <Card className={cardPadding}>
               <CardContent>
                 <FieldRows>
                   <Field orientation="responsive">
@@ -708,7 +703,9 @@ export function CompanySetup() {
 
         <TabVerticalContent value="account">
           <div className="flex flex-col gap-6">
-            <Card>
+            {/* This card opens with the tiles rather than a row, so it keeps
+                the top padding the rows would otherwise stand in for. */}
+            <Card className="pb-0">
               <CardContent className="flex flex-col gap-4">
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <IdentityTile
@@ -827,7 +824,7 @@ export function CompanySetup() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className={cardPadding}>
               <CardContent>
                 <FieldRows>
                   {accountToggles.map((toggle) => (
@@ -849,8 +846,8 @@ export function CompanySetup() {
         </TabVerticalContent>
 
         <TabVerticalContent value="organization">
-          <div className="flex flex-col gap-8">
-            <Card>
+          <div className="flex flex-col gap-6">
+            <Card className={cardPadding}>
               <CardContent>
                 <FieldRows>
                   <Field orientation="responsive">
@@ -877,35 +874,35 @@ export function CompanySetup() {
               </CardContent>
             </Card>
 
-            <div className="flex flex-col gap-4">
-              <SectionHeading>Company Groups</SectionHeading>
-              <Card>
-                <CardContent>
-                  <FieldRows>
-                    {companyGroups.map((group) => (
-                      <Field
-                        key={group.id}
-                        id={group.anchor}
-                        orientation="responsive"
-                      >
-                        <FieldContent>
-                          <FieldTitle>{group.name}</FieldTitle>
-                        </FieldContent>
-                        <span className="text-muted-foreground text-xs">
-                          {group.id}
-                        </span>
-                      </Field>
-                    ))}
-                  </FieldRows>
-                </CardContent>
-              </Card>
-            </div>
+            <Card className={cardPadding}>
+              <CardHeader>
+                <CardTitle>Company Groups</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FieldRows>
+                  {companyGroups.map((group) => (
+                    <Field
+                      key={group.id}
+                      id={group.anchor}
+                      orientation="responsive"
+                    >
+                      <FieldContent>
+                        <FieldTitle>{group.name}</FieldTitle>
+                      </FieldContent>
+                      <span className="text-muted-foreground text-xs">
+                        {group.id}
+                      </span>
+                    </Field>
+                  ))}
+                </FieldRows>
+              </CardContent>
+            </Card>
           </div>
         </TabVerticalContent>
 
         <TabVerticalContent value="eft-debit">
           <div className="flex flex-col gap-6">
-            <Card>
+            <Card className={cardPadding}>
               <CardContent>
                 <FieldRows>
                   <Field orientation="responsive">
@@ -953,7 +950,7 @@ export function CompanySetup() {
         </TabVerticalContent>
 
         <TabVerticalContent value="history">
-          <Card>
+          <Card className={cardPadding}>
             <CardContent>
               <FieldRows>
                 {changes.map((change) => (

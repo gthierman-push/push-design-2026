@@ -42,7 +42,7 @@ export function HorizontalForm() {
       {/* The card is its own container, so this example skips the bordered
           preview the other pages use and sits straight on the page. */}
       <section className="flex w-full max-w-5xl flex-col gap-3">
-        <Card className="w-full">
+        <Card className="w-full pb-0">
           <CardHeader>
             <CardTitle>Alerts</CardTitle>
           </CardHeader>
@@ -85,7 +85,7 @@ export function HorizontalForm() {
                   </FieldDescription>
                 </FieldContent>
                 <Select defaultValue="Weekly">
-                  <SelectTrigger id="digest" className="w-40">
+                  <SelectTrigger id="digest" className="w-fit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

@@ -17,6 +17,7 @@ import {
   HeartHandshakeIcon,
   KeyRoundIcon,
   LandmarkIcon,
+  LayoutTemplateIcon,
   NetworkIcon,
   PalmtreeIcon,
   PlugIcon,
@@ -24,6 +25,7 @@ import {
   ShieldAlertIcon,
   ShieldCheckIcon,
   SlidersHorizontalIcon,
+  TagIcon,
   TagsIcon,
   TrendingUpIcon,
   UserCogIcon,
@@ -130,6 +132,12 @@ export const sections: SettingsNavSection[] = [
   {
     label: "Scheduling",
     items: [
+      { title: "Shift Tags", url: "/settings/shift-tags", icon: TagIcon },
+      {
+        title: "Shift Presets",
+        url: "/settings/shift-presets",
+        icon: LayoutTemplateIcon,
+      },
       {
         title: "Clock Settings",
         url: "/settings/clock-settings",

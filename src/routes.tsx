@@ -55,6 +55,8 @@ import { Positions } from "@features/settings/positions";
 import { ProfitCenters } from "@features/settings/profit-centers";
 import { Roles } from "@features/settings/roles";
 import { Security } from "@features/settings/security";
+import { ShiftPresets } from "@features/settings/shift-presets";
+import { ShiftTags } from "@features/settings/shift-tags";
 import { StatutoryHolidays } from "@features/settings/statutory-holidays";
 import { TaxSetup } from "@features/settings/tax-setup";
 import { TimeOff as TimeOffSettings } from "@features/settings/time-off";
@@ -137,6 +139,8 @@ export const router = createBrowserRouter([
       { path: "journal-entries", element: <JournalEntries /> },
       { path: "bulk-salary-updates", element: <BulkSalaryUpdates /> },
       { path: "benefits", element: <Benefits /> },
+      { path: "shift-tags", element: <ShiftTags /> },
+      { path: "shift-presets", element: <ShiftPresets /> },
       { path: "clock-settings", element: <ClockSettings /> },
       { path: "clock-surveys", element: <ClockSurveys /> },
       { path: "breaks", element: <Breaks /> },

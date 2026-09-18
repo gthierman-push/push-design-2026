@@ -34,6 +34,7 @@ export const designSections = [
       { title: "Empty states", url: "/design/empty-states" },
       { title: "Data display", url: "/design/data-display" },
       { title: "Navigation", url: "/design/navigation" },
+      { title: "Horizontal form", url: "/design/horizontal-form" },
     ],
   },
   {

@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useLocation } from "react-router";
+import type { LucideIcon } from "lucide-react";
 import {
   BadgeDollarSignIcon,
   BriefcaseBusinessIcon,
@@ -59,7 +60,15 @@ import {
   SidebarTrigger,
 } from "@components/ui/sidebar";
 
-const sections = [
+type NavItem = {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  notify?: boolean;
+  settingsUrl?: string;
+};
+
+const sections: { label: string; items: NavItem[] }[] = [
   {
     label: "Scheduling",
     items: [
@@ -76,7 +85,12 @@ const sections = [
   {
     label: "Workforce Management",
     items: [
-      { title: "Employees", url: "/employees", icon: UsersIcon },
+      {
+        title: "Employees",
+        url: "/employees",
+        icon: UsersIcon,
+        settingsUrl: "/settings/employee-settings",
+      },
       { title: "Milestones", url: "/milestones", icon: FlagIcon },
       { title: "Performance", url: "/performance", icon: TrophyIcon },
       { title: "Surveys", url: "/surveys", icon: ClipboardCheckIcon },
@@ -217,6 +231,16 @@ export function AppLayout() {
             </Breadcrumb>
 
             <div className="ml-auto flex items-center gap-2">
+              {current?.settingsUrl ? (
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label={`${current.title} settings`}
+                  render={<NavLink to={current.settingsUrl} />}
+                >
+                  <SettingsIcon />
+                </Button>
+              ) : null}
               <RightPanelTrigger
                 panel={askAiPanel}
                 render={<Button variant="outline" size="sm" />}

@@ -1,10 +1,11 @@
 import * as React from "react";
 import { useNavigate } from "react-router";
-import { SearchIcon } from "lucide-react";
+import { PlusIcon, SearchIcon } from "lucide-react";
 
+import type { NavItem } from "@layouts/app-nav";
 import { footerNavigation, home, sections } from "@layouts/app-nav";
 import { sections as settingsSections } from "@layouts/settings-nav";
-import { Button } from "@components/ui/button";
+import { SidebarMenuButton } from "@components/ui/sidebar";
 import {
   Command,
   CommandDialog,
@@ -16,22 +17,60 @@ import {
 } from "@components/ui/command";
 import { Kbd, KbdGroup } from "@components/ui/kbd";
 
-/**
- * Every page ⌘K can reach, in the order it lists them. Settings groups keep
- * their own label so a search for "time off" tells the two pages apart.
- */
-const groups = [
-  { label: "Go to", items: [home, ...footerNavigation] },
-  ...sections,
-  ...settingsSections.map((section) => ({
-    label: `Settings · ${section.label}`,
-    items: section.items,
-  })),
+/** A page, plus anything else worth matching a query against. */
+type PaletteItem = NavItem & { keywords?: string[] };
+
+type PaletteGroup = {
+  label: string;
+  items: PaletteItem[];
+  /** Kept out of the resting list: it only shows up once there is a query. */
+  searchOnly?: boolean;
+};
+
+/** Things to do, ahead of places to go. Add a group here as one is needed. */
+const groups: PaletteGroup[] = [
+  {
+    label: "Actions",
+    items: [
+      { title: "Add employee", url: "/employees", icon: PlusIcon },
+      { title: "Run payroll", url: "/payroll", icon: PlusIcon },
+    ],
+  },
+  {
+    /** Every page the sidebar holds, read top to bottom the way it reads. */
+    label: "Pages",
+    items: [
+      home,
+      ...sections.flatMap((section) => section.items),
+      ...footerNavigation,
+    ],
+  },
+  {
+    /**
+     * The settings nav, flattened. Each page carries its section as a keyword,
+     * so "payroll tax" finds Tax Setup even though the row only says so much.
+     */
+    label: "Settings",
+    searchOnly: true,
+    items: settingsSections.flatMap((section) =>
+      section.items.map((item) => ({ ...item, keywords: [section.label] })),
+    ),
+  },
 ];
 
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
   const navigate = useNavigate();
+
+  /** A fresh palette every time, however it was closed. */
+  React.useEffect(() => {
+    if (!open) setSearch("");
+  }, [open]);
+
+  const visibleGroups = search.trim()
+    ? groups
+    : groups.filter((group) => !group.searchOnly);
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -47,19 +86,18 @@ export function CommandPalette() {
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        className="text-muted-foreground w-44 justify-start font-normal"
+      <SidebarMenuButton
+        tooltip="Search pages"
+        className="text-muted-foreground"
         onClick={() => setOpen(true)}
       >
-        <SearchIcon data-icon="inline-start" />
-        Search pages
+        <SearchIcon />
+        <span>Search</span>
         <KbdGroup className="ml-auto">
           <Kbd>⌘</Kbd>
           <Kbd>K</Kbd>
         </KbdGroup>
-      </Button>
+      </SidebarMenuButton>
 
       <CommandDialog
         open={open}
@@ -68,15 +106,26 @@ export function CommandPalette() {
         description="Search for a page to jump to"
       >
         <Command>
-          <CommandInput placeholder="Search pages..." />
+          <CommandInput
+            value={search}
+            onValueChange={setSearch}
+            placeholder="Search pages..."
+            hint={
+              <KbdGroup>
+                <Kbd>⌘</Kbd>
+                <Kbd>K</Kbd>
+              </KbdGroup>
+            }
+          />
           <CommandList>
             <CommandEmpty>No pages found.</CommandEmpty>
-            {groups.map((group) => (
+            {visibleGroups.map((group) => (
               <CommandGroup key={group.label} heading={group.label}>
                 {group.items.map((item) => (
                   <CommandItem
                     key={item.url}
                     value={`${item.title} ${group.label}`}
+                    keywords={item.keywords}
                     onSelect={() => {
                       setOpen(false);
                       navigate(item.url);

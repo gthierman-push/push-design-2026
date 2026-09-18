@@ -62,6 +62,9 @@ export function AppLayout() {
                   </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <CommandPalette />
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarHeader>
 
@@ -128,7 +131,6 @@ export function AppLayout() {
             </Breadcrumb>
 
             <div className="ml-auto flex items-center gap-2">
-              <CommandPalette />
               {current?.settingsUrl ? (
                 <Button
                   variant="outline"

@@ -1,32 +1,9 @@
 import { NavLink, Outlet, useLocation } from "react-router";
-import {
-  BadgeDollarSignIcon,
-  BriefcaseBusinessIcon,
-  BriefcaseIcon,
-  CalendarCheckIcon,
-  CalendarRangeIcon,
-  ChartPieIcon,
-  CircleHelpIcon,
-  ClipboardCheckIcon,
-  ClipboardListIcon,
-  ClockIcon,
-  FlagIcon,
-  LayoutDashboardIcon,
-  ListChecksIcon,
-  MegaphoneIcon,
-  MessagesSquareIcon,
-  NotebookTextIcon,
-  PalmtreeIcon,
-  SettingsIcon,
-  SparklesIcon,
-  TableIcon,
-  TrendingUpIcon,
-  TrophyIcon,
-  UserSearchIcon,
-  UsersIcon,
-} from "lucide-react";
+import { LayoutDashboardIcon, SparklesIcon } from "lucide-react";
 
+import { appFooterNavigation, appSections } from "@components/app-nav";
 import { askAiPanel } from "@components/ask-ai-panel";
+import { CommandPalette } from "@components/command-palette";
 import {
   RightPanel,
   RightPanelProvider,
@@ -59,76 +36,9 @@ import {
   SidebarTrigger,
 } from "@components/ui/sidebar";
 
-const sections = [
-  {
-    label: "Scheduling",
-    items: [
-      { title: "Scheduler", url: "/scheduler", icon: CalendarRangeIcon },
-      { title: "Clocks", url: "/clocks", icon: ClockIcon, notify: true },
-      {
-        title: "Shifts",
-        url: "/shifts",
-        icon: ClipboardListIcon,
-        notify: true,
-      },
-    ],
-  },
-  {
-    label: "Workforce Management",
-    items: [
-      { title: "Employees", url: "/employees", icon: UsersIcon },
-      { title: "Milestones", url: "/milestones", icon: FlagIcon },
-      { title: "Performance", url: "/performance", icon: TrophyIcon },
-      { title: "Surveys", url: "/surveys", icon: ClipboardCheckIcon },
-      { title: "Time Off", url: "/time-off", icon: PalmtreeIcon },
-      { title: "Tasks", url: "/tasks", icon: ListChecksIcon },
-    ],
-  },
-  {
-    label: "Hiring",
-    items: [
-      { title: "Jobs", url: "/jobs", icon: BriefcaseBusinessIcon },
-      { title: "Candidates", url: "/candidates", icon: UserSearchIcon },
-      { title: "Interviews", url: "/interviews", icon: CalendarCheckIcon },
-    ],
-  },
-  {
-    label: "Communication",
-    items: [
-      { title: "Chat", url: "/chat", icon: MessagesSquareIcon },
-      { title: "Message Board", url: "/message-board", icon: MegaphoneIcon },
-    ],
-  },
-  {
-    label: "Payroll",
-    items: [
-      { title: "Payroll", url: "/payroll", icon: BadgeDollarSignIcon },
-      { title: "Timesheets", url: "/timesheets", icon: TableIcon },
-    ],
-  },
-  {
-    label: "Reporting",
-    items: [
-      { title: "Sales", url: "/sales", icon: TrendingUpIcon },
-      { title: "Reports", url: "/reports", icon: BriefcaseIcon },
-      { title: "Logbook", url: "/logbook", icon: NotebookTextIcon },
-      {
-        title: "Business Intelligence",
-        url: "/business-intelligence",
-        icon: ChartPieIcon,
-      },
-    ],
-  },
-];
-
-const footerNavigation = [
-  { title: "Help", url: "/help", icon: CircleHelpIcon },
-  { title: "Settings", url: "/settings", icon: SettingsIcon },
-];
-
 export function AppLayout() {
   const { pathname } = useLocation();
-  const current = sections
+  const current = appSections
     .flatMap((section) => section.items)
     .find((item) => item.url === pathname);
 
@@ -155,7 +65,7 @@ export function AppLayout() {
           </SidebarHeader>
 
           <SidebarContent>
-            {sections.map((section) => (
+            {appSections.map((section) => (
               <SidebarGroup key={section.label}>
                 <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -181,7 +91,7 @@ export function AppLayout() {
 
           <SidebarFooter>
             <SidebarMenu>
-              {footerNavigation.map((item) => (
+              {appFooterNavigation.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton
                     isActive={pathname === item.url}
@@ -217,6 +127,7 @@ export function AppLayout() {
             </Breadcrumb>
 
             <div className="ml-auto flex items-center gap-2">
+              <CommandPalette />
               <RightPanelTrigger
                 panel={askAiPanel}
                 render={<Button variant="outline" size="sm" />}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { ArrowLeftIcon, CornerDownRightIcon, SearchIcon } from "lucide-react";
 
@@ -39,6 +39,11 @@ export function SettingsLayout() {
   const current = sections
     .flatMap((section) => section.items)
     .find((item) => item.url === pathname);
+  const activeItem = useRef<HTMLLIElement>(null);
+
+  useEffect(() => {
+    activeItem.current?.scrollIntoView({ block: "center" });
+  }, [pathname]);
 
   const results = useMemo(() => searchSettings(query), [query]);
   const searching = query.trim().length > 0;
@@ -97,7 +102,10 @@ export function SettingsLayout() {
                                 <SidebarMenuSubButton
                                   className="h-auto py-1"
                                   render={
-                                    <NavLink to={fieldHref(field)} end={false} />
+                                    <NavLink
+                                      to={fieldHref(field)}
+                                      end={false}
+                                    />
                                   }
                                 >
                                   <CornerDownRightIcon className="text-muted-foreground" />
@@ -131,7 +139,10 @@ export function SettingsLayout() {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {section.items.map((item) => (
-                      <SidebarMenuItem key={item.url}>
+                      <SidebarMenuItem
+                        key={item.url}
+                        ref={pathname === item.url ? activeItem : undefined}
+                      >
                         <SidebarMenuButton
                           isActive={pathname === item.url}
                           tooltip={item.title}

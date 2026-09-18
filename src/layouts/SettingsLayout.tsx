@@ -1,36 +1,6 @@
+import { useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
-import {
-  AlarmClockIcon,
-  ArrowLeftIcon,
-  BadgeDollarSignIcon,
-  BriefcaseIcon,
-  BuildingIcon,
-  CalendarDaysIcon,
-  ClipboardListIcon,
-  ClockIcon,
-  CoffeeIcon,
-  CoinsIcon,
-  FileTextIcon,
-  FilesIcon,
-  FolderTreeIcon,
-  GaugeIcon,
-  HeartHandshakeIcon,
-  KeyRoundIcon,
-  LandmarkIcon,
-  NetworkIcon,
-  PalmtreeIcon,
-  PlugIcon,
-  ReceiptTextIcon,
-  SearchIcon,
-  ShieldAlertIcon,
-  ShieldCheckIcon,
-  SlidersHorizontalIcon,
-  TagsIcon,
-  TrendingUpIcon,
-  UserCogIcon,
-  UserPlusIcon,
-  UsersIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, CornerDownRightIcon, SearchIcon } from "lucide-react";
 
 import {
   Breadcrumb,
@@ -51,164 +21,27 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
 } from "@components/ui/sidebar";
 
-const sections = [
-  {
-    label: "Company",
-    items: [
-      { title: "Company Setup", url: "/settings", icon: BuildingIcon },
-      {
-        title: "Departments",
-        url: "/settings/departments",
-        icon: FolderTreeIcon,
-      },
-      { title: "Positions", url: "/settings/positions", icon: BriefcaseIcon },
-      {
-        title: "Profit Centers",
-        url: "/settings/profit-centers",
-        icon: TrendingUpIcon,
-      },
-      {
-        title: "Period Labels",
-        url: "/settings/period-labels",
-        icon: TagsIcon,
-      },
-      { title: "Alarms", url: "/settings/alarms", icon: AlarmClockIcon },
-    ],
-  },
-  {
-    label: "Admins & Security",
-    items: [
-      {
-        title: "Administrators",
-        url: "/settings/administrators",
-        icon: UserCogIcon,
-      },
-      { title: "Roles", url: "/settings/roles", icon: KeyRoundIcon },
-      {
-        title: "Security Settings",
-        url: "/settings/security",
-        icon: ShieldCheckIcon,
-      },
-      {
-        title: "Fraud Reviews",
-        url: "/settings/fraud-reviews",
-        icon: ShieldAlertIcon,
-      },
-    ],
-  },
-  {
-    label: "Payroll & Compensation",
-    items: [
-      { title: "Tax Setup", url: "/settings/tax-setup", icon: LandmarkIcon },
-      {
-        title: "Statutory Holidays",
-        url: "/settings/statutory-holidays",
-        icon: CalendarDaysIcon,
-      },
-      {
-        title: "Hours Structures",
-        url: "/settings/hours-structures",
-        icon: ClockIcon,
-      },
-      {
-        title: "Pay Stub Settings",
-        url: "/settings/pay-stubs",
-        icon: ReceiptTextIcon,
-      },
-      {
-        title: "Journal Entry Settings",
-        url: "/settings/journal-entries",
-        icon: FileTextIcon,
-      },
-      {
-        title: "Bulk Salary Updates",
-        url: "/settings/bulk-salary-updates",
-        icon: BadgeDollarSignIcon,
-      },
-      {
-        title: "Benefits Setup",
-        url: "/settings/benefits",
-        icon: HeartHandshakeIcon,
-      },
-    ],
-  },
-  {
-    label: "Scheduling",
-    items: [
-      {
-        title: "Clock Settings",
-        url: "/settings/clock-settings",
-        icon: SlidersHorizontalIcon,
-      },
-      {
-        title: "Clock Surveys",
-        url: "/settings/clock-surveys",
-        icon: ClipboardListIcon,
-      },
-      { title: "Breaks", url: "/settings/breaks", icon: CoffeeIcon },
-      { title: "Tips Settings", url: "/settings/tips", icon: CoinsIcon },
-      { title: "Time Off", url: "/settings/time-off", icon: PalmtreeIcon },
-      { title: "Labor Guide", url: "/settings/labor-guide", icon: GaugeIcon },
-    ],
-  },
-  {
-    label: "Employees & Onboarding",
-    items: [
-      {
-        title: "Employee Settings",
-        url: "/settings/employee-settings",
-        icon: UsersIcon,
-      },
-      {
-        title: "Employee Attributes",
-        url: "/settings/employee-attributes",
-        icon: NetworkIcon,
-      },
-      {
-        title: "Onboarding Settings",
-        url: "/settings/onboarding",
-        icon: UserPlusIcon,
-      },
-      { title: "Forms", url: "/settings/forms", icon: FileTextIcon },
-    ],
-  },
-  {
-    label: "Files",
-    items: [
-      {
-        title: "File Categories",
-        url: "/settings/file-categories",
-        icon: FolderTreeIcon,
-      },
-      {
-        title: "Company Files",
-        url: "/settings/company-files",
-        icon: FilesIcon,
-      },
-    ],
-  },
-  {
-    label: "Integrations",
-    items: [
-      {
-        title: "POS / Integrations",
-        url: "/settings/integrations",
-        icon: PlugIcon,
-      },
-    ],
-  },
-];
+import { sections } from "./settings-nav";
+import { fieldContext, fieldHref, searchSettings } from "./settings-search";
 
 export function SettingsLayout() {
   const { pathname } = useLocation();
+  const [query, setQuery] = useState("");
+
   const current = sections
     .flatMap((section) => section.items)
     .find((item) => item.url === pathname);
+
+  const results = useMemo(() => searchSettings(query), [query]);
+  const searching = query.trim().length > 0;
 
   return (
     <SidebarProvider>
@@ -226,35 +59,94 @@ export function SettingsLayout() {
             <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2" />
             <SidebarInput
               type="search"
-              placeholder="Search"
+              placeholder="Search settings and fields"
               aria-label="Search settings"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
               className="h-8 pl-7"
             />
           </div>
         </SidebarHeader>
 
         <SidebarContent>
-          {sections.map((section) => (
-            <SidebarGroup key={section.label}>
-              <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+          {searching ? (
+            <SidebarGroup>
+              <SidebarGroupLabel>
+                {results.length > 0 ? "Results" : "No matches"}
+              </SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
-                  {section.items.map((item) => (
-                    <SidebarMenuItem key={item.url}>
-                      <SidebarMenuButton
-                        isActive={pathname === item.url}
-                        tooltip={item.title}
-                        render={<NavLink to={item.url} end />}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
+                {results.length > 0 ? (
+                  <SidebarMenu>
+                    {results.map(({ page, fields }) => (
+                      <SidebarMenuItem key={page.url}>
+                        <SidebarMenuButton
+                          isActive={pathname === page.url}
+                          tooltip={page.title}
+                          render={<NavLink to={page.url} end />}
+                        >
+                          <page.icon />
+                          <span>{page.title}</span>
+                        </SidebarMenuButton>
+
+                        {fields.length > 0 ? (
+                          <SidebarMenuSub>
+                            {fields.map((field) => (
+                              <SidebarMenuSubItem
+                                key={`${field.tab}-${field.label}`}
+                              >
+                                <SidebarMenuSubButton
+                                  className="h-auto py-1"
+                                  render={
+                                    <NavLink to={fieldHref(field)} end={false} />
+                                  }
+                                >
+                                  <CornerDownRightIcon className="text-muted-foreground" />
+                                  <span className="flex min-w-0 flex-col">
+                                    <span className="truncate">
+                                      {field.label}
+                                    </span>
+                                    <span className="text-muted-foreground truncate text-xs">
+                                      {fieldContext(field)}
+                                    </span>
+                                  </span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        ) : null}
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                ) : (
+                  <p className="text-muted-foreground px-2 py-1.5 text-sm">
+                    Nothing matches “{query.trim()}”.
+                  </p>
+                )}
               </SidebarGroupContent>
             </SidebarGroup>
-          ))}
+          ) : (
+            sections.map((section) => (
+              <SidebarGroup key={section.label}>
+                <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((item) => (
+                      <SidebarMenuItem key={item.url}>
+                        <SidebarMenuButton
+                          isActive={pathname === item.url}
+                          tooltip={item.title}
+                          render={<NavLink to={item.url} end />}
+                        >
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))
+          )}
         </SidebarContent>
 
         <SidebarRail />
@@ -274,7 +166,7 @@ export function SettingsLayout() {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-5">
+        <div className="bg-muted flex flex-1 flex-col gap-4 p-5">
           <Outlet />
         </div>
       </SidebarInset>

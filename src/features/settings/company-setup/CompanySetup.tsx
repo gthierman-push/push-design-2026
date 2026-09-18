@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { CopyIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "@components/ui/button";
@@ -28,6 +27,7 @@ import {
   TabVerticalList,
   TabVerticalTrigger,
 } from "@components/ui/tab-vertical";
+import { useSettingsTarget } from "@layouts/use-settings-target";
 
 const tabs = [
   { value: "company-setup", label: "Company Setup" },
@@ -71,13 +71,16 @@ const accountToggles = [
   { id: "contractors-only", label: "Contractors Only" },
 ];
 
+/** `anchor` is what settings search jumps to, since a group has no control. */
 const companyGroups = [
   {
     name: "Demo Enterprises (organization)",
+    anchor: "company-group-organization",
     id: "93010305-8ba0-4876-9c03-9ca4d1a0d536",
   },
   {
     name: "Demo Enterprises (company)",
+    anchor: "company-group-company",
     id: "6f2b1c44-1f0e-4a51-9d77-2c0a5e8b31af",
   },
 ];
@@ -158,7 +161,7 @@ function IdentityTile({ label, value }: { label: string; value: string }) {
 }
 
 export function CompanySetup() {
-  const [tab, setTab] = useState(tabs[0].value);
+  const [tab, setTab] = useSettingsTarget(tabs[0].value);
   const title = tabs.find((item) => item.value === tab)?.label;
 
   return (
@@ -205,7 +208,7 @@ export function CompanySetup() {
               <Card>
                 <CardContent>
                   <FieldRows>
-                    <Field orientation="responsive">
+                    <Field id="logo" orientation="responsive">
                       <FieldContent>
                         <FieldTitle>Logo</FieldTitle>
                         <FieldDescription>
@@ -880,7 +883,11 @@ export function CompanySetup() {
                 <CardContent>
                   <FieldRows>
                     {companyGroups.map((group) => (
-                      <Field key={group.id} orientation="responsive">
+                      <Field
+                        key={group.id}
+                        id={group.anchor}
+                        orientation="responsive"
+                      >
                         <FieldContent>
                           <FieldTitle>{group.name}</FieldTitle>
                         </FieldContent>

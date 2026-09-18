@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { Switch } from "@components/ui/switch";
-import { DesignPage, Example } from "@features/design/example";
+import { DesignPage } from "@features/design/example";
 
 const timezones = [
   "Pacific Time",
@@ -39,16 +39,9 @@ const timezones = [
 export function HorizontalForm() {
   return (
     <DesignPage title="Horizontal form">
-      <Example
-        title="Settings card"
-        description='A card per topic, one row per setting: label and description on the
-          left, whatever the setting needs on the right — a toggle, an input, a
-          select, a combobox, a checkbox, or a badge or button on a row that
-          only reports. FieldRows draws the dividers and the row padding, so
-          the rows stay plain Fields and the lines reach the card&apos;s edge. Every
-          row here is orientation="responsive", so narrowing the
-          window stacks each label above its control.'
-      >
+      {/* The card is its own container, so this example skips the bordered
+          preview the other pages use and sits straight on the page. */}
+      <section className="flex w-full max-w-5xl flex-col gap-3">
         <Card className="w-full">
           <CardHeader>
             <CardTitle>Alerts</CardTitle>
@@ -162,7 +155,7 @@ export function HorizontalForm() {
             </FieldRows>
           </CardContent>
         </Card>
-      </Example>
+      </section>
     </DesignPage>
   );
 }

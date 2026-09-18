@@ -4,7 +4,7 @@ import { SearchIcon } from "lucide-react";
 
 import { footerNavigation, home, sections } from "@layouts/app-nav";
 import { sections as settingsSections } from "@layouts/settings-nav";
-import { Button } from "@components/ui/button";
+import { SidebarMenuButton } from "@components/ui/sidebar";
 import {
   Command,
   CommandDialog,
@@ -47,19 +47,18 @@ export function CommandPalette() {
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        className="text-muted-foreground w-44 justify-start font-normal"
+      <SidebarMenuButton
+        tooltip="Search pages"
+        className="text-muted-foreground"
         onClick={() => setOpen(true)}
       >
-        <SearchIcon data-icon="inline-start" />
-        Search pages
+        <SearchIcon />
+        <span>Search</span>
         <KbdGroup className="ml-auto">
           <Kbd>⌘</Kbd>
           <Kbd>K</Kbd>
         </KbdGroup>
-      </Button>
+      </SidebarMenuButton>
 
       <CommandDialog
         open={open}
@@ -68,7 +67,15 @@ export function CommandPalette() {
         description="Search for a page to jump to"
       >
         <Command>
-          <CommandInput placeholder="Search pages..." />
+          <CommandInput
+            placeholder="Search pages..."
+            hint={
+              <KbdGroup>
+                <Kbd>⌘</Kbd>
+                <Kbd>K</Kbd>
+              </KbdGroup>
+            }
+          />
           <CommandList>
             <CommandEmpty>No pages found.</CommandEmpty>
             {groups.map((group) => (

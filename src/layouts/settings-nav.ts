@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+
 import {
   AlarmClockIcon,
   BadgeDollarSignIcon,
@@ -30,11 +32,21 @@ import {
 } from "lucide-react";
 
 /**
- * Every settings page, grouped the way the settings sidebar shows them. It
- * lives apart from the layout so the breadcrumb and the command palette can
- * read it without importing a component.
+ * The settings nav, kept beside the layout so the search index and the sidebar
+ * read the same list of pages.
  */
-export const settingsSections = [
+export type SettingsNavItem = {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+};
+
+export type SettingsNavSection = {
+  label: string;
+  items: SettingsNavItem[];
+};
+
+export const sections: SettingsNavSection[] = [
   {
     label: "Company",
     items: [

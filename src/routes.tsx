@@ -67,6 +67,7 @@ import { Colors } from "@features/design/colors";
 import { DataDisplay } from "@features/design/data-display";
 import { EmptyStates } from "@features/design/empty-states";
 import { Fields } from "@features/design/fields";
+import { HorizontalForm } from "@features/design/horizontal-form";
 import { Icons } from "@features/design/icons";
 import { Navigation } from "@features/design/navigation";
 import { Overlays } from "@features/design/overlays";
@@ -172,6 +173,7 @@ export const router = createBrowserRouter([
       { path: "empty-states", element: <EmptyStates /> },
       { path: "data-display", element: <DataDisplay /> },
       { path: "navigation", element: <Navigation /> },
+      { path: "horizontal-form", element: <HorizontalForm /> },
       { path: "examples/horizontal-tabs", element: <HorizontalTabs /> },
       { path: "examples/vertical-tabs", element: <VerticalTabs /> },
       {

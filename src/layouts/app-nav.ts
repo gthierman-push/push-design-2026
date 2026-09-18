@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+
 import {
   BadgeDollarSignIcon,
   BriefcaseBusinessIcon,
@@ -25,17 +27,30 @@ import {
 } from "lucide-react";
 
 /**
- * Every page the app publishes, grouped the way the sidebar shows them. It
- * lives apart from the layout so the breadcrumb and the command palette can
- * read it without importing a component.
+ * The app nav, kept beside the layout so the command palette and the sidebar
+ * read the same list of pages.
  */
-export const appHome = {
+export type NavItem = {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  notify?: boolean;
+  settingsUrl?: string;
+};
+
+export type NavSection = {
+  label: string;
+  items: NavItem[];
+};
+
+/** The page the logo and the breadcrumb fall back to. */
+export const home: NavItem = {
   title: "Dashboard",
   url: "/",
   icon: LayoutDashboardIcon,
 };
 
-export const appSections = [
+export const sections: NavSection[] = [
   {
     label: "Scheduling",
     items: [
@@ -52,7 +67,12 @@ export const appSections = [
   {
     label: "Workforce Management",
     items: [
-      { title: "Employees", url: "/employees", icon: UsersIcon },
+      {
+        title: "Employees",
+        url: "/employees",
+        icon: UsersIcon,
+        settingsUrl: "/settings/employee-settings",
+      },
       { title: "Milestones", url: "/milestones", icon: FlagIcon },
       { title: "Performance", url: "/performance", icon: TrophyIcon },
       { title: "Surveys", url: "/surveys", icon: ClipboardCheckIcon },
@@ -97,7 +117,7 @@ export const appSections = [
   },
 ];
 
-export const appFooterNavigation = [
+export const footerNavigation: NavItem[] = [
   { title: "Help", url: "/help", icon: CircleHelpIcon },
   { title: "Settings", url: "/settings", icon: SettingsIcon },
 ];

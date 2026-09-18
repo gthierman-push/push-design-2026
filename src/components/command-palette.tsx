@@ -2,8 +2,8 @@ import * as React from "react";
 import { useNavigate } from "react-router";
 import { SearchIcon } from "lucide-react";
 
-import { appFooterNavigation, appHome, appSections } from "@components/app-nav";
-import { settingsSections } from "@components/settings-nav";
+import { footerNavigation, home, sections } from "@layouts/app-nav";
+import { sections as settingsSections } from "@layouts/settings-nav";
 import { Button } from "@components/ui/button";
 import {
   Command,
@@ -21,8 +21,8 @@ import { Kbd, KbdGroup } from "@components/ui/kbd";
  * their own label so a search for "time off" tells the two pages apart.
  */
 const groups = [
-  { label: "Go to", items: [appHome, ...appFooterNavigation] },
-  ...appSections,
+  { label: "Go to", items: [home, ...footerNavigation] },
+  ...sections,
   ...settingsSections.map((section) => ({
     label: `Settings · ${section.label}`,
     items: section.items,

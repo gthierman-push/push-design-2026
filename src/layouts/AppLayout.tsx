@@ -1,7 +1,6 @@
 import { NavLink, Outlet, useLocation } from "react-router";
-import { LayoutDashboardIcon, SparklesIcon } from "lucide-react";
+import { LayoutDashboardIcon, SettingsIcon, SparklesIcon } from "lucide-react";
 
-import { appFooterNavigation, appSections } from "@components/app-nav";
 import { askAiPanel } from "@components/ask-ai-panel";
 import { CommandPalette } from "@components/command-palette";
 import {
@@ -36,9 +35,11 @@ import {
   SidebarTrigger,
 } from "@components/ui/sidebar";
 
+import { footerNavigation, sections } from "./app-nav";
+
 export function AppLayout() {
   const { pathname } = useLocation();
-  const current = appSections
+  const current = sections
     .flatMap((section) => section.items)
     .find((item) => item.url === pathname);
 
@@ -65,7 +66,7 @@ export function AppLayout() {
           </SidebarHeader>
 
           <SidebarContent>
-            {appSections.map((section) => (
+            {sections.map((section) => (
               <SidebarGroup key={section.label}>
                 <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -91,7 +92,7 @@ export function AppLayout() {
 
           <SidebarFooter>
             <SidebarMenu>
-              {appFooterNavigation.map((item) => (
+              {footerNavigation.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton
                     isActive={pathname === item.url}
@@ -128,6 +129,16 @@ export function AppLayout() {
 
             <div className="ml-auto flex items-center gap-2">
               <CommandPalette />
+              {current?.settingsUrl ? (
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label={`${current.title} settings`}
+                  render={<NavLink to={current.settingsUrl} />}
+                >
+                  <SettingsIcon />
+                </Button>
+              ) : null}
               <RightPanelTrigger
                 panel={askAiPanel}
                 render={<Button variant="outline" size="sm" />}
@@ -137,7 +148,7 @@ export function AppLayout() {
               </RightPanelTrigger>
             </div>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-5">
+          <div className="bg-muted flex flex-1 flex-col gap-4 p-5">
             <Outlet />
           </div>
         </SidebarInset>

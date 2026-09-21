@@ -185,7 +185,6 @@ export function AccountSwitcher() {
 
         <DropdownMenuGroup>
           <DropdownMenuItem
-            variant="destructive"
             onClick={() => {
               signOut();
               navigate("/login", { replace: true });

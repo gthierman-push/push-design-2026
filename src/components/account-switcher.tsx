@@ -83,7 +83,10 @@ export function AccountSwitcher() {
           its accessible name, and Base UI marks it as a menu button. */}
       <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />}>
         <AccountAvatar account={active} />
-        <div className="flex min-w-0 flex-col gap-0.5 leading-none">
+        {/* leading-tight, not leading-none: truncate clips each line to its
+            own box, and a box the height of the type cuts the descenders
+            off the names. */}
+        <div className="flex min-w-0 flex-col leading-tight">
           <span className="truncate font-medium">{active.name}</span>
           <span className="text-muted-foreground truncate text-xs">
             {location?.name ?? "All locations"}
@@ -110,7 +113,7 @@ export function AccountSwitcher() {
               <UserIcon className="size-3.5" />
             </AvatarFallback>
           </Avatar>
-          <div className="flex min-w-0 flex-col gap-0.5 leading-none">
+          <div className="flex min-w-0 flex-col leading-tight">
             <span className="truncate font-medium">{currentUser.name}</span>
             <span className="text-muted-foreground truncate text-xs">
               {currentUser.email}

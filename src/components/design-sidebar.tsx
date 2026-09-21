@@ -65,7 +65,7 @@ export function DesignSidebar({
               <div className="bg-primary-alt text-primary-alt-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-md">
                 <SwatchBookIcon className="size-4" />
               </div>
-              <div className="flex min-w-0 flex-col gap-0.5 leading-none">
+              <div className="flex min-w-0 flex-col leading-tight">
                 <span className="truncate font-medium">Push</span>
                 <span className="text-muted-foreground truncate text-xs">
                   Design system

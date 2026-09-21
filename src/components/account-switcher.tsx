@@ -42,7 +42,9 @@ function AccountAvatar({
       {account.image ? (
         <AvatarImage src={account.image} alt="" className="rounded-md" />
       ) : null}
-      <AvatarFallback className="bg-primary-alt text-primary-alt-foreground rounded-md text-xs font-medium">
+      {/* Important: menu rows recolor every descendant on hover, and the
+          initials sit on their own filled square, so they keep their color. */}
+      <AvatarFallback className="bg-primary-alt text-primary-alt-foreground! rounded-md text-xs font-medium">
         {account.initials}
       </AvatarFallback>
     </Avatar>

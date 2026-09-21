@@ -1,4 +1,3 @@
-import * as React from "react";
 import { NavLink, useNavigate } from "react-router";
 import {
   CheckIcon,
@@ -21,8 +20,9 @@ import {
 } from "@components/ui/dropdown-menu";
 import { SidebarMenuButton, useSidebar } from "@components/ui/sidebar";
 
-import type { Account } from "@components/accounts";
+import type { Account, Location } from "@components/accounts";
 import { accounts, currentUser, regionsOf } from "@components/accounts";
+import { useActiveAccount } from "@components/active-account";
 
 import { useAuth } from "../auth";
 
@@ -30,7 +30,7 @@ import { useAuth } from "../auth";
  * Company avatars are rounded squares so they never read as a person; the
  * signed-in user keeps the circle.
  */
-function AccountAvatar({
+export function AccountAvatar({
   account,
   size = "default",
 }: {
@@ -56,24 +56,17 @@ function AccountAvatar({
  * the user can switch to, and who they are signed in as.
  */
 export function AccountSwitcher() {
-  const [activeId, setActiveId] = React.useState(accounts[0].id);
-  /** null is the company-wide view -- every location it runs. */
-  const [locationId, setLocationId] = React.useState<string | null>(null);
-  const active = accounts.find((account) => account.id === activeId)!;
-  const location = active.locations.find((item) => item.id === locationId);
+  const { account: active, location, select } = useActiveAccount();
   const { isMobile, setOpenMobile } = useSidebar();
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
   /** Picking a company opens it company-wide and leaves the menu open, so
       the locations it just revealed can be picked from. */
-  const selectAccount = (account: Account) => {
-    setActiveId(account.id);
-    setLocationId(null);
-  };
+  const selectAccount = (account: Account) => select(account);
 
-  const selectLocation = (id: string | null) => {
-    setLocationId(id);
+  const selectLocation = (item: Location | null) => {
+    select(active, item);
     if (isMobile) setOpenMobile(false);
   };
 
@@ -136,7 +129,7 @@ export function AccountSwitcher() {
               <AccountAvatar account={account} size="sm" />
               <span className="min-w-0 flex-1 truncate">{account.name}</span>
               <CheckIcon
-                className={cn(account.id !== activeId && "invisible")}
+                className={cn(account.id !== active.id && "invisible")}
               />
             </DropdownMenuItem>
           ))}
@@ -159,7 +152,7 @@ export function AccountSwitcher() {
           onClick={() => selectLocation(null)}
         >
           <span className="min-w-0 flex-1 truncate">All locations</span>
-          <CheckIcon className={cn(locationId !== null && "invisible")} />
+          <CheckIcon className={cn(location !== null && "invisible")} />
         </DropdownMenuItem>
 
         {regionsOf(active).map(({ region, locations }) => (
@@ -170,11 +163,11 @@ export function AccountSwitcher() {
               <DropdownMenuItem
                 key={item.id}
                 className="gap-2"
-                onClick={() => selectLocation(item.id)}
+                onClick={() => selectLocation(item)}
               >
                 <span className="min-w-0 flex-1 truncate">{item.name}</span>
                 <CheckIcon
-                  className={cn(item.id !== locationId && "invisible")}
+                  className={cn(item.id !== location?.id && "invisible")}
                 />
               </DropdownMenuItem>
             ))}

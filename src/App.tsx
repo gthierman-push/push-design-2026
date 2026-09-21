@@ -1,5 +1,6 @@
 import { RouterProvider } from "react-router";
 
+import { ActiveAccountProvider } from "@components/active-account";
 import { ThemePanel } from "@components/theme-panel";
 import { ThemeProvider } from "@components/theme-provider";
 import { Toaster } from "@components/ui/toast";
@@ -11,7 +12,12 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <RouterProvider router={router} />
+        {/* Which company and location the app is pointed at, beside the
+            session: the account switcher and the command palette both set
+            it, and it outlives any one page. */}
+        <ActiveAccountProvider>
+          <RouterProvider router={router} />
+        </ActiveAccountProvider>
       </AuthProvider>
       <ThemePanel />
       <Toaster />

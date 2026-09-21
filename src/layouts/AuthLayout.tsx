@@ -1,11 +1,14 @@
 import { Outlet } from "react-router";
 
+import { AuthShowcase } from "@components/auth-showcase";
+
 /**
- * Mirrors the page.tsx shipped with the shadcn login-02 block: form centred
- * in the left column, full-bleed image on the right from lg up. The CLI
- * skips a block's page.tsx in a Vite project (no app router to put it in),
- * so this layout stands in for it. The block's top-left brand mark is
- * dropped -- the login form carries the Push logo itself.
+ * Follows the two-column shape of the shadcn login-02 block: form centred in
+ * the left column, a full-height panel on the right from lg up. The CLI skips
+ * a block's page.tsx in a Vite project (no app router to put it in), so this
+ * layout stands in for it. The block's brand mark is dropped -- the login form
+ * carries the Push logo itself -- and its placeholder photo gives way to a
+ * product shot on a primary-alt field.
  */
 export function AuthLayout() {
   return (
@@ -17,12 +20,8 @@ export function AuthLayout() {
           </div>
         </div>
       </div>
-      <div className="bg-muted relative hidden lg:block">
-        <img
-          src="/placeholder.svg"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+      <div className="bg-primary-alt hidden items-center justify-center p-10 lg:flex">
+        <AuthShowcase />
       </div>
     </div>
   );

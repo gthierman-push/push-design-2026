@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from "react-router";
-import { LayoutDashboardIcon, SettingsIcon, SparklesIcon } from "lucide-react";
+import { SettingsIcon, SparklesIcon } from "lucide-react";
 
+import { AccountSwitcher } from "@components/account-switcher";
 import { askAiPanel } from "@components/ask-ai-panel";
 import { CommandPalette } from "@components/command-palette";
 import {
@@ -35,7 +36,7 @@ import {
   SidebarTrigger,
 } from "@components/ui/sidebar";
 
-import { footerNavigation, sections } from "./app-nav";
+import { footerNavigation, home, sections } from "./app-nav";
 
 export function AppLayout() {
   const { pathname } = useLocation();
@@ -50,17 +51,7 @@ export function AppLayout() {
           <SidebarHeader>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton size="lg" render={<NavLink to="/" />}>
-                  <div className="bg-primary-alt text-primary-alt-foreground flex aspect-square size-8 items-center justify-center rounded-md">
-                    <LayoutDashboardIcon />
-                  </div>
-                  <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-medium">Push</span>
-                    <span className="text-muted-foreground text-xs">
-                      Workspace
-                    </span>
-                  </div>
-                </SidebarMenuButton>
+                <AccountSwitcher />
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <CommandPalette />
@@ -69,6 +60,25 @@ export function AppLayout() {
           </SidebarHeader>
 
           <SidebarContent>
+            {/* The switcher took the logo's spot, so the dashboard needs a row
+                of its own to stay reachable from the sidebar. */}
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={pathname === home.url}
+                      tooltip={home.title}
+                      render={<NavLink to={home.url} />}
+                    >
+                      <home.icon />
+                      <span>{home.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
             {sections.map((section) => (
               <SidebarGroup key={section.label}>
                 <SidebarGroupLabel>{section.label}</SidebarGroupLabel>

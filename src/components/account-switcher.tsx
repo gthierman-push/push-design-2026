@@ -137,9 +137,9 @@ export function AccountSwitcher() {
           ))}
         </DropdownMenuGroup>
 
-        {/* primary-alt: the same accent the sidebar markers and the company
-            avatars use, so the actions in the list read as actions. */}
-        <DropdownMenuItem className="text-primary-alt gap-2">
+        {/* primary: the brand accent, so the actions in the list read as
+            actions rather than as another company row. */}
+        <DropdownMenuItem className="text-primary gap-2">
           <PlusIcon />
           <span>Add company</span>
         </DropdownMenuItem>
@@ -176,7 +176,7 @@ export function AccountSwitcher() {
           </DropdownMenuGroup>
         ))}
 
-        <DropdownMenuItem className="text-primary-alt gap-2">
+        <DropdownMenuItem className="text-primary gap-2">
           <PlusIcon />
           <span>Add location</span>
         </DropdownMenuItem>

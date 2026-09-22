@@ -7,7 +7,9 @@ export function Performance() {
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">Performance</h1>
         <div className="flex items-center gap-2">
-          <UpgradeButton feature="Performance reviews" />
+          {/* Reviews ship inside the Employee Engagement module, so that is
+              what the prompt has to sell. */}
+          <UpgradeButton feature="Employee Engagement" />
         </div>
       </div>
 

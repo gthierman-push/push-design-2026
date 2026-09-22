@@ -55,7 +55,9 @@ export function Performance() {
       {/* Alert tops its icon and action out against a one-line title; this one
           runs to two, so both are centred against the pair. */}
       <Alert className="pr-32 *:[svg]:translate-y-0 *:[svg]:self-center">
-        <LockIcon />
+        {/* Alert's grid hangs off a direct svg child, so the tile is padding on
+            the icon rather than a wrapper: 32px square, 16px glyph. */}
+        <LockIcon className="bg-muted size-8 rounded-lg p-2" />
         <AlertTitle>
           {`You've reached your maximum of ${freeReviewLimit} free performance reviews`}
         </AlertTitle>

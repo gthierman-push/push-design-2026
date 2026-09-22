@@ -68,7 +68,7 @@ type PaletteRow = {
   title: string;
   /** The leading glyph: a page's icon, a company's initials. */
   visual: React.ReactNode;
-  /** Dimmed, beside the title: the region or company a location belongs to. */
+  /** Dimmed, beside the title: the company and region a location sits in. */
   detail?: string;
   /** What the app is already pointed at, so the row carries a check. */
   checked?: boolean;
@@ -152,12 +152,11 @@ export function CommandPalette() {
             value: `${item.name} ${account.name} location`,
             title: item.name,
             visual: <MapPinIcon />,
-            /* The company name only earns its place on the rows that would
-               switch company as well as location. */
-            detail:
-              account.id === active.id
-                ? item.region
-                : `${account.name} · ${item.region}`,
+            /* Company first, region second, on every row: the list mixes
+               companies, so a row that left its company out read as though
+               it belonged to whichever one was open. The company also
+               survives the truncation, since the region is what gets cut. */
+            detail: `${account.name} · ${item.region}`,
             checked: account.id === active.id && item.id === location?.id,
             keywords: ["switch", item.region],
             select: () => select(account, item),

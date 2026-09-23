@@ -172,9 +172,21 @@ function TaxSeasonDialogs() {
           </ChecklistCard>
 
           <DialogFooter>
-            <Button className="w-full" onClick={() => setStep("confirm")}>
-              Got It
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setStep(null);
+                toast.add({
+                  type: "success",
+                  title: "We will remind you later.",
+                  description:
+                    "This checklist will be waiting the next time you open Payroll.",
+                });
+              }}
+            >
+              Remind Me Later
             </Button>
+            <Button onClick={() => setStep("confirm")}>Got It</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,4 +1,4 @@
-import { SparklesIcon } from "lucide-react";
+import { ZapIcon } from "lucide-react";
 
 import type { RightPanelContent } from "@components/right-panel";
 import { Button } from "@components/ui/button";
@@ -43,7 +43,7 @@ function AskAi() {
       </FieldGroup>
 
       <Button className="self-start">
-        <SparklesIcon data-icon="inline-start" />
+        <ZapIcon data-icon="inline-start" />
         Ask
       </Button>
     </div>

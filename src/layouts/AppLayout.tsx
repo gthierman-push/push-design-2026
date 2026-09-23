@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation } from "react-router";
-import { SettingsIcon, SparklesIcon } from "lucide-react";
+import { SettingsIcon, ZapIcon } from "lucide-react";
 
 import { AccountSwitcher } from "@components/account-switcher";
 import { askAiPanel } from "@components/ask-ai-panel";
@@ -155,7 +155,7 @@ export function AppLayout() {
                 panel={askAiPanel}
                 render={<Button variant="outline" size="sm" />}
               >
-                <SparklesIcon data-icon="inline-start" />
+                <ZapIcon data-icon="inline-start" />
                 Ask A.I.
               </RightPanelTrigger>
             </div>

@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  CheckIcon,
-  CornerDownRightIcon,
-  SparklesIcon,
-  XIcon,
-} from "lucide-react";
+import { CheckIcon, CornerDownRightIcon, XIcon } from "lucide-react";
 
 import {
   currentPlanId,
@@ -233,10 +228,7 @@ export function UpgradeButton({ feature }: { feature: string }) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>
-        <SparklesIcon data-icon="inline-start" />
-        Upgrade
-      </Button>
+      <Button onClick={() => setOpen(true)}>Upgrade</Button>
       <UpgradeDialog feature={feature} open={open} onOpenChange={setOpen} />
     </>
   );

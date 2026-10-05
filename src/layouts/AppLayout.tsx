@@ -1,5 +1,6 @@
+import * as React from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
-import { SettingsIcon, ZapIcon } from "lucide-react";
+import { ChevronRightIcon, SettingsIcon, ZapIcon } from "lucide-react";
 
 import { AccountSwitcher } from "@components/account-switcher";
 import { askAiPanel } from "@components/ask-ai-panel";
@@ -17,6 +18,11 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from "@components/ui/breadcrumb";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@components/ui/collapsible";
 import { Separator } from "@components/ui/separator";
 import {
   Sidebar,
@@ -38,11 +44,63 @@ import {
 
 import { footerNavigation, home, sections } from "./app-nav";
 
+const STORAGE_KEY = "push-design:nav-sections";
+
+/**
+ * Which sidebar sections are open, as the reader last left them. Sections
+ * default to open, and the stored record only speaks for the labels still in
+ * the nav — so renaming or adding one brings it back open rather than
+ * stranding it in whatever state its namesake happened to be in.
+ */
+function loadOpenSections(): Record<string, boolean> {
+  const defaults = Object.fromEntries(
+    sections.map((section) => [section.label, true]),
+  );
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaults;
+
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    for (const label of Object.keys(defaults)) {
+      if (typeof parsed[label] === "boolean") defaults[label] = parsed[label];
+    }
+    return defaults;
+  } catch {
+    return defaults;
+  }
+}
+
 export function AppLayout() {
   const { pathname } = useLocation();
   const current = sections
     .flatMap((section) => section.items)
     .find((item) => item.url === pathname);
+
+  // Each section is a collapsible group, as in the design system's sidebar,
+  // and it stays wherever the reader last left it — across visits, not just
+  // across navigations.
+  const [openSections, setOpenSections] =
+    React.useState<Record<string, boolean>>(loadOpenSections);
+
+  React.useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(openSections));
+  }, [openSections]);
+
+  // Landing on a page from somewhere else — the command palette, a link — can
+  // put the active row inside a section the reader had closed, so reopen it.
+  const activeSection = sections.find((section) =>
+    section.items.some((item) => item.url === pathname),
+  )?.label;
+
+  React.useEffect(() => {
+    if (!activeSection) return;
+    setOpenSections((previous) =>
+      previous[activeSection]
+        ? previous
+        : { ...previous, [activeSection]: true },
+    );
+  }, [activeSection]);
 
   return (
     <RightPanelProvider>
@@ -80,26 +138,44 @@ export function AppLayout() {
             </SidebarGroup>
 
             {sections.map((section) => (
-              <SidebarGroup key={section.label}>
-                <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {section.items.map((item) => (
-                      <SidebarMenuItem key={item.url}>
-                        <SidebarMenuButton
-                          isActive={pathname === item.url}
-                          tooltip={item.title}
-                          render={<NavLink to={item.url} />}
-                        >
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </SidebarMenuButton>
-                        {item.notify ? <SidebarMenuBadge /> : null}
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              <Collapsible
+                key={section.label}
+                open={openSections[section.label]}
+                onOpenChange={(open) =>
+                  setOpenSections((previous) => ({
+                    ...previous,
+                    [section.label]: open,
+                  }))
+                }
+                render={<SidebarGroup />}
+              >
+                <SidebarGroupLabel
+                  className="group/label hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  render={<CollapsibleTrigger />}
+                >
+                  {section.label}
+                  <ChevronRightIcon className="ml-auto transition-transform group-data-[panel-open]/label:rotate-90" />
+                </SidebarGroupLabel>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {section.items.map((item) => (
+                        <SidebarMenuItem key={item.url}>
+                          <SidebarMenuButton
+                            isActive={pathname === item.url}
+                            tooltip={item.title}
+                            render={<NavLink to={item.url} />}
+                          >
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </SidebarMenuButton>
+                          {item.notify ? <SidebarMenuBadge /> : null}
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </Collapsible>
             ))}
           </SidebarContent>
 

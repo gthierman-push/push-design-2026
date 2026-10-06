@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import {
   ArrowLeftIcon,
+  ChevronRightIcon,
   CornerDownRightIcon,
   SearchIcon,
   XIcon,
@@ -13,6 +14,11 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from "@components/ui/breadcrumb";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@components/ui/collapsible";
 import { Separator } from "@components/ui/separator";
 import {
   Sidebar,
@@ -37,6 +43,7 @@ import {
 import { sections } from "./settings-nav";
 import type { SettingsField } from "./settings-search";
 import { fieldContext, fieldHref, searchSettings } from "./settings-search";
+import { useNavSections } from "./use-nav-sections";
 
 /** Identifies a field row, both as a React key and as a keyboard-cursor slot. */
 function fieldKey(pageUrl: string, field: SettingsField) {
@@ -54,9 +61,21 @@ export function SettingsLayout() {
     .find((item) => item.url === pathname);
   const activeItem = useRef<HTMLLIElement>(null);
 
+  // Each section is a collapsible group, as in the design system's sidebar.
+  const { isOpen, setOpen, activeSection } = useNavSections({
+    sections,
+    storageKey: "push-design:settings-sections",
+    pathname,
+  });
+
+  // The active row only exists once its section is open, so the scroll waits
+  // on that as well as on the page — arriving in a closed section reopens it,
+  // and this runs again when it does.
+  const activeOpen = activeSection ? isOpen(activeSection) : false;
+
   useEffect(() => {
     activeItem.current?.scrollIntoView({ block: "center" });
-  }, [pathname]);
+  }, [pathname, activeOpen]);
 
   const results = useMemo(() => searchSettings(query), [query]);
   const searching = query.trim().length > 0;
@@ -224,28 +243,41 @@ export function SettingsLayout() {
             </SidebarGroup>
           ) : (
             sections.map((section) => (
-              <SidebarGroup key={section.label}>
-                <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {section.items.map((item) => (
-                      <SidebarMenuItem
-                        key={item.url}
-                        ref={pathname === item.url ? activeItem : undefined}
-                      >
-                        <SidebarMenuButton
-                          isActive={pathname === item.url}
-                          tooltip={item.title}
-                          render={<NavLink to={item.url} end />}
+              <Collapsible
+                key={section.label}
+                open={isOpen(section.label)}
+                onOpenChange={(open) => setOpen(section.label, open)}
+                render={<SidebarGroup />}
+              >
+                <SidebarGroupLabel
+                  className="group/label hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  render={<CollapsibleTrigger />}
+                >
+                  {section.label}
+                  <ChevronRightIcon className="ml-auto transition-transform group-data-[panel-open]/label:rotate-90" />
+                </SidebarGroupLabel>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {section.items.map((item) => (
+                        <SidebarMenuItem
+                          key={item.url}
+                          ref={pathname === item.url ? activeItem : undefined}
                         >
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+                          <SidebarMenuButton
+                            isActive={pathname === item.url}
+                            tooltip={item.title}
+                            render={<NavLink to={item.url} end />}
+                          >
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </Collapsible>
             ))
           )}
         </SidebarContent>

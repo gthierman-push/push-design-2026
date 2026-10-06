@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation } from "react-router";
-import { SettingsIcon, ZapIcon } from "lucide-react";
+import { ChevronRightIcon, SettingsIcon, ZapIcon } from "lucide-react";
 
 import { AccountSwitcher } from "@components/account-switcher";
 import { askAiPanel } from "@components/ask-ai-panel";
@@ -17,6 +17,11 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from "@components/ui/breadcrumb";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@components/ui/collapsible";
 import { Separator } from "@components/ui/separator";
 import {
   Sidebar,
@@ -37,12 +42,20 @@ import {
 } from "@components/ui/sidebar";
 
 import { footerNavigation, home, sections } from "./app-nav";
+import { useNavSections } from "./use-nav-sections";
 
 export function AppLayout() {
   const { pathname } = useLocation();
   const current = sections
     .flatMap((section) => section.items)
     .find((item) => item.url === pathname);
+
+  // Each section is a collapsible group, as in the design system's sidebar.
+  const { isOpen, setOpen } = useNavSections({
+    sections,
+    storageKey: "push-design:nav-sections",
+    pathname,
+  });
 
   return (
     <RightPanelProvider>
@@ -80,26 +93,39 @@ export function AppLayout() {
             </SidebarGroup>
 
             {sections.map((section) => (
-              <SidebarGroup key={section.label}>
-                <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {section.items.map((item) => (
-                      <SidebarMenuItem key={item.url}>
-                        <SidebarMenuButton
-                          isActive={pathname === item.url}
-                          tooltip={item.title}
-                          render={<NavLink to={item.url} />}
-                        >
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </SidebarMenuButton>
-                        {item.notify ? <SidebarMenuBadge /> : null}
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              <Collapsible
+                key={section.label}
+                open={isOpen(section.label)}
+                onOpenChange={(open) => setOpen(section.label, open)}
+                render={<SidebarGroup />}
+              >
+                <SidebarGroupLabel
+                  className="group/label hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  render={<CollapsibleTrigger />}
+                >
+                  {section.label}
+                  <ChevronRightIcon className="ml-auto transition-transform group-data-[panel-open]/label:rotate-90" />
+                </SidebarGroupLabel>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {section.items.map((item) => (
+                        <SidebarMenuItem key={item.url}>
+                          <SidebarMenuButton
+                            isActive={pathname === item.url}
+                            tooltip={item.title}
+                            render={<NavLink to={item.url} />}
+                          >
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </SidebarMenuButton>
+                          {item.notify ? <SidebarMenuBadge /> : null}
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </Collapsible>
             ))}
           </SidebarContent>
 

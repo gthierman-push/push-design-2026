@@ -131,9 +131,6 @@ export function AppLayout() {
           </SidebarContent>
 
           <SidebarFooter>
-            {/* The checklist sits above the standing links: it is the one thing
-                down here that goes away once it is finished. */}
-            <GetStarted />
             <SidebarMenu>
               {footerNavigation.map((item) => (
                 <SidebarMenuItem key={item.url}>
@@ -148,6 +145,10 @@ export function AppLayout() {
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
+            {/* Below the standing links rather than above: Help and Settings
+                are fixtures, and the checklist is the one thing down here that
+                goes away once it is finished. */}
+            <GetStarted />
           </SidebarFooter>
 
           <SidebarRail />

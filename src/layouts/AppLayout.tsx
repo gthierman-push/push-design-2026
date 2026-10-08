@@ -4,6 +4,7 @@ import { ChevronRightIcon, SettingsIcon, ZapIcon } from "lucide-react";
 import { AccountSwitcher } from "@components/account-switcher";
 import { askAiPanel } from "@components/ask-ai-panel";
 import { CommandPalette } from "@components/command-palette";
+import { GetStarted } from "@components/get-started";
 import {
   RightPanel,
   RightPanelProvider,
@@ -144,6 +145,10 @@ export function AppLayout() {
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
+            {/* Below the standing links rather than above: Help and Settings
+                are fixtures, and the checklist is the one thing down here that
+                goes away once it is finished. */}
+            <GetStarted />
           </SidebarFooter>
 
           <SidebarRail />

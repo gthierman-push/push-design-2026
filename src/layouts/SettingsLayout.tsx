@@ -73,8 +73,11 @@ export function SettingsLayout() {
   // and this runs again when it does.
   const activeOpen = activeSection ? isOpen(activeSection) : false;
 
+  // `nearest` scrolls only as far as it takes to bring the row into view, and
+  // not at all when it is already there — so clicking a row you can see leaves
+  // the nav where it is, and only a page reached from elsewhere moves it.
   useEffect(() => {
-    activeItem.current?.scrollIntoView({ block: "center" });
+    activeItem.current?.scrollIntoView({ block: "nearest" });
   }, [pathname, activeOpen]);
 
   const results = useMemo(() => searchSettings(query), [query]);

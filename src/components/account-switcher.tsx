@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import {
   CheckIcon,
@@ -21,8 +22,9 @@ import {
 import { SidebarMenuButton, useSidebar } from "@components/ui/sidebar";
 
 import type { Account, Location } from "@components/accounts";
-import { accounts, currentUser, regionsOf } from "@components/accounts";
+import { currentUser, regionsOf } from "@components/accounts";
 import { useActiveAccount } from "@components/active-account";
+import { AddLocationDialog } from "@components/add-location-dialog";
 
 import { useAuth } from "../auth";
 
@@ -56,10 +58,11 @@ export function AccountAvatar({
  * the user can switch to, and who they are signed in as.
  */
 export function AccountSwitcher() {
-  const { account: active, location, select } = useActiveAccount();
+  const { accounts, account: active, location, select } = useActiveAccount();
   const { isMobile, setOpenMobile } = useSidebar();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [addingLocation, setAddingLocation] = useState(false);
 
   /** Picking a company opens it company-wide and leaves the menu open, so
       the locations it just revealed can be picked from. */
@@ -71,128 +74,143 @@ export function AccountSwitcher() {
   };
 
   return (
-    <DropdownMenu>
-      {/* No aria-label: the company and location names inside the trigger are
-          its accessible name, and Base UI marks it as a menu button. */}
-      <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />}>
-        <AccountAvatar account={active} />
-        {/* leading-tight, not leading-none: truncate clips each line to its
-            own box, and a box the height of the type cuts the descenders
-            off the names. */}
-        <div className="flex min-w-0 flex-col leading-tight">
-          <span className="truncate font-medium">{active.name}</span>
-          <span className="text-muted-foreground truncate text-xs">
-            {location?.name ?? "All locations"}
-          </span>
-        </div>
-        <ChevronsUpDownIcon className="text-muted-foreground ml-auto" />
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent
-        className="min-w-64"
-        align="start"
-        side={isMobile ? "bottom" : "right"}
-        sideOffset={isMobile ? 4 : 8}
-      >
-        {/* Who you are, first: the switcher's second line says which company
-            the app is pointed at, not which person is holding it. The row
-            itself is the link to the profile. */}
-        <DropdownMenuItem
-          className="gap-2 p-1.5"
-          render={<NavLink to="/settings/administrators" />}
-        >
-          <Avatar size="sm">
-            <AvatarFallback>
-              <UserIcon className="size-3.5" />
-            </AvatarFallback>
-          </Avatar>
+    <>
+      <DropdownMenu>
+        {/* No aria-label: the company and location names inside the trigger are
+            its accessible name, and Base UI marks it as a menu button. */}
+        <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />}>
+          <AccountAvatar account={active} />
+          {/* leading-tight, not leading-none: truncate clips each line to its
+              own box, and a box the height of the type cuts the descenders
+              off the names. */}
           <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate font-medium">{currentUser.name}</span>
+            <span className="truncate font-medium">{active.name}</span>
             <span className="text-muted-foreground truncate text-xs">
-              {currentUser.email}
+              {location?.name ?? "All locations"}
             </span>
           </div>
-        </DropdownMenuItem>
+          <ChevronsUpDownIcon className="text-muted-foreground ml-auto" />
+        </DropdownMenuTrigger>
 
-        <DropdownMenuSeparator />
-
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Companies</DropdownMenuLabel>
-
-          {accounts.map((account) => (
-            <DropdownMenuItem
-              key={account.id}
-              className="gap-2 p-1.5"
-              closeOnClick={false}
-              onClick={() => selectAccount(account)}
-            >
-              <AccountAvatar account={account} size="sm" />
-              <span className="min-w-0 flex-1 truncate">{account.name}</span>
-              <CheckIcon
-                className={cn(account.id !== active.id && "invisible")}
-              />
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
-
-        {/* primary: the brand accent, so the actions in the list read as
-            actions rather than as another company row. */}
-        <DropdownMenuItem className="text-primary gap-2">
-          <PlusIcon />
-          <span>Add company</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        {/* The selected company's locations, as their own section: the
-            company-wide view on top, then one group per province or state so
-            the regions carry their own headings. */}
-        <DropdownMenuItem
-          className="gap-2"
-          onClick={() => selectLocation(null)}
+        <DropdownMenuContent
+          className="min-w-64"
+          align="start"
+          side={isMobile ? "bottom" : "right"}
+          sideOffset={isMobile ? 4 : 8}
         >
-          <span className="min-w-0 flex-1 truncate">All locations</span>
-          <CheckIcon className={cn(location !== null && "invisible")} />
-        </DropdownMenuItem>
+          {/* Who you are, first: the switcher's second line says which company
+              the app is pointed at, not which person is holding it. The row
+              itself is the link to the profile. */}
+          <DropdownMenuItem
+            className="gap-2 p-1.5"
+            render={<NavLink to="/settings/administrators" />}
+          >
+            <Avatar size="sm">
+              <AvatarFallback>
+                <UserIcon className="size-3.5" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate font-medium">{currentUser.name}</span>
+              <span className="text-muted-foreground truncate text-xs">
+                {currentUser.email}
+              </span>
+            </div>
+          </DropdownMenuItem>
 
-        {regionsOf(active).map(({ region, locations }) => (
-          <DropdownMenuGroup key={region}>
-            <DropdownMenuLabel>{region}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
 
-            {locations.map((item) => (
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Companies</DropdownMenuLabel>
+
+            {accounts.map((account) => (
               <DropdownMenuItem
-                key={item.id}
-                className="gap-2"
-                onClick={() => selectLocation(item)}
+                key={account.id}
+                className="gap-2 p-1.5"
+                closeOnClick={false}
+                onClick={() => selectAccount(account)}
               >
-                <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                <AccountAvatar account={account} size="sm" />
+                <span className="min-w-0 flex-1 truncate">{account.name}</span>
                 <CheckIcon
-                  className={cn(item.id !== location?.id && "invisible")}
+                  className={cn(account.id !== active.id && "invisible")}
                 />
               </DropdownMenuItem>
             ))}
           </DropdownMenuGroup>
-        ))}
 
-        <DropdownMenuItem className="text-primary gap-2">
-          <PlusIcon />
-          <span>Add location</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={() => {
-              signOut();
-              navigate("/login", { replace: true });
-            }}
-          >
-            <LogOutIcon />
-            <span>Sign out</span>
+          {/* primary: the brand accent, so the actions in the list read as
+              actions rather than as another company row. */}
+          <DropdownMenuItem className="text-primary gap-2">
+            <PlusIcon />
+            <span>Add company</span>
           </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+
+          <DropdownMenuSeparator />
+
+          {/* The selected company's locations, as their own section: the
+              company-wide view on top, then one group per province or state so
+              the regions carry their own headings. */}
+          <DropdownMenuItem
+            className="gap-2"
+            onClick={() => selectLocation(null)}
+          >
+            <span className="min-w-0 flex-1 truncate">All locations</span>
+            <CheckIcon className={cn(location !== null && "invisible")} />
+          </DropdownMenuItem>
+
+          {regionsOf(active).map(({ region, locations }) => (
+            <DropdownMenuGroup key={region}>
+              <DropdownMenuLabel>{region}</DropdownMenuLabel>
+
+              {locations.map((item) => (
+                <DropdownMenuItem
+                  key={item.id}
+                  className="gap-2"
+                  onClick={() => selectLocation(item)}
+                >
+                  <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                  <CheckIcon
+                    className={cn(item.id !== location?.id && "invisible")}
+                  />
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          ))}
+
+          <DropdownMenuItem
+            className="text-primary gap-2"
+            onClick={() => setAddingLocation(true)}
+          >
+            <PlusIcon />
+            <span>Add location</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onClick={() => {
+                signOut();
+                navigate("/login", { replace: true });
+              }}
+            >
+              <LogOutIcon />
+              <span>Sign out</span>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Outside the menu: the menu closes as the dialog opens, and a dialog
+          rendered inside it would go with it. */}
+      <AddLocationDialog
+        open={addingLocation}
+        onOpenChange={setAddingLocation}
+        onAdded={() => {
+          if (isMobile) setOpenMobile(false);
+        }}
+      />
+    </>
   );
 }

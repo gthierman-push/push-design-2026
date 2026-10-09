@@ -9,6 +9,15 @@ export type Location = {
   name: string;
   /** The province or state the location is grouped under in the switcher. */
   region: string;
+  /**
+   * The rest of what the add-location form collects. Optional, because the
+   * switcher only ever reads the name and the region -- these ride along for
+   * whatever asks the location where it is.
+   */
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  timeZone?: string;
 };
 
 export type Account = {

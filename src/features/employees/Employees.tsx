@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PlusIcon, SearchIcon } from "lucide-react";
 
+import { useActiveAccount } from "@components/active-account";
 import { Avatar, AvatarFallback } from "@components/ui/avatar";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
@@ -26,6 +27,8 @@ import {
   TabDefaultTrigger,
 } from "@components/ui/tab-default";
 
+import { rosterFor, type Employee } from "./roster";
+
 const tabs = [
   { value: "active", label: "Active" },
   { value: "onboarding", label: "Onboarding" },
@@ -34,146 +37,23 @@ const tabs = [
   { value: "all", label: "All" },
 ];
 
-const active = [
-  {
-    name: "Mara Ellison",
-    position: "Line cook",
-    department: "Kitchen",
-    started: "Mar 4, 2023",
-    employment: "Full-time",
-  },
-  {
-    name: "Desmond Park",
-    position: "Server",
-    department: "Front of house",
-    started: "Jun 19, 2024",
-    employment: "Part-time",
-  },
-  {
-    name: "Alicia Reyes",
-    position: "Shift supervisor",
-    department: "Front of house",
-    started: "Nov 2, 2021",
-    employment: "Full-time",
-  },
-  {
-    name: "Tomas Bergeron",
-    position: "Prep cook",
-    department: "Kitchen",
-    started: "Feb 12, 2025",
-    employment: "Part-time",
-  },
-  {
-    name: "Priya Nandakumar",
-    position: "Bartender",
-    department: "Bar",
-    started: "Aug 30, 2022",
-    employment: "Full-time",
-  },
-];
-
-const onboarding = [
-  {
-    name: "Jules Whitfield",
-    position: "Dishwasher",
-    department: "Kitchen",
-    starts: "Oct 20, 2026",
-    progress: "3 of 6 steps",
-    status: "Forms pending",
-  },
-  {
-    name: "Nora Vasquez",
-    position: "Server",
-    department: "Front of house",
-    starts: "Oct 13, 2026",
-    progress: "6 of 6 steps",
-    status: "Ready to start",
-  },
-  {
-    name: "Henry Oyelaran",
-    position: "Line cook",
-    department: "Kitchen",
-    starts: "Nov 3, 2026",
-    progress: "1 of 6 steps",
-    status: "Invite sent",
-  },
-];
-
-const onLeave = [
-  {
-    name: "Cassandra Liu",
-    position: "Sous chef",
-    department: "Kitchen",
-    type: "Parental",
-    dates: "Aug 1 – Dec 19, 2026",
-    returns: "Dec 21, 2026",
-  },
-  {
-    name: "Ethan Caldwell",
-    position: "Server",
-    department: "Front of house",
-    type: "Medical",
-    dates: "Sep 28 – Oct 26, 2026",
-    returns: "Oct 27, 2026",
-  },
-  {
-    name: "Rosa Marchetti",
-    position: "Host",
-    department: "Front of house",
-    type: "Unpaid",
-    dates: "Oct 5 – Nov 2, 2026",
-    returns: "Nov 3, 2026",
-  },
-];
-
-const inactive = [
-  {
-    name: "Gavin Turnbull",
-    position: "Line cook",
-    department: "Kitchen",
-    lastDay: "Jul 11, 2026",
-    reason: "Resigned",
-  },
-  {
-    name: "Simone Adeyemi",
-    position: "Bartender",
-    department: "Bar",
-    lastDay: "Apr 2, 2026",
-    reason: "Seasonal end",
-  },
-  {
-    name: "Luca Fontaine",
-    position: "Busser",
-    department: "Front of house",
-    lastDay: "Jan 19, 2026",
-    reason: "Terminated",
-  },
-];
-
-/**
- * The All tab is the four status lists in one, so it stays in step with them
- * rather than carrying its own copy of everyone. Sorted by name, since without
- * a status to group by the only useful order is alphabetical.
- */
-const all = [
-  ...active.map((employee) => ({ ...employee, status: "Active" })),
-  ...onboarding.map((employee) => ({ ...employee, status: "Onboarding" })),
-  ...onLeave.map((employee) => ({ ...employee, status: "On leave" })),
-  ...inactive.map((employee) => ({ ...employee, status: "Inactive" })),
-].sort((a, b) => a.name.localeCompare(b.name));
-
-/** Search runs over the three fields every tab's table puts on screen. */
+/** Search runs over the fields every tab's table puts on screen -- including
+ *  the location, but only while the Location column is there to show it. */
 function matches(
   employee: { name: string; position: string; department: string },
   query: string,
+  location?: string,
 ) {
   const needle = query.trim().toLowerCase();
 
   return (
     needle === "" ||
-    [employee.name, employee.position, employee.department].some((field) =>
-      field.toLowerCase().includes(needle),
-    )
+    [
+      employee.name,
+      employee.position,
+      employee.department,
+      location ?? "",
+    ].some((field) => field.toLowerCase().includes(needle))
   );
 }
 
@@ -216,32 +96,73 @@ function SearchField({
   );
 }
 
-function NoResults({ columns }: { columns: number }) {
+function NoResults({ columns, message }: { columns: number; message: string }) {
   return (
     <TableRow>
       <TableCell
         colSpan={columns}
         className="text-muted-foreground py-6 text-center"
       >
-        No employees match that search.
+        {message}
       </TableCell>
     </TableRow>
   );
 }
 
 export function Employees() {
+  // The roster follows whatever the app is pointed at: every location the
+  // company runs, or the one picked in the switcher.
+  const { account, location } = useActiveAccount();
+
   const [tab, setTab] = useState(tabs[0].value);
   // One query across every tab: searching, then switching tabs to see who else
   // turns up, is the whole reason the tabs sit beside each other.
   const [query, setQuery] = useState("");
 
-  const activeRows = active.filter((employee) => matches(employee, query));
-  const onboardingRows = onboarding.filter((employee) =>
-    matches(employee, query),
+  const roster = useMemo(
+    () => rosterFor(account, location),
+    [account, location],
   );
-  const onLeaveRows = onLeave.filter((employee) => matches(employee, query));
-  const inactiveRows = inactive.filter((employee) => matches(employee, query));
-  const allRows = all.filter((employee) => matches(employee, query));
+
+  /* With one location picked, a Location column would repeat that location on
+     every row, so it only shows on the company-wide view. */
+  const showLocation = location === null;
+
+  const locationNames = useMemo(
+    () => new Map(account.locations.map((item) => [item.id, item.name])),
+    [account],
+  );
+
+  const nameOf = (employee: { locationId: string }) =>
+    locationNames.get(employee.locationId) ?? "—";
+
+  const search = <T extends Employee>(rows: T[]) =>
+    rows.filter((employee) =>
+      matches(employee, query, showLocation ? nameOf(employee) : undefined),
+    );
+
+  const activeRows = search(roster.active);
+  const onboardingRows = search(roster.onboarding);
+  const onLeaveRows = search(roster.onLeave);
+  const inactiveRows = search(roster.inactive);
+  const allRows = search(roster.all);
+
+  /* An empty table means one of two things, and "no match" is the wrong thing
+     to say about a location nobody has been hired into yet. */
+  const emptyMessage =
+    query.trim() !== ""
+      ? "No employees match that search."
+      : location
+        ? `No employees at ${location.name} yet.`
+        : `No employees at ${account.name} yet.`;
+
+  /** Every table gains a column on the company-wide view. */
+  const columns = (base: number) => base + (showLocation ? 1 : 0);
+
+  const locationHead = showLocation ? <TableHead>Location</TableHead> : null;
+
+  const locationCell = (employee: { locationId: string }) =>
+    showLocation ? <TableCell>{nameOf(employee)}</TableCell> : null;
 
   return (
     <TabDefault value={tab} onValueChange={(value) => setTab(value as string)}>
@@ -284,19 +205,23 @@ export function Employees() {
                   <TableHead>Name</TableHead>
                   <TableHead>Position</TableHead>
                   <TableHead>Department</TableHead>
+                  {locationHead}
                   <TableHead>Started</TableHead>
                   <TableHead>Employment</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activeRows.length === 0 && <NoResults columns={5} />}
+                {activeRows.length === 0 && (
+                  <NoResults columns={columns(5)} message={emptyMessage} />
+                )}
                 {activeRows.map((employee) => (
-                  <TableRow key={employee.name}>
+                  <TableRow key={employee.id}>
                     <TableCell>
                       <Person name={employee.name} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department}</TableCell>
+                    {locationCell(employee)}
                     <TableCell>{employee.started}</TableCell>
                     <TableCell>
                       <Badge
@@ -328,19 +253,23 @@ export function Employees() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Position</TableHead>
+                  {locationHead}
                   <TableHead>Start date</TableHead>
                   <TableHead>Progress</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {onboardingRows.length === 0 && <NoResults columns={5} />}
+                {onboardingRows.length === 0 && (
+                  <NoResults columns={columns(5)} message={emptyMessage} />
+                )}
                 {onboardingRows.map((employee) => (
-                  <TableRow key={employee.name}>
+                  <TableRow key={employee.id}>
                     <TableCell>
                       <Person name={employee.name} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
+                    {locationCell(employee)}
                     <TableCell>{employee.starts}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {employee.progress}
@@ -375,19 +304,23 @@ export function Employees() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Position</TableHead>
+                  {locationHead}
                   <TableHead>Leave</TableHead>
                   <TableHead>Dates</TableHead>
                   <TableHead>Returns</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {onLeaveRows.length === 0 && <NoResults columns={5} />}
+                {onLeaveRows.length === 0 && (
+                  <NoResults columns={columns(5)} message={emptyMessage} />
+                )}
                 {onLeaveRows.map((employee) => (
-                  <TableRow key={employee.name}>
+                  <TableRow key={employee.id}>
                     <TableCell>
                       <Person name={employee.name} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
+                    {locationCell(employee)}
                     <TableCell>
                       <Badge variant="outline">{employee.type}</Badge>
                     </TableCell>
@@ -413,19 +346,23 @@ export function Employees() {
                   <TableHead>Name</TableHead>
                   <TableHead>Position</TableHead>
                   <TableHead>Department</TableHead>
+                  {locationHead}
                   <TableHead>Last day</TableHead>
                   <TableHead>Reason</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {inactiveRows.length === 0 && <NoResults columns={5} />}
+                {inactiveRows.length === 0 && (
+                  <NoResults columns={columns(5)} message={emptyMessage} />
+                )}
                 {inactiveRows.map((employee) => (
-                  <TableRow key={employee.name}>
+                  <TableRow key={employee.id}>
                     <TableCell>
                       <Person name={employee.name} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department}</TableCell>
+                    {locationCell(employee)}
                     <TableCell>{employee.lastDay}</TableCell>
                     <TableCell>
                       <Badge
@@ -458,18 +395,22 @@ export function Employees() {
                   <TableHead>Name</TableHead>
                   <TableHead>Position</TableHead>
                   <TableHead>Department</TableHead>
+                  {locationHead}
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {allRows.length === 0 && <NoResults columns={4} />}
+                {allRows.length === 0 && (
+                  <NoResults columns={columns(4)} message={emptyMessage} />
+                )}
                 {allRows.map((employee) => (
-                  <TableRow key={employee.name}>
+                  <TableRow key={employee.id}>
                     <TableCell>
                       <Person name={employee.name} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department}</TableCell>
+                    {locationCell(employee)}
                     <TableCell>
                       <Badge
                         variant={

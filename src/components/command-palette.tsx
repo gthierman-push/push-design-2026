@@ -6,7 +6,6 @@ import type { NavItem } from "@layouts/app-nav";
 import { footerNavigation, home, sections } from "@layouts/app-nav";
 import { sections as settingsSections } from "@layouts/settings-nav";
 import { AccountAvatar } from "@components/account-switcher";
-import { accounts } from "@components/accounts";
 import { useActiveAccount } from "@components/active-account";
 import { SidebarMenuButton } from "@components/ui/sidebar";
 import {
@@ -83,7 +82,7 @@ export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const navigate = useNavigate();
-  const { account: active, location, select } = useActiveAccount();
+  const { accounts, account: active, location, select } = useActiveAccount();
 
   /** A fresh palette every time, however it was closed. */
   React.useEffect(() => {

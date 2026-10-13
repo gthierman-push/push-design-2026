@@ -51,8 +51,8 @@ function RailItem({
   label: string;
   /** The full name, for the tooltip. */
   title?: string;
-  /** A link goes somewhere; without one the slot only changes the panel. */
-  to?: string;
+  /** Every slot goes somewhere: a section opens the first of its pages. */
+  to: string;
   onClick?: () => void;
   /** Its pages are the ones in the panel beside the rail. */
   selected?: boolean;
@@ -65,13 +65,7 @@ function RailItem({
   return (
     <Tooltip>
       <TooltipTrigger
-        render={
-          to ? (
-            <NavLink to={to} className={className} onClick={onClick} />
-          ) : (
-            <button type="button" className={className} onClick={onClick} />
-          )
-        }
+        render={<NavLink to={to} className={className} onClick={onClick} />}
       >
         <span
           className={cn(
@@ -145,9 +139,10 @@ function RailNav() {
 
   const section = sections.find((item) => item.label === shown) ?? sections[0];
 
+  // Clicking a section opens the first of its pages, and asks to see the
+  // rest of them, so a closed panel comes back with them.
   const show = (label: string) => {
     setShown(label);
-    // Clicking a section asks to see its pages, so a closed panel comes back.
     setOpen(true);
   };
 
@@ -180,6 +175,7 @@ function RailNav() {
               icon={item.icon}
               label={item.short ?? item.label}
               title={item.label}
+              to={item.items[0].url}
               selected={open && item.label === section.label}
               current={item.label === currentSection?.label}
               onClick={() => show(item.label)}

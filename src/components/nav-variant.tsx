@@ -16,6 +16,11 @@ export const navVariants = [
     name: "Variation 1 — Icon rail",
     summary: "Sections on an icon rail, their pages in the sidebar beside it",
   },
+  {
+    id: "icon",
+    name: "Variation 2 — Icon sidebar",
+    summary: "shadcn's sidebar-07: one sidebar that collapses to icons",
+  },
 ] as const;
 
 export type NavVariant = (typeof navVariants)[number]["id"];

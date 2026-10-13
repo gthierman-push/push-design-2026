@@ -1,5 +1,6 @@
 import { useNavVariant } from "@components/nav-variant";
 
+import { AppIconSidebarLayout } from "./AppIconSidebarLayout";
 import { AppRailLayout } from "./AppRailLayout";
 import { AppSidebarLayout } from "./AppSidebarLayout";
 
@@ -13,6 +14,8 @@ export function AppLayout() {
   switch (variant) {
     case "rail":
       return <AppRailLayout />;
+    case "icon":
+      return <AppIconSidebarLayout />;
     default:
       return <AppSidebarLayout />;
   }

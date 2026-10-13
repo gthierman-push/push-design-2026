@@ -1,6 +1,6 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import {
-  ChevronRightIcon,
   ChevronsUpDownIcon,
   CircleHelpIcon,
   LogOutIcon,
@@ -49,7 +49,6 @@ import {
 import { useAuth } from "../auth";
 import { AppHeader } from "./AppHeader";
 import { footerNavigation, home, sections } from "./app-nav";
-import { useNavSections } from "./use-nav-sections";
 
 /**
  * The signed-in user at the foot of the sidebar, as the block has it: the
@@ -112,13 +111,20 @@ function AppSidebar() {
   const { pathname } = useLocation();
   const { state } = useSidebar();
 
-  // Sections nest inside the menu here rather than being groups of their own,
-  // but they are still remembered open or closed the way the others are.
-  const { isOpen, setOpen } = useNavSections({
-    sections,
-    storageKey: "push-design:icon-nav-sections",
-    pathname,
-  });
+  const sectionOfPage = sections.find((section) =>
+    section.items.some((item) => item.url === pathname),
+  )?.label;
+
+  // One section at a time, the way an accordion goes: the sections nest
+  // inside the menu here rather than standing apart as groups, so leaving
+  // them all open would bury the rest of the nav under one long list.
+  const [openSection, setOpenSection] = useState(sectionOfPage ?? null);
+
+  // Landing on a page from elsewhere — a link, the command palette — opens
+  // the section it lives in, and closes whichever one was open.
+  useEffect(() => {
+    if (sectionOfPage) setOpenSection(sectionOfPage);
+  }, [sectionOfPage]);
 
   return (
     <Sidebar collapsible="icon">
@@ -148,51 +154,48 @@ function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              {sections.map((section) => {
-                const holdsPage = section.items.some(
-                  (item) => item.url === pathname,
-                );
-
-                return (
-                  <Collapsible
-                    key={section.label}
-                    open={isOpen(section.label)}
-                    onOpenChange={(open) => setOpen(section.label, open)}
-                    render={<SidebarMenuItem />}
+              {sections.map((section) => (
+                <Collapsible
+                  key={section.label}
+                  open={openSection === section.label}
+                  onOpenChange={(open) =>
+                    setOpenSection(open ? section.label : null)
+                  }
+                  render={<SidebarMenuItem />}
+                >
+                  <SidebarMenuButton
+                    // Collapsed, the section icon is all there is to say which
+                    // page you are on; expanded, the page's own row says it,
+                    // and marking both would be twice too much.
+                    isActive={
+                      section.label === sectionOfPage && state === "collapsed"
+                    }
+                    tooltip={section.label}
+                    render={<CollapsibleTrigger />}
                   >
-                    <SidebarMenuButton
-                      // Collapsed, the section icon is all there is to say
-                      // which page you are on; expanded, the page's own row
-                      // says it, and marking both would be twice too much.
-                      isActive={holdsPage && state === "collapsed"}
-                      tooltip={section.label}
-                      render={<CollapsibleTrigger />}
-                    >
-                      <section.icon />
-                      <span>{section.label}</span>
-                      <ChevronRightIcon className="ml-auto transition-transform group-data-[panel-open]/menu-button:rotate-90" />
-                    </SidebarMenuButton>
+                    <section.icon />
+                    <span>{section.label}</span>
+                  </SidebarMenuButton>
 
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {section.items.map((item) => (
-                          <SidebarMenuSubItem key={item.url}>
-                            <SidebarMenuSubButton
-                              isActive={pathname === item.url}
-                              render={<NavLink to={item.url} />}
-                            >
-                              <span>{item.title}</span>
-                            </SidebarMenuSubButton>
-                            {item.notify ? (
-                              <SidebarMenuBadge className="top-2.5" />
-                            ) : null}
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </Collapsible>
-                );
-              })}
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {section.items.map((item) => (
+                        <SidebarMenuSubItem key={item.url}>
+                          <SidebarMenuSubButton
+                            isActive={pathname === item.url}
+                            render={<NavLink to={item.url} />}
+                          >
+                            <span>{item.title}</span>
+                          </SidebarMenuSubButton>
+                          {item.notify ? (
+                            <SidebarMenuBadge className="top-2.5" />
+                          ) : null}
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

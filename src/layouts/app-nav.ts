@@ -22,6 +22,7 @@ import {
   TableIcon,
   TrendingUpIcon,
   TrophyIcon,
+  UserPlusIcon,
   UserSearchIcon,
   UsersIcon,
 } from "lucide-react";
@@ -40,6 +41,10 @@ export type NavItem = {
 
 export type NavSection = {
   label: string;
+  /** Stands in for the section where only an icon fits, as on the rail. */
+  icon: LucideIcon;
+  /** The rail's label, for sections whose full name is too long to read there. */
+  short?: string;
   items: NavItem[];
 };
 
@@ -53,6 +58,7 @@ export const home: NavItem = {
 export const sections: NavSection[] = [
   {
     label: "Scheduling",
+    icon: CalendarRangeIcon,
     items: [
       { title: "Scheduler", url: "/scheduler", icon: CalendarRangeIcon },
       { title: "Clocks", url: "/clocks", icon: ClockIcon, notify: true },
@@ -66,6 +72,8 @@ export const sections: NavSection[] = [
   },
   {
     label: "Workforce Management",
+    icon: UsersIcon,
+    short: "Workforce",
     items: [
       {
         title: "Employees",
@@ -82,6 +90,7 @@ export const sections: NavSection[] = [
   },
   {
     label: "Hiring",
+    icon: UserPlusIcon,
     items: [
       { title: "Jobs", url: "/jobs", icon: BriefcaseBusinessIcon },
       { title: "Candidates", url: "/candidates", icon: UserSearchIcon },
@@ -90,6 +99,8 @@ export const sections: NavSection[] = [
   },
   {
     label: "Communication",
+    icon: MessagesSquareIcon,
+    short: "Comms",
     items: [
       { title: "Chat", url: "/chat", icon: MessagesSquareIcon },
       { title: "Message Board", url: "/message-board", icon: MegaphoneIcon },
@@ -97,6 +108,7 @@ export const sections: NavSection[] = [
   },
   {
     label: "Payroll",
+    icon: BadgeDollarSignIcon,
     items: [
       { title: "Payroll", url: "/payroll", icon: BadgeDollarSignIcon },
       { title: "Timesheets", url: "/timesheets", icon: TableIcon },
@@ -104,6 +116,7 @@ export const sections: NavSection[] = [
   },
   {
     label: "Reporting",
+    icon: ChartPieIcon,
     items: [
       { title: "Sales", url: "/sales", icon: TrendingUpIcon },
       { title: "Reports", url: "/reports", icon: BriefcaseIcon },

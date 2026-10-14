@@ -1,8 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { PlusIcon, SearchIcon } from "lucide-react";
 
 import { useActiveAccount } from "@components/active-account";
-import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardHeader } from "@components/ui/card";
@@ -27,7 +26,9 @@ import {
   TabDefaultTrigger,
 } from "@components/ui/tab-default";
 
+import { EmployeeAvatar } from "./EmployeeAvatar";
 import { rosterFor, type Employee } from "./roster";
+import { useRosterQuery } from "./use-roster-query";
 
 const tabs = [
   { value: "active", label: "Active" },
@@ -58,20 +59,11 @@ function matches(
   );
 }
 
-/** The leading cell every table shares: a photo beside the name, falling back
- *  to the initials whenever the picture is missing or fails to load. */
+/** The leading cell every table shares: a photo beside the name. */
 function Person({ name, photo }: { name: string; photo: string }) {
-  const initials = name
-    .split(" ")
-    .map((part) => part[0])
-    .join("");
-
   return (
     <div className="flex items-center gap-2">
-      <Avatar size="sm">
-        <AvatarImage src={photo} alt="" />
-        <AvatarFallback>{initials}</AvatarFallback>
-      </Avatar>
+      <EmployeeAvatar employee={{ name, photo }} />
       <span className="font-medium">{name}</span>
     </div>
   );
@@ -117,10 +109,10 @@ export function Employees() {
   // company runs, or the one picked in the switcher.
   const { account, location } = useActiveAccount();
 
-  const [tab, setTab] = useState(tabs[0].value);
   // One query across every tab: searching, then switching tabs to see who else
-  // turns up, is the whole reason the tabs sit beside each other.
-  const [query, setQuery] = useState("");
+  // turns up, is the whole reason the tabs sit beside each other. The palette
+  // can set both through the url when it sends someone here.
+  const { query, setQuery, tab, setTab } = useRosterQuery(tabs[0].value);
 
   const roster = useMemo(
     () => rosterFor(account, location),

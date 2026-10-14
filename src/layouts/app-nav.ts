@@ -71,9 +71,8 @@ export const sections: NavSection[] = [
     ],
   },
   {
-    label: "Workforce Management",
+    label: "Workforce",
     icon: UsersIcon,
-    short: "Workforce",
     items: [
       {
         title: "Employees",

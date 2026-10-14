@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
-import { PanelLeftIcon, type LucideIcon } from "lucide-react";
+import { PanelLeftIcon, SearchIcon, type LucideIcon } from "lucide-react";
 
 import { cn } from "cn";
 import { AccountSwitcher } from "@components/account-switcher";
@@ -51,8 +51,11 @@ function RailItem({
   label: string;
   /** The full name, for the tooltip. */
   title?: string;
-  /** Every slot goes somewhere: a section opens the first of its pages. */
-  to: string;
+  /**
+   * Where the slot goes: a section opens the first of its pages. Left out
+   * by the slots that do something instead of going somewhere, like search.
+   */
+  to?: string;
   onClick?: () => void;
   /** Its pages are the ones in the panel beside the rail. */
   selected?: boolean;
@@ -65,7 +68,13 @@ function RailItem({
   return (
     <Tooltip>
       <TooltipTrigger
-        render={<NavLink to={to} className={className} onClick={onClick} />}
+        render={
+          to ? (
+            <NavLink to={to} className={className} onClick={onClick} />
+          ) : (
+            <button type="button" className={className} onClick={onClick} />
+          )
+        }
       >
         <span
           className={cn(
@@ -184,6 +193,21 @@ function RailNav() {
         </div>
 
         <div className="flex w-full shrink-0 flex-col items-center gap-1 border-t pt-2">
+          {/* Search sits with Help and Settings rather than in the panel:
+              the panel can be closed, and ⌘K should always have a tile. */}
+          <CommandPalette
+            trigger={(openPalette) => (
+              <RailItem
+                icon={SearchIcon}
+                label="Search"
+                /* The shortcut moved with it: the rail has no room for the
+                   ⌘K the sidebar row carried, so the tooltip says it. */
+                title="Search (⌘K)"
+                onClick={openPalette}
+              />
+            )}
+          />
+
           {footerNavigation.map((item) => (
             <RailItem
               key={item.url}
@@ -211,9 +235,6 @@ function RailNav() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <AccountSwitcher />
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <CommandPalette />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarHeader>

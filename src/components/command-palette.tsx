@@ -78,7 +78,15 @@ type PaletteRow = {
 
 type RowGroup = { label: string; rows: PaletteRow[]; searchOnly?: boolean };
 
-export function CommandPalette() {
+export function CommandPalette({
+  trigger,
+}: {
+  /**
+   * What opens the palette. Defaults to a sidebar row; a layout that keeps
+   * search somewhere else — the icon rail, say — hands in its own.
+   */
+  trigger?: (open: () => void) => React.ReactNode;
+}) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const navigate = useNavigate();
@@ -171,18 +179,22 @@ export function CommandPalette() {
 
   return (
     <>
-      <SidebarMenuButton
-        tooltip="Search"
-        className="text-muted-foreground"
-        onClick={() => setOpen(true)}
-      >
-        <SearchIcon />
-        <span>Search</span>
-        <KbdGroup className="ml-auto">
-          <Kbd>⌘</Kbd>
-          <Kbd>K</Kbd>
-        </KbdGroup>
-      </SidebarMenuButton>
+      {trigger ? (
+        trigger(() => setOpen(true))
+      ) : (
+        <SidebarMenuButton
+          tooltip="Search"
+          className="text-muted-foreground"
+          onClick={() => setOpen(true)}
+        >
+          <SearchIcon />
+          <span>Search</span>
+          <KbdGroup className="ml-auto">
+            <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd>
+          </KbdGroup>
+        </SidebarMenuButton>
+      )}
 
       <CommandDialog
         open={open}

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import {
   ChevronsUpDownIcon,
@@ -49,6 +48,7 @@ import {
 import { useAuth } from "../auth";
 import { AppHeader } from "./AppHeader";
 import { footerNavigation, home, sections } from "./app-nav";
+import { useNavSections } from "./use-nav-sections";
 
 /**
  * The signed-in user at the foot of the sidebar, as the block has it: the
@@ -111,20 +111,14 @@ function AppSidebar() {
   const { pathname } = useLocation();
   const { state } = useSidebar();
 
-  const sectionOfPage = sections.find((section) =>
-    section.items.some((item) => item.url === pathname),
-  )?.label;
-
-  // One section at a time, the way an accordion goes: the sections nest
-  // inside the menu here rather than standing apart as groups, so leaving
-  // them all open would bury the rest of the nav under one long list.
-  const [openSection, setOpenSection] = useState(sectionOfPage ?? null);
-
-  // Landing on a page from elsewhere — a link, the command palette — opens
-  // the section it lives in, and closes whichever one was open.
-  useEffect(() => {
-    if (sectionOfPage) setOpenSection(sectionOfPage);
-  }, [sectionOfPage]);
+  // Open as many sections as you like, each remembered the way the other
+  // navs remember theirs — the one holding the page you are on reopens by
+  // itself however you got there.
+  const { isOpen, setOpen, activeSection } = useNavSections({
+    sections,
+    storageKey: "push-design:icon-nav-sections",
+    pathname,
+  });
 
   return (
     <Sidebar collapsible="icon">
@@ -157,10 +151,8 @@ function AppSidebar() {
               {sections.map((section) => (
                 <Collapsible
                   key={section.label}
-                  open={openSection === section.label}
-                  onOpenChange={(open) =>
-                    setOpenSection(open ? section.label : null)
-                  }
+                  open={isOpen(section.label)}
+                  onOpenChange={(open) => setOpen(section.label, open)}
                   render={<SidebarMenuItem />}
                 >
                   <SidebarMenuButton
@@ -168,7 +160,7 @@ function AppSidebar() {
                     // page you are on; expanded, the page's own row says it,
                     // and marking both would be twice too much.
                     isActive={
-                      section.label === sectionOfPage && state === "collapsed"
+                      section.label === activeSection && state === "collapsed"
                     }
                     tooltip={section.label}
                     render={<CollapsibleTrigger />}

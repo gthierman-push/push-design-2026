@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import {
   ChevronsUpDownIcon,
@@ -107,18 +108,48 @@ function NavUser() {
   );
 }
 
-function AppSidebar() {
+/**
+ * How many sections can stand open at once. Both variations show the same
+ * nav; this is the whole of what sets them apart.
+ */
+type SectionMode = "many" | "one";
+
+/**
+ * One open section at a time: opening the next closes the last. Nothing is
+ * stored, because there is little to remember — the section holding the page
+ * you are on is the one that opens, however you arrived at it.
+ */
+function useOneOpenSection(pathname: string) {
+  const activeSection = sections.find((section) =>
+    section.items.some((item) => item.url === pathname),
+  )?.label;
+
+  const [open, setOpen] = useState(activeSection ?? null);
+
+  useEffect(() => {
+    if (activeSection) setOpen(activeSection);
+  }, [activeSection]);
+
+  return {
+    activeSection,
+    isOpen: (label: string) => open === label,
+    setOpen: (label: string, next: boolean) => setOpen(next ? label : null),
+  };
+}
+
+function AppSidebar({ mode }: { mode: SectionMode }) {
   const { pathname } = useLocation();
   const { state } = useSidebar();
 
-  // Open as many sections as you like, each remembered the way the other
-  // navs remember theirs — the one holding the page you are on reopens by
-  // itself however you got there.
-  const { isOpen, setOpen, activeSection } = useNavSections({
+  // Both are hooks, so both run whichever one is in charge; only the one
+  // the variation asks for is read.
+  const remembered = useNavSections({
     sections,
     storageKey: "push-design:icon-nav-sections",
     pathname,
   });
+  const solo = useOneOpenSection(pathname);
+  const { isOpen, setOpen, activeSection } = mode === "one" ? solo : remembered;
 
   return (
     <Sidebar collapsible="icon">
@@ -227,14 +258,19 @@ function AppSidebar() {
 }
 
 /**
- * Variation 2: shadcn's sidebar-07. One sidebar that collapses to a column of
- * icons, with each section a row that unfolds its pages underneath.
+ * Variations 2 and 3: shadcn's sidebar-07. One sidebar that collapses to a
+ * column of icons, with each section a row that unfolds its pages underneath
+ * — either as many at a time as you like, or one at a time.
  */
-export function AppIconSidebarLayout() {
+export function AppIconSidebarLayout({
+  mode = "many",
+}: {
+  mode?: SectionMode;
+}) {
   return (
     <RightPanelProvider>
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar mode={mode} />
 
         <SidebarInset>
           <AppHeader trigger={<SidebarTrigger className="-ml-1" />} />

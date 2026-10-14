@@ -16,6 +16,8 @@ export function AppLayout() {
       return <AppRailLayout />;
     case "icon":
       return <AppIconSidebarLayout />;
+    case "accordion":
+      return <AppIconSidebarLayout mode="one" />;
     default:
       return <AppSidebarLayout />;
   }

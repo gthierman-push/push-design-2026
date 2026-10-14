@@ -21,6 +21,11 @@ export const navVariants = [
     name: "Variation 2 — Icon sidebar",
     summary: "shadcn's sidebar-07: one sidebar that collapses to icons",
   },
+  {
+    id: "accordion",
+    name: "Variation 3 — Icon sidebar, one section",
+    summary: "Variation 2, with the sections opening one at a time",
+  },
 ] as const;
 
 export type NavVariant = (typeof navVariants)[number]["id"];

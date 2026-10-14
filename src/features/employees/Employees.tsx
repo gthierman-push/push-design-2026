@@ -28,11 +28,13 @@ import {
 } from "@components/ui/tab-default";
 
 import {
+  FilterActions,
   FilterChips,
   FilterMenu,
   filterOptions,
   matchesFilters,
   type Filter,
+  type SavedFilter,
 } from "./filters";
 import { rosterFor, type Employee } from "./roster";
 
@@ -130,6 +132,8 @@ export function Employees() {
   const [query, setQuery] = useState("");
   // The filters run alongside it, and across the tabs for the same reason.
   const [filters, setFilters] = useState<Filter[]>([]);
+  // Sets worth coming back to, kept for as long as the session lasts.
+  const [saved, setSaved] = useState<SavedFilter[]>([]);
 
   const roster = useMemo(
     () => rosterFor(account, location),
@@ -249,6 +253,7 @@ export function Employees() {
             <FilterMenu
               options={options}
               filters={filters}
+              saved={saved}
               onFiltersChange={setFilters}
             />
           </div>
@@ -262,6 +267,12 @@ export function Employees() {
                 options={options}
                 filters={filters}
                 onFiltersChange={setFilters}
+              />
+              <FilterActions
+                filters={filters}
+                saved={saved}
+                onFiltersChange={setFilters}
+                onSavedChange={setSaved}
               />
             </div>
           )}

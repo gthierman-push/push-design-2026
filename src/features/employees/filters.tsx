@@ -6,10 +6,32 @@
  */
 
 import * as React from "react";
-import { BriefcaseIcon, ListFilterIcon, UsersIcon, XIcon } from "lucide-react";
+import {
+  BookmarkIcon,
+  BriefcaseIcon,
+  ListFilterIcon,
+  UsersIcon,
+  XIcon,
+} from "lucide-react";
 
 import { Button } from "@components/ui/button";
 import { ButtonGroup, ButtonGroupText } from "@components/ui/button-group";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@components/ui/dialog";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@components/ui/field";
+import { Input } from "@components/ui/input";
 import {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -18,13 +40,17 @@ import {
   ContextMenuFilterProvider,
   ContextMenuGroup,
   ContextMenuInput,
+  ContextMenuItem,
   ContextMenuLabel,
   ContextMenuList,
+  ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@components/ui/context-menu";
+
+import { toast } from "@components/ui/toast";
 
 import type { Employee } from "./roster";
 
@@ -52,6 +78,9 @@ export type FilterField = (typeof fields)[number]["field"];
 
 /** A field narrowed to a set of values: the row matches any one of them. */
 export type Filter = { field: FilterField; values: string[] };
+
+/** A set of filters kept for next time, named after what it narrows to. */
+export type SavedFilter = { name: string; filters: Filter[] };
 
 /** Every value the roster actually uses, so the menu offers nothing empty. */
 export function filterOptions(employees: Employee[]) {
@@ -96,6 +125,29 @@ function withValues(
       )
     : [...filters, { field, values }];
 }
+
+/** How a filter reads out loud: one value names itself, more are counted,
+ *  since three positions spelled out would push the search off the line. */
+function phrase({ field, values }: Filter) {
+  const { label, plural } = describe(field);
+  const operator = values.length === 1 ? "is" : "is any of";
+  const summary =
+    values.length === 1 ? values[0] : `${values.length} ${plural}`;
+
+  return { operator, summary, sentence: `${label} ${operator} ${summary}` };
+}
+
+/** What a saved set goes by: what it narrows to, which is what anyone
+ *  reaching for it again has in mind -- "Kitchen, 2 positions". */
+const nameFor = (filters: Filter[]) =>
+  filters.map((filter) => phrase(filter).summary).join(", ");
+
+/** A saved set is only offered where the roster can still satisfy it: a view
+ *  built at one location would otherwise empty the table at the next. */
+const fits = (view: SavedFilter, options: FilterOptions) =>
+  view.filters.every(({ field, values }) =>
+    values.every((value) => options[field].includes(value)),
+  );
 
 const toggle = (values: string[], value: string) =>
   values.includes(value)
@@ -167,6 +219,39 @@ function ValueSearch({ plural }: { plural: string }) {
 }
 
 /**
+ * The saved sets, under the fields and behind a rule of their own. It is not
+ * there at all until something has been saved, so the menu stays two rows
+ * long for anyone who never saves one.
+ */
+function SavedSection({
+  views,
+  onApply,
+}: {
+  views: SavedFilter[];
+  onApply: (filters: Filter[]) => void;
+}) {
+  if (views.length === 0) return null;
+
+  return (
+    <>
+      <ContextMenuSeparator />
+      <ContextMenuGroup>
+        <ContextMenuLabel>Saved</ContextMenuLabel>
+        {views.map((view) => (
+          <ContextMenuItem
+            key={view.name}
+            onClick={() => onApply(view.filters)}
+          >
+            <BookmarkIcon className="text-muted-foreground" />
+            <span className="truncate">{view.name}</span>
+          </ContextMenuItem>
+        ))}
+      </ContextMenuGroup>
+    </>
+  );
+}
+
+/**
  * The ghost button beside search. Resting, it offers the two fields and their
  * submenus; typing searches the values themselves, so "cook" reaches Line cook
  * without knowing it lives under Position.
@@ -174,10 +259,12 @@ function ValueSearch({ plural }: { plural: string }) {
 export function FilterMenu({
   options,
   filters,
+  saved,
   onFiltersChange,
 }: {
   options: FilterOptions;
   filters: Filter[];
+  saved: SavedFilter[];
   onFiltersChange: (filters: Filter[]) => void;
 }) {
   /* The query drives what the menu is a list of, so the menu's own filtering
@@ -204,6 +291,12 @@ export function FilterMenu({
     })
     .filter((item) => item.matched.length > 0);
 
+  /** Saved sets this roster can still satisfy, narrowed by the query the
+   *  same way the values are. */
+  const views = saved
+    .filter((view) => fits(view, options))
+    .filter((view) => view.name.toLowerCase().includes(needle));
+
   const update = (field: FilterField, values: string[]) =>
     onFiltersChange(withValues(filters, field, values));
 
@@ -229,52 +322,60 @@ export function FilterMenu({
           />
           <ContextMenuList>
             {needle === "" ? (
-              fields.map((item) => {
-                const values = valuesFor(item.field);
+              <>
+                {fields.map((item) => {
+                  const values = valuesFor(item.field);
 
-                return (
-                  <ContextMenuFilterProvider key={item.field} autoHighlight>
-                    <ContextMenuSub>
-                      <ContextMenuSubTrigger>
-                        <item.icon />
-                        {item.label}
-                        {/* What the field is already narrowed to, without
+                  return (
+                    <ContextMenuFilterProvider key={item.field} autoHighlight>
+                      <ContextMenuSub>
+                        <ContextMenuSubTrigger>
+                          <item.icon />
+                          {item.label}
+                          {/* What the field is already narrowed to, without
                             opening it: the count the chip spells out. */}
-                        {values.length > 0 && (
-                          <span className="ml-auto text-xs tabular-nums">
-                            {values.length}
-                          </span>
-                        )}
-                      </ContextMenuSubTrigger>
-                      <ContextMenuSubContent className="w-56 overflow-hidden p-0">
-                        <ValueSearch plural={item.plural} />
-                        <ContextMenuList>
-                          <ValueItems
-                            options={options[item.field]}
-                            values={values}
-                            onValuesChange={(next) => update(item.field, next)}
-                          />
-                        </ContextMenuList>
-                      </ContextMenuSubContent>
-                    </ContextMenuSub>
-                  </ContextMenuFilterProvider>
-                );
-              })
-            ) : matches.length === 0 ? (
+                          {values.length > 0 && (
+                            <span className="ml-auto text-xs tabular-nums">
+                              {values.length}
+                            </span>
+                          )}
+                        </ContextMenuSubTrigger>
+                        <ContextMenuSubContent className="w-56 overflow-hidden p-0">
+                          <ValueSearch plural={item.plural} />
+                          <ContextMenuList>
+                            <ValueItems
+                              options={options[item.field]}
+                              values={values}
+                              onValuesChange={(next) =>
+                                update(item.field, next)
+                              }
+                            />
+                          </ContextMenuList>
+                        </ContextMenuSubContent>
+                      </ContextMenuSub>
+                    </ContextMenuFilterProvider>
+                  );
+                })}
+                <SavedSection views={views} onApply={onFiltersChange} />
+              </>
+            ) : matches.length === 0 && views.length === 0 ? (
               <div className="px-1.5 py-6 text-center text-sm text-muted-foreground">
                 No matches.
               </div>
             ) : (
-              matches.map((item) => (
-                <ContextMenuGroup key={item.field}>
-                  <ContextMenuLabel>{item.label}</ContextMenuLabel>
-                  <ValueItems
-                    options={item.matched}
-                    values={valuesFor(item.field)}
-                    onValuesChange={(next) => update(item.field, next)}
-                  />
-                </ContextMenuGroup>
-              ))
+              <>
+                {matches.map((item) => (
+                  <ContextMenuGroup key={item.field}>
+                    <ContextMenuLabel>{item.label}</ContextMenuLabel>
+                    <ValueItems
+                      options={item.matched}
+                      values={valuesFor(item.field)}
+                      onValuesChange={(next) => update(item.field, next)}
+                    />
+                  </ContextMenuGroup>
+                ))}
+                <SavedSection views={views} onApply={onFiltersChange} />
+              </>
             )}
           </ContextMenuList>
         </ContextMenuContent>
@@ -297,11 +398,7 @@ function FilterChip({
 }) {
   const { field, values } = filter;
   const { label, plural, icon: Icon } = describe(field);
-
-  /* One value reads itself; past that the count does, since three positions
-     spelled out would push the search off the line. */
-  const summary =
-    values.length === 1 ? values[0] : `${values.length} ${plural}`;
+  const { operator, summary } = phrase(filter);
 
   return (
     <ButtonGroup>
@@ -317,9 +414,7 @@ function FilterChip({
             onClick={openOnClick}
             render={<Button variant="outline" className="font-normal" />}
           >
-            <span className="text-muted-foreground">
-              {values.length === 1 ? "is" : "is any of"}
-            </span>
+            <span className="text-muted-foreground">{operator}</span>
             <span className="max-w-40 truncate font-medium">{summary}</span>
           </ContextMenuTrigger>
           <ContextMenuContent className="w-56 overflow-hidden p-0">
@@ -343,6 +438,137 @@ function FilterChip({
         <XIcon className="text-muted-foreground" />
       </Button>
     </ButtonGroup>
+  );
+}
+
+/**
+ * Naming the set before it joins the menu. Its own component, so closing the
+ * dialog unmounts it and the next save opens on a fresh suggestion rather
+ * than whatever was typed and abandoned last time.
+ */
+function SaveViewForm({
+  filters,
+  saved,
+  onSave,
+}: {
+  filters: Filter[];
+  saved: SavedFilter[];
+  onSave: (name: string) => void;
+}) {
+  /* What it narrows to, offered as the name: right often enough to just
+     press Save, and a head start on the times it isn't. */
+  const [name, setName] = React.useState(() => nameFor(filters));
+
+  /* Two views under one name are indistinguishable in the menu, which is the
+     only place either of them is ever picked. */
+  const taken = saved.some(
+    (view) => view.name.toLowerCase() === name.trim().toLowerCase(),
+  );
+  const canSubmit = name.trim() !== "" && !taken;
+
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!canSubmit) return;
+
+    onSave(name.trim());
+  };
+
+  return (
+    <form className="grid gap-8" onSubmit={submit}>
+      <FieldGroup>
+        <Field data-invalid={taken || undefined}>
+          <FieldLabel htmlFor="view-name">View name</FieldLabel>
+          <Input
+            id="view-name"
+            autoFocus
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder={nameFor(filters)}
+            aria-invalid={taken || undefined}
+          />
+          <FieldDescription>
+            {taken
+              ? `A view called ${name.trim()} is already saved.`
+              : `Keeps the employees where ${filters
+                  .map((filter) => phrase(filter).sentence)
+                  .join(" and ")}.`}
+          </FieldDescription>
+        </Field>
+      </FieldGroup>
+
+      <DialogFooter>
+        {/* Base UI buttons are type="button" unless told otherwise, so Cancel
+            cannot submit the form it sits in. */}
+        <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
+        <Button type="submit" disabled={!canSubmit}>
+          Save view
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+}
+
+/**
+ * What the band offers beyond the chips: drop the lot, or name this set and
+ * keep it. A saved set goes into the Filter menu rather than anywhere
+ * durable -- it lasts as long as the session does, which is as much as the
+ * rest of the prototype promises.
+ */
+export function FilterActions({
+  filters,
+  saved,
+  onFiltersChange,
+  onSavedChange,
+}: {
+  filters: Filter[];
+  saved: SavedFilter[];
+  onFiltersChange: (filters: Filter[]) => void;
+  onSavedChange: (saved: SavedFilter[]) => void;
+}) {
+  const [saving, setSaving] = React.useState(false);
+
+  return (
+    <div className="ml-auto flex items-center gap-1">
+      {/* Ghost's hover is the band's own grey, so it lifts to the card's
+          background instead of hovering to the colour it already sits on. */}
+      <Button
+        variant="ghost"
+        className="hover:bg-background"
+        onClick={() => onFiltersChange([])}
+      >
+        Clear
+      </Button>
+      <Button variant="outline" onClick={() => setSaving(true)}>
+        Save
+      </Button>
+
+      <Dialog open={saving} onOpenChange={setSaving}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save view</DialogTitle>
+            <DialogDescription>
+              The filters this table is on now, kept under Saved in the Filter
+              menu for the rest of the session.
+            </DialogDescription>
+          </DialogHeader>
+
+          <SaveViewForm
+            filters={filters}
+            saved={saved}
+            onSave={(name) => {
+              onSavedChange([...saved, { name, filters }]);
+              setSaving(false);
+
+              toast.add({
+                type: "success",
+                title: "View saved",
+                description: `${name} is in the Filter menu, under Saved.`,
+              });
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 

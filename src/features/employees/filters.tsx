@@ -1,17 +1,31 @@
 /**
- * The roster's filters: a menu that adds one, and the chips that show what a
- * table is narrowed to. Both work the way Linear's do -- pick a field, tick
- * the values, and the filter stays on screen as something you can edit rather
- * than a setting you have to reopen a menu to remember.
+ * The roster's filters: a menu that adds one, a dialog that asks for one in
+ * words, and the chips that show what the table is narrowed to. They work the
+ * way Linear's do -- pick a field, tick the values, and the filter stays on
+ * screen as something you can edit rather than a setting you have to reopen a
+ * menu to remember.
+ *
+ * The menu reaches the fields with a fixed set of values, which is all a menu
+ * can ever offer. Everything else on an employee's record -- when a permit
+ * expires, what they are paid, how long since anyone reviewed them -- is
+ * reachable only by asking for it, which is what the A.I. filter is for.
  */
 
 import * as React from "react";
 import {
+  ActivityIcon,
   BookmarkIcon,
   BriefcaseIcon,
+  CalendarIcon,
+  ClockIcon,
+  HashIcon,
+  IdCardIcon,
   ListFilterIcon,
+  MapPinIcon,
   UsersIcon,
   XIcon,
+  ZapIcon,
+  type LucideIcon,
 } from "lucide-react";
 
 import { Button } from "@components/ui/button";
@@ -20,6 +34,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -31,6 +46,8 @@ import {
   FieldLabel,
 } from "@components/ui/field";
 import { Input } from "@components/ui/input";
+import { Spinner } from "@components/ui/spinner";
+import { Textarea } from "@components/ui/textarea";
 import {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -51,96 +68,82 @@ import {
 
 import { toast } from "@components/ui/toast";
 
-import type { Employee } from "./roster";
+import { ask, engine, examples, type Engine } from "./ask";
+import {
+  fieldFor,
+  fields,
+  phrase,
+  type Condition,
+  type Options,
+} from "./query";
 
-/**
- * What the roster can be narrowed by. Both fields are on every employee
- * whatever their status, so a filter survives switching tabs -- which is the
- * point of filtering rather than searching.
- */
-const fields = [
-  {
-    field: "department",
-    label: "Department",
-    plural: "departments",
-    icon: UsersIcon,
-  },
-  {
-    field: "position",
-    label: "Position",
-    plural: "positions",
-    icon: BriefcaseIcon,
-  },
-] as const;
+/** A set of conditions kept for next time, named after what it narrows to. */
+export type SavedFilter = { name: string; conditions: Condition[] };
 
-export type FilterField = (typeof fields)[number]["field"];
+/** What each field looks like on a chip and in the menu. A field with no icon
+ *  of its own takes the one for the kind of thing it holds. */
+const icons: { [key: string]: LucideIcon } = {
+  position: BriefcaseIcon,
+  department: UsersIcon,
+  location: MapPinIcon,
+  status: ActivityIcon,
+  employment: ClockIcon,
+  permitStatus: IdCardIcon,
+};
 
-/** A field narrowed to a set of values: the row matches any one of them. */
-export type Filter = { field: FilterField; values: string[] };
-
-/** A set of filters kept for next time, named after what it narrows to. */
-export type SavedFilter = { name: string; filters: Filter[] };
-
-/** Every value the roster actually uses, so the menu offers nothing empty. */
-export function filterOptions(employees: Employee[]) {
-  const unique = (field: FilterField) =>
-    [...new Set(employees.map((employee) => employee[field]))].sort((a, b) =>
-      a.localeCompare(b),
-    );
-
-  return {
-    department: unique("department"),
-    position: unique("position"),
-  } satisfies Record<FilterField, string[]>;
+function iconFor(key: string) {
+  const field = fieldFor(key);
+  return icons[key] ?? (field?.kind === "date" ? CalendarIcon : HashIcon);
 }
 
-export type FilterOptions = ReturnType<typeof filterOptions>;
+const describe = (key: string) => fieldFor(key)!;
 
-/** Filters narrow together: an employee has to clear every one of them. */
-export function matchesFilters(employee: Employee, filters: Filter[]) {
-  return filters.every(
-    ({ field, values }) =>
-      values.length === 0 || values.includes(employee[field]),
-  );
-}
+/** The fields a menu can offer: the ones whose values are a known list. */
+const pickable = fields.filter((field) => field.kind === "enum");
 
-const describe = (field: FilterField) =>
-  fields.find((item) => item.field === field)!;
+/** What a field's values are called together, for the box that searches them. */
+const plural = (label: string) => `${label.toLowerCase()}s`;
 
 /** Ticking the last value off a field drops the filter rather than leaving a
  *  chip that matches everything. */
 function withValues(
-  filters: Filter[],
-  field: FilterField,
+  conditions: Condition[],
+  key: string,
   values: string[],
-): Filter[] {
+): Condition[] {
   if (values.length === 0) {
-    return filters.filter((filter) => filter.field !== field);
+    return conditions.filter((condition) => condition.field !== key);
   }
 
-  return filters.some((filter) => filter.field === field)
-    ? filters.map((filter) =>
-        filter.field === field ? { ...filter, values } : filter,
+  const next: Condition = { field: key, op: "is", values };
+
+  return conditions.some((condition) => condition.field === key)
+    ? conditions.map((condition) =>
+        condition.field === key ? next : condition,
       )
-    : [...filters, { field, values }];
+    : [...conditions, next];
 }
 
-/** How a filter reads out loud: one value names itself, more are counted,
- *  since three positions spelled out would push the search off the line. */
-function phrase({ field, values }: Filter) {
-  const { plural } = describe(field);
-  const operator = values.length === 1 ? "is" : "is any of";
-  const summary =
-    values.length === 1 ? values[0] : `${values.length} ${plural}`;
+/** The values a field is currently ticked to, if it is ticked to any. */
+const valuesOf = (conditions: Condition[], key: string) => {
+  const found = conditions.find(
+    (condition) => condition.field === key && condition.op === "is",
+  );
 
-  return { operator, summary };
-}
+  return found && "values" in found ? found.values : [];
+};
 
 /** A saved set is only offered where the roster can still satisfy it: a view
- *  built at one location would otherwise empty the table at the next. */
-const fits = (view: SavedFilter, options: FilterOptions) =>
-  view.filters.every(({ field, values }) =>
-    values.every((value) => options[field].includes(value)),
+ *  built at one location would otherwise empty the table at the next. Only
+ *  the ticked-value conditions can be checked that way; a date is a date
+ *  wherever you are. */
+const fits = (view: SavedFilter, options: Options) =>
+  view.conditions.every((condition) =>
+    "values" in condition
+      ? condition.values.every((value) =>
+          (options[condition.field] ?? [value]).includes(value),
+        )
+      : true,
   );
 
 const toggle = (values: string[], value: string) =>
@@ -200,29 +203,29 @@ function ValueItems({
 }
 
 /** Long lists get their own box to type into, the menu doing the matching. */
-function ValueSearch({ plural }: { plural: string }) {
+function ValueSearch({ label }: { label: string }) {
   return (
     <>
       <ContextMenuInput
-        placeholder={`Filter ${plural}...`}
-        aria-label={`Filter ${plural}`}
+        placeholder={`Filter ${plural(label)}...`}
+        aria-label={`Filter ${plural(label)}`}
       />
-      <ContextMenuEmpty>No {plural} found.</ContextMenuEmpty>
+      <ContextMenuEmpty>No {plural(label)} found.</ContextMenuEmpty>
     </>
   );
 }
 
 /**
  * The saved sets, under the fields and behind a rule of their own. It is not
- * there at all until something has been saved, so the menu stays two rows
- * long for anyone who never saves one.
+ * there at all until something has been saved, so the menu stays as short as
+ * it starts for anyone who never saves one.
  */
 function SavedSection({
   views,
   onApply,
 }: {
   views: SavedFilter[];
-  onApply: (filters: Filter[]) => void;
+  onApply: (conditions: Condition[]) => void;
 }) {
   if (views.length === 0) return null;
 
@@ -234,7 +237,7 @@ function SavedSection({
         {views.map((view) => (
           <ContextMenuItem
             key={view.name}
-            onClick={() => onApply(view.filters)}
+            onClick={() => onApply(view.conditions)}
           >
             <BookmarkIcon className="text-muted-foreground" />
             <span className="truncate">{view.name}</span>
@@ -245,45 +248,191 @@ function SavedSection({
   );
 }
 
+/** What the dialog says about who is answering. */
+const engines: { [key in Engine]: string } = {
+  api: "Answered by Claude, on this machine's API key.",
+  cli: "Answered by Claude, through the CLI on this machine.",
+  none: "No Claude here, so prompts are read on the page -- simple ones only.",
+};
+
 /**
- * The ghost button beside search. Resting, it offers the two fields and their
- * submenus; typing searches the values themselves, so "cook" reaches Line cook
- * without knowing it lives under Position.
+ * Asking for a filter in words. Its own component for the same reason the
+ * save form is: the dialog unmounts it, so the next ask opens on an empty box
+ * rather than on the prompt somebody typed and thought better of.
+ */
+function AskForm({
+  options,
+  initial,
+  onApply,
+}: {
+  options: Options;
+  initial: string;
+  onApply: (
+    conditions: Condition[],
+    columns: string[],
+    summary: string,
+  ) => void;
+}) {
+  /* Whatever had been typed into the menu's own box comes through as the
+     start of the prompt, rather than being typed a second time. */
+  const [prompt, setPrompt] = React.useState(initial);
+  const [asking, setAsking] = React.useState(false);
+  /* What came back when nothing came of it: the model's own account of why,
+     which is more use than anything this page could say on its behalf. */
+  const [missed, setMissed] = React.useState<string | null>(null);
+  const [backend, setBackend] = React.useState<Engine | null>(null);
+  const live = React.useRef(true);
+
+  React.useEffect(() => {
+    live.current = true;
+    void engine().then((found) => live.current && setBackend(found));
+
+    return () => {
+      live.current = false;
+    };
+  }, []);
+
+  const edit = (value: string) => {
+    setPrompt(value);
+    setMissed(null);
+  };
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (prompt.trim() === "" || asking) return;
+
+    setAsking(true);
+    setMissed(null);
+
+    const answer = await ask(prompt.trim(), options);
+    if (!live.current) return;
+
+    setAsking(false);
+    setBackend(answer.engine);
+
+    if (answer.conditions.length === 0) {
+      setMissed(answer.summary);
+      return;
+    }
+
+    onApply(answer.conditions, answer.columns, answer.summary);
+  };
+
+  return (
+    <form className="grid gap-8" onSubmit={submit}>
+      <FieldGroup>
+        <Field data-invalid={missed !== null || undefined}>
+          <FieldLabel htmlFor="ask-filter">Ask for a filter</FieldLabel>
+          <Textarea
+            id="ask-filter"
+            rows={3}
+            autoFocus
+            placeholder={examples[0]}
+            value={prompt}
+            onChange={(event) => edit(event.target.value)}
+            onKeyDown={(event) => {
+              /* Enter sends, the way it does anywhere else a prompt is
+                 typed. A line break is still there on shift. */
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                event.currentTarget.form?.requestSubmit();
+              }
+            }}
+            aria-invalid={missed !== null || undefined}
+            disabled={asking}
+          />
+          <FieldDescription>
+            {missed ??
+              "It reads the whole record -- permits, certificates, pay, hours, reviews -- not just the fields the menu can offer."}
+          </FieldDescription>
+          {/* Prompts worth starting from: picking one fills the box rather
+              than sending it, so it can be edited into the thing that was
+              actually wanted. */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            {examples.map((example) => (
+              <Button
+                key={example}
+                variant="outline"
+                size="sm"
+                /* The field turns red when nothing came back, and these are
+                   the way out of that rather than part of what went wrong. */
+                className="font-normal text-foreground"
+                disabled={asking}
+                onClick={() => edit(example)}
+              >
+                {example}
+              </Button>
+            ))}
+          </div>
+        </Field>
+      </FieldGroup>
+
+      <DialogFooter className="sm:items-center sm:justify-between">
+        {/* Who is answering, said quietly and only once it is known. */}
+        <p className="text-muted-foreground max-w-xs text-xs">
+          {backend ? engines[backend] : null}
+        </p>
+
+        <div className="flex items-center gap-2">
+          {/* Base UI buttons are type="button" unless told otherwise, so
+              Cancel cannot submit the form it sits in. */}
+          <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
+          <Button type="submit" disabled={prompt.trim() === "" || asking}>
+            {asking ? (
+              <Spinner data-icon="inline-start" />
+            ) : (
+              <ZapIcon data-icon="inline-start" />
+            )}
+            {asking ? "Reading the roster" : "Filter"}
+          </Button>
+        </div>
+      </DialogFooter>
+    </form>
+  );
+}
+
+/**
+ * The ghost button beside search. Resting, it offers the fields whose values
+ * are a list to pick from; typing searches those values themselves, so "cook"
+ * reaches Line cook without knowing it lives under Position. Under all of it
+ * sits the way past it: say what you want and let Claude set the conditions.
  */
 export function FilterMenu({
   options,
-  filters,
+  conditions,
   saved,
-  onFiltersChange,
+  onConditionsChange,
+  onColumnsChange,
 }: {
-  options: FilterOptions;
-  filters: Filter[];
+  options: Options;
+  conditions: Condition[];
   saved: SavedFilter[];
-  onFiltersChange: (filters: Filter[]) => void;
+  onConditionsChange: (conditions: Condition[]) => void;
+  /** Fields the answer asked to see, which the table then shows. */
+  onColumnsChange: (columns: string[]) => void;
 }) {
   /* The query drives what the menu is a list of, so the menu's own filtering
      is off (`filter={null}`) and these rows are the matches. */
   const [query, setQuery] = React.useState("");
-
-  const valuesFor = (field: FilterField) =>
-    filters.find((filter) => filter.field === field)?.values ?? [];
+  /* The prompt the A.I. dialog opens on, and null when it is shut. */
+  const [prompt, setPrompt] = React.useState<string | null>(null);
 
   const needle = query.trim().toLowerCase();
 
   /** Values worth showing for the query -- all of a field's, when it is the
    *  field's own name that matched. */
-  const matches = fields
-    .map((item) => {
-      const all = options[item.field];
+  const matches = pickable
+    .map((field) => {
+      const all = options[field.key] ?? [];
 
       return {
-        ...item,
-        matched: item.label.toLowerCase().includes(needle)
+        ...field,
+        matched: field.label.toLowerCase().includes(needle)
           ? all
           : all.filter((value) => value.toLowerCase().includes(needle)),
       };
     })
-    .filter((item) => item.matched.length > 0);
+    .filter((field) => field.matched.length > 0);
 
   /** Saved sets this roster can still satisfy, narrowed by the query the
    *  same way the values are. */
@@ -291,8 +440,37 @@ export function FilterMenu({
     .filter((view) => fits(view, options))
     .filter((view) => view.name.toLowerCase().includes(needle));
 
-  const update = (field: FilterField, values: string[]) =>
-    onFiltersChange(withValues(filters, field, values));
+  const update = (key: string, values: string[]) =>
+    onConditionsChange(withValues(conditions, key, values));
+
+  /* Whatever was typed moves into the prompt, so the menu is not left holding
+     a search the dialog has taken over. */
+  const openAsk = () => {
+    setPrompt(query.trim());
+    setQuery("");
+  };
+
+  /* What it read, set on the fields it names and nowhere else: a condition on
+     a field it said nothing about is left standing. */
+  const applyAsked = (
+    asked: Condition[],
+    columns: string[],
+    summary: string,
+  ) => {
+    const kept = conditions.filter(
+      (condition) => !asked.some((one) => one.field === condition.field),
+    );
+
+    onConditionsChange([...kept, ...asked]);
+    onColumnsChange(columns);
+    setPrompt(null);
+
+    toast.add({
+      type: "success",
+      title: "Filtered with A.I.",
+      description: summary,
+    });
+  };
 
   return (
     <ContextMenuFilterProvider
@@ -317,27 +495,25 @@ export function FilterMenu({
           <ContextMenuList>
             {needle === "" ? (
               <>
-                {fields.map((item) => {
-                  const values = valuesFor(item.field);
+                {pickable.map((field) => {
+                  const Icon = iconFor(field.key);
 
                   return (
-                    <ContextMenuFilterProvider key={item.field} autoHighlight>
+                    <ContextMenuFilterProvider key={field.key} autoHighlight>
                       <ContextMenuSub>
                         {/* No count beside the field: what it is narrowed to
                             is on the band below, in the chip's own words. */}
                         <ContextMenuSubTrigger>
-                          <item.icon />
-                          {item.label}
+                          <Icon />
+                          {field.label}
                         </ContextMenuSubTrigger>
                         <ContextMenuSubContent className="w-56 overflow-hidden p-0">
-                          <ValueSearch plural={item.plural} />
+                          <ValueSearch label={field.label} />
                           <ContextMenuList>
                             <ValueItems
-                              options={options[item.field]}
-                              values={values}
-                              onValuesChange={(next) =>
-                                update(item.field, next)
-                              }
+                              options={options[field.key] ?? []}
+                              values={valuesOf(conditions, field.key)}
+                              onValuesChange={(next) => update(field.key, next)}
                             />
                           </ContextMenuList>
                         </ContextMenuSubContent>
@@ -345,7 +521,7 @@ export function FilterMenu({
                     </ContextMenuFilterProvider>
                   );
                 })}
-                <SavedSection views={views} onApply={onFiltersChange} />
+                <SavedSection views={views} onApply={onConditionsChange} />
               </>
             ) : matches.length === 0 && views.length === 0 ? (
               <div className="px-1.5 py-6 text-center text-sm text-muted-foreground">
@@ -353,41 +529,82 @@ export function FilterMenu({
               </div>
             ) : (
               <>
-                {matches.map((item) => (
-                  <ContextMenuGroup key={item.field}>
-                    <ContextMenuLabel>{item.label}</ContextMenuLabel>
+                {matches.map((field) => (
+                  <ContextMenuGroup key={field.key}>
+                    <ContextMenuLabel>{field.label}</ContextMenuLabel>
                     <ValueItems
-                      options={item.matched}
-                      values={valuesFor(item.field)}
-                      onValuesChange={(next) => update(item.field, next)}
+                      options={field.matched}
+                      values={valuesOf(conditions, field.key)}
+                      onValuesChange={(next) => update(field.key, next)}
                     />
                   </ContextMenuGroup>
                 ))}
-                <SavedSection views={views} onApply={onFiltersChange} />
+                <SavedSection views={views} onApply={onConditionsChange} />
               </>
             )}
+
+            {/* Last in the list, where a way out of a menu belongs -- and
+                where a search that found nothing lands on it, carrying what
+                was typed. */}
+            <ContextMenuSeparator />
+            <ContextMenuItem onClick={openAsk}>
+              <ZapIcon className="text-muted-foreground" />
+              <span className="truncate">
+                {needle === ""
+                  ? "Filter with A.I."
+                  : `Filter with A.I.: ${query.trim()}`}
+              </span>
+            </ContextMenuItem>
           </ContextMenuList>
         </ContextMenuContent>
       </ContextMenu>
+
+      {/* Outside the menu, which closes on the way here. */}
+      <Dialog
+        open={prompt !== null}
+        onOpenChange={(open) => !open && setPrompt(null)}
+      >
+        <DialogContent className="sm:max-w-xl" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Filter with A.I.</DialogTitle>
+            <DialogDescription>
+              Describe who you want to see. It sets the filters, and they are
+              yours to edit afterwards like any others.
+            </DialogDescription>
+          </DialogHeader>
+
+          <AskForm
+            options={options}
+            initial={prompt ?? ""}
+            onApply={applyAsked}
+          />
+        </DialogContent>
+      </Dialog>
     </ContextMenuFilterProvider>
   );
 }
 
-/** One live filter, reading as a sentence: Department is any of 2 departments. */
+/**
+ * One live condition, reading as a sentence: Permit expiry is between Oct 13
+ * and Jan 13. A field with a list behind it opens that list on a click, since
+ * editing it is the same gesture as making it; a date or an amount came from
+ * a sentence, so it reads as one and goes back the way it came.
+ */
 function FilterChip({
-  filter,
+  condition,
   options,
   onValuesChange,
   onRemove,
 }: {
-  filter: Filter;
-  options: string[];
+  condition: Condition;
+  options: string[] | undefined;
   onValuesChange: (values: string[]) => void;
   onRemove: () => void;
 }) {
-  const { field, values } = filter;
-  const { label, plural, icon: Icon } = describe(field);
-  const { operator, summary } = phrase(filter);
+  const { label } = describe(condition.field);
+  const Icon = iconFor(condition.field);
+  const { operator, summary } = phrase(condition);
+  const editable = options !== undefined && "values" in condition;
 
   return (
     <ButtonGroup>
@@ -397,27 +614,36 @@ function FilterChip({
         <Icon className="size-3.5 text-muted-foreground" />
         {label}
       </ButtonGroupText>
-      <ContextMenuFilterProvider autoHighlight>
-        <ContextMenu>
-          <ContextMenuTrigger
-            onClick={openOnClick}
-            render={<Button variant="outline" className="font-normal" />}
-          >
-            <span className="text-muted-foreground">{operator}</span>
-            <span className="max-w-40 truncate font-medium">{summary}</span>
-          </ContextMenuTrigger>
-          <ContextMenuContent className="w-56 overflow-hidden p-0">
-            <ValueSearch plural={plural} />
-            <ContextMenuList>
-              <ValueItems
-                options={options}
-                values={values}
-                onValuesChange={onValuesChange}
-              />
-            </ContextMenuList>
-          </ContextMenuContent>
-        </ContextMenu>
-      </ContextMenuFilterProvider>
+
+      {editable ? (
+        <ContextMenuFilterProvider autoHighlight>
+          <ContextMenu>
+            <ContextMenuTrigger
+              onClick={openOnClick}
+              render={<Button variant="outline" className="font-normal" />}
+            >
+              <span className="text-muted-foreground">{operator}</span>
+              <span className="max-w-40 truncate font-medium">{summary}</span>
+            </ContextMenuTrigger>
+            <ContextMenuContent className="w-56 overflow-hidden p-0">
+              <ValueSearch label={label} />
+              <ContextMenuList>
+                <ValueItems
+                  options={options}
+                  values={"values" in condition ? condition.values : []}
+                  onValuesChange={onValuesChange}
+                />
+              </ContextMenuList>
+            </ContextMenuContent>
+          </ContextMenu>
+        </ContextMenuFilterProvider>
+      ) : (
+        <ButtonGroupText className="gap-1.5 bg-background text-sm font-normal">
+          <span className="text-muted-foreground">{operator}</span>
+          <span className="max-w-48 truncate font-medium">{summary}</span>
+        </ButtonGroupText>
+      )}
+
       <Button
         variant="outline"
         size="icon"
@@ -508,14 +734,14 @@ function SaveViewForm({
  * rest of the prototype promises.
  */
 export function FilterActions({
-  filters,
+  conditions,
   saved,
-  onFiltersChange,
+  onConditionsChange,
   onSavedChange,
 }: {
-  filters: Filter[];
+  conditions: Condition[];
   saved: SavedFilter[];
-  onFiltersChange: (filters: Filter[]) => void;
+  onConditionsChange: (conditions: Condition[]) => void;
   onSavedChange: (saved: SavedFilter[]) => void;
 }) {
   const [saving, setSaving] = React.useState(false);
@@ -527,7 +753,7 @@ export function FilterActions({
       <Button
         variant="ghost"
         className="hover:bg-background"
-        onClick={() => onFiltersChange([])}
+        onClick={() => onConditionsChange([])}
       >
         Clear
       </Button>
@@ -546,7 +772,7 @@ export function FilterActions({
           <SaveViewForm
             saved={saved}
             onSave={(name) => {
-              onSavedChange([...saved, { name, filters }]);
+              onSavedChange([...saved, { name, conditions }]);
               setSaving(false);
 
               toast.add({
@@ -562,25 +788,27 @@ export function FilterActions({
   );
 }
 
-/** The chips sit in the toolbar beside search, in the order they were added. */
+/** The chips sit on the band under search, in the order they were added. */
 export function FilterChips({
   options,
-  filters,
-  onFiltersChange,
+  conditions,
+  onConditionsChange,
 }: {
-  options: FilterOptions;
-  filters: Filter[];
-  onFiltersChange: (filters: Filter[]) => void;
+  options: Options;
+  conditions: Condition[];
+  onConditionsChange: (conditions: Condition[]) => void;
 }) {
-  return filters.map((filter) => (
+  return conditions.map((condition, index) => (
     <FilterChip
-      key={filter.field}
-      filter={filter}
-      options={options[filter.field]}
+      key={`${condition.field}-${condition.op}-${index}`}
+      condition={condition}
+      options={options[condition.field]}
       onValuesChange={(values) =>
-        onFiltersChange(withValues(filters, filter.field, values))
+        onConditionsChange(withValues(conditions, condition.field, values))
       }
-      onRemove={() => onFiltersChange(withValues(filters, filter.field, []))}
+      onRemove={() =>
+        onConditionsChange(conditions.filter((item) => item !== condition))
+      }
     />
   ));
 }

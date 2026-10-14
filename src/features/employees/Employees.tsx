@@ -31,11 +31,15 @@ import {
   FilterActions,
   FilterChips,
   FilterMenu,
-  filterOptions,
-  matchesFilters,
-  type Filter,
   type SavedFilter,
 } from "./filters";
+import {
+  display,
+  fieldFor,
+  matchesQuery,
+  optionsFor,
+  type Condition,
+} from "./query";
 import { rosterFor, type Employee } from "./roster";
 import { useRosterQuery } from "./use-roster-query";
 
@@ -124,9 +128,12 @@ export function Employees() {
   const { query, setQuery, tab, setTab } = useRosterQuery(tabs[0].value);
   // The filters run alongside the query, and across the tabs for the same
   // reason.
-  const [filters, setFilters] = useState<Filter[]>([]);
+  const [filters, setFilters] = useState<Condition[]>([]);
   // Sets worth coming back to, kept for as long as the session lasts.
   const [saved, setSaved] = useState<SavedFilter[]>([]);
+  // Fields an answer asked to see rather than filter by: "what are they paid"
+  // wants the wage beside the names.
+  const [asked, setAsked] = useState<string[]>([]);
 
   const roster = useMemo(
     () => rosterFor(account, location),
@@ -135,28 +142,40 @@ export function Employees() {
 
   /* The menu offers what this company -- or this location -- actually employs,
      so switching away from a location never leaves a dead value behind. */
-  const options = useMemo(() => filterOptions(roster.all), [roster]);
+  const options = useMemo(() => optionsFor(roster.all), [roster]);
 
   /* A filter on a value that just left the roster would hide everyone, so the
-     switch drops it rather than asking why the table came back empty. */
+     switch drops it rather than asking why the table came back empty. Only
+     the ticked-value conditions can go stale that way: a date or an amount
+     means the same thing at every location. */
   useEffect(() => {
     setFilters((current) => {
       const kept = current
-        .map((filter) => ({
-          ...filter,
-          values: filter.values.filter((value) =>
-            options[filter.field].includes(value),
-          ),
-        }))
-        .filter((filter) => filter.values.length > 0);
-
-      return kept.length === current.length &&
-        kept.every(
-          (filter, index) =>
-            filter.values.length === current[index].values.length,
+        .map((condition) =>
+          "values" in condition
+            ? {
+                ...condition,
+                values: condition.values.filter((value) =>
+                  (options[condition.field] ?? [value]).includes(value),
+                ),
+              }
+            : condition,
         )
-        ? current
-        : kept;
+        .filter(
+          (condition) =>
+            !("values" in condition) || condition.values.length > 0,
+        );
+
+      const unchanged =
+        kept.length === current.length &&
+        kept.every((condition, index) => {
+          const was = current[index];
+          return "values" in condition && "values" in was
+            ? condition.values.length === was.values.length
+            : condition === was;
+        });
+
+      return unchanged ? current : kept;
     });
   }, [options]);
 
@@ -164,19 +183,14 @@ export function Employees() {
      every row, so it only shows on the company-wide view. */
   const showLocation = location === null;
 
-  const locationNames = useMemo(
-    () => new Map(account.locations.map((item) => [item.id, item.name])),
-    [account],
-  );
-
-  const nameOf = (employee: { locationId: string }) =>
-    locationNames.get(employee.locationId) ?? "—";
-
   const search = <T extends Employee>(rows: T[]) =>
     rows.filter(
       (employee) =>
-        matches(employee, query, showLocation ? nameOf(employee) : undefined) &&
-        matchesFilters(employee, filters),
+        matches(
+          employee,
+          query,
+          showLocation ? employee.location : undefined,
+        ) && matchesQuery(employee, filters),
     );
 
   const activeRows = search(roster.active);
@@ -201,13 +215,45 @@ export function Employees() {
         ? `No employees at ${location.name} yet.`
         : `No employees at ${account.name} yet.`;
 
-  /** Every table gains a column on the company-wide view. */
-  const columns = (base: number) => base + (showLocation ? 1 : 0);
+  /* Filtering on something the table does not show leaves a list of names
+     with no sign of what they have in common, which is the wrong half of the
+     answer. Anything filtered on that no column already carries gets one. */
+  const shown = [
+    "name",
+    "position",
+    "department",
+    "location",
+    "employment",
+    "status",
+    "hiredOn",
+  ];
+
+  const extras = [...filters.map((condition) => condition.field), ...asked]
+    .filter((key, index, keys) => keys.indexOf(key) === index)
+    .filter((key) => !shown.includes(key))
+    .map((key) => fieldFor(key))
+    .filter((field) => field !== undefined);
+
+  const extraHeads = extras.map((field) => (
+    <TableHead key={field.key}>{field.label}</TableHead>
+  ));
+
+  const extraCells = (employee: Employee) =>
+    extras.map((field) => (
+      <TableCell key={field.key} className="whitespace-nowrap">
+        {display(field, employee)}
+      </TableCell>
+    ));
+
+  /** Every table gains a column on the company-wide view, and one more for
+   *  each thing the filters asked about. */
+  const columns = (base: number) =>
+    base + (showLocation ? 1 : 0) + extras.length;
 
   const locationHead = showLocation ? <TableHead>Location</TableHead> : null;
 
-  const locationCell = (employee: { locationId: string }) =>
-    showLocation ? <TableCell>{nameOf(employee)}</TableCell> : null;
+  const locationCell = (employee: Employee) =>
+    showLocation ? <TableCell>{employee.location}</TableCell> : null;
 
   return (
     <TabDefault value={tab} onValueChange={(value) => setTab(value as string)}>
@@ -245,9 +291,10 @@ export function Employees() {
             <SearchField value={query} onValueChange={setQuery} />
             <FilterMenu
               options={options}
-              filters={filters}
+              conditions={filters}
               saved={saved}
-              onFiltersChange={setFilters}
+              onConditionsChange={setFilters}
+              onColumnsChange={setAsked}
             />
           </div>
 
@@ -258,13 +305,18 @@ export function Employees() {
             <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted p-2">
               <FilterChips
                 options={options}
-                filters={filters}
-                onFiltersChange={setFilters}
+                conditions={filters}
+                onConditionsChange={setFilters}
               />
               <FilterActions
-                filters={filters}
+                conditions={filters}
                 saved={saved}
-                onFiltersChange={setFilters}
+                /* Clearing the filters clears what they asked to see with
+                   them: a wage column nobody asked for twice over. */
+                onConditionsChange={(next) => {
+                  setFilters(next);
+                  if (next.length === 0) setAsked([]);
+                }}
                 onSavedChange={setSaved}
               />
             </div>
@@ -282,6 +334,7 @@ export function Employees() {
                   {locationHead}
                   <TableHead>Started</TableHead>
                   <TableHead>Employment</TableHead>
+                  {extraHeads}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -308,6 +361,7 @@ export function Employees() {
                         {employee.employment}
                       </Badge>
                     </TableCell>
+                    {extraCells(employee)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -326,6 +380,7 @@ export function Employees() {
                   <TableHead>Start date</TableHead>
                   <TableHead>Progress</TableHead>
                   <TableHead>Status</TableHead>
+                  {extraHeads}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -354,6 +409,7 @@ export function Employees() {
                         {employee.status}
                       </Badge>
                     </TableCell>
+                    {extraCells(employee)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -372,6 +428,7 @@ export function Employees() {
                   <TableHead>Leave</TableHead>
                   <TableHead>Dates</TableHead>
                   <TableHead>Returns</TableHead>
+                  {extraHeads}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -390,6 +447,7 @@ export function Employees() {
                     </TableCell>
                     <TableCell>{employee.dates}</TableCell>
                     <TableCell>{employee.returns}</TableCell>
+                    {extraCells(employee)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -408,6 +466,7 @@ export function Employees() {
                   <TableHead>Last day</TableHead>
                   <TableHead>Progress</TableHead>
                   <TableHead>Status</TableHead>
+                  {extraHeads}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -436,6 +495,7 @@ export function Employees() {
                         {employee.status}
                       </Badge>
                     </TableCell>
+                    {extraCells(employee)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -454,6 +514,7 @@ export function Employees() {
                   {locationHead}
                   <TableHead>Last day</TableHead>
                   <TableHead>Reason</TableHead>
+                  {extraHeads}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -480,6 +541,7 @@ export function Employees() {
                         {employee.reason}
                       </Badge>
                     </TableCell>
+                    {extraCells(employee)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -497,6 +559,7 @@ export function Employees() {
                   <TableHead>Department</TableHead>
                   {locationHead}
                   <TableHead>Status</TableHead>
+                  {extraHeads}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -520,6 +583,7 @@ export function Employees() {
                         {employee.status}
                       </Badge>
                     </TableCell>
+                    {extraCells(employee)}
                   </TableRow>
                 ))}
               </TableBody>

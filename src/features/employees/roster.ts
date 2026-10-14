@@ -9,6 +9,8 @@
 
 import type { Account, Location } from "@components/accounts";
 
+import { recordFor, type EmployeeRecord } from "./records";
+
 /**
  * Stand-in staff photos: the free human set from uifaces.co, numbered 1-222.
  * They are hotlinked rather than checked in, so a row whose picture cannot be
@@ -17,8 +19,9 @@ import type { Account, Location } from "@components/accounts";
 const face = (n: number) =>
   `https://mockmind-api.uifaces.co/content/human/${n}.jpg`;
 
-/** What every row on the page shares, whatever its status. */
-export type Employee = {
+/** Who someone is: what every row below states outright, whatever its
+ *  status. The lists are written in these terms. */
+export type Person = {
   id: string;
   name: string;
   photo: string;
@@ -28,30 +31,42 @@ export type Employee = {
   locationId: string;
 };
 
-export type ActiveEmployee = Employee & {
+/**
+ * A row as the page sees one: who they are, what is on file for them, and the
+ * two things the lists imply rather than state -- the site they work at and
+ * where they are in their time with the company. `rosterFor` fills the rest
+ * in, so everything downstream of it can filter on any of it.
+ */
+export type Employee = Person &
+  EmployeeRecord & {
+    location: string;
+    status: string;
+  };
+
+export type ActiveEmployee = Person & {
   started: string;
   employment: "Full-time" | "Part-time";
 };
 
-export type OnboardingEmployee = Employee & {
+export type OnboardingEmployee = Person & {
   starts: string;
   progress: string;
   status: string;
 };
 
-export type OnLeaveEmployee = Employee & {
+export type OnLeaveEmployee = Person & {
   type: string;
   dates: string;
   returns: string;
 };
 
-export type OffboardingEmployee = Employee & {
+export type OffboardingEmployee = Person & {
   lastDay: string;
   progress: string;
   status: string;
 };
 
-export type InactiveEmployee = Employee & {
+export type InactiveEmployee = Person & {
   lastDay: string;
   reason: string;
 };
@@ -506,35 +521,45 @@ const inactive: InactiveEmployee[] = [
 ];
 
 /**
- * The All tab is the five status lists in one, so it stays in step with them
- * rather than carrying its own copy of everyone. Sorted by name, since without
- * a status to group by the only useful order is alphabetical.
- */
-const all: (Employee & { status: string })[] = [
-  ...active.map((employee) => ({ ...employee, status: "Active" })),
-  ...onboarding.map((employee) => ({ ...employee, status: "Onboarding" })),
-  ...onLeave.map((employee) => ({ ...employee, status: "On leave" })),
-  ...offboarding.map((employee) => ({ ...employee, status: "Offboarding" })),
-  ...inactive.map((employee) => ({ ...employee, status: "Inactive" })),
-].sort((a, b) => a.name.localeCompare(b.name));
-
-/**
  * Everyone the page should be looking at: the company's whole roster, or just
  * the one location when the app is pointed at one. The company is matched
  * first because location ids are only unique within a company -- two companies
  * can both run a Gastown, and only one of them employs these people.
+ *
+ * Each row comes back filled out -- its record, its location by name, its
+ * status -- so the page and its filters work in whole employees rather than
+ * having to look the rest up a field at a time.
  */
 export function rosterFor(account: Account, location: Location | null) {
-  const inScope = (employee: Employee) =>
+  const inScope = (employee: Person) =>
     employee.accountId === account.id &&
     (location === null || employee.locationId === location.id);
 
+  const names = new Map(account.locations.map((item) => [item.id, item.name]));
+
+  const fill = <T extends Person>(rows: T[], status: string) =>
+    rows.filter(inScope).map((row) => ({
+      ...row,
+      ...recordFor(row),
+      location: names.get(row.locationId) ?? "—",
+      status,
+    }));
+
+  const filled = {
+    active: fill(active, "Active"),
+    onboarding: fill(onboarding, "Onboarding"),
+    onLeave: fill(onLeave, "On leave"),
+    offboarding: fill(offboarding, "Offboarding"),
+    inactive: fill(inactive, "Inactive"),
+  };
+
   return {
-    active: active.filter(inScope),
-    onboarding: onboarding.filter(inScope),
-    onLeave: onLeave.filter(inScope),
-    offboarding: offboarding.filter(inScope),
-    inactive: inactive.filter(inScope),
-    all: all.filter(inScope),
+    ...filled,
+    /* The All tab is the five lists in one, so it stays in step with them
+       rather than carrying its own copy of everyone. Sorted by name, since
+       without a status to group by the only useful order is alphabetical. */
+    all: Object.values(filled)
+      .flat()
+      .sort((a, b) => a.name.localeCompare(b.name)),
   };
 }

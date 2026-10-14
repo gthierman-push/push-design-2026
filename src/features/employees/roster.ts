@@ -9,10 +9,19 @@
 
 import type { Account, Location } from "@components/accounts";
 
+/**
+ * Stand-in staff photos: the free human set from uifaces.co, numbered 1-222.
+ * They are hotlinked rather than checked in, so a row whose picture cannot be
+ * reached simply falls back to the initials the avatar already draws.
+ */
+const face = (n: number) =>
+  `https://mockmind-api.uifaces.co/content/human/${n}.jpg`;
+
 /** What every row on the page shares, whatever its status. */
 export type Employee = {
   id: string;
   name: string;
+  photo: string;
   position: string;
   department: string;
   accountId: string;
@@ -45,6 +54,7 @@ const active: ActiveEmployee[] = [
   {
     id: "mara-ellison",
     name: "Mara Ellison",
+    photo: face(15),
     position: "Line cook",
     department: "Kitchen",
     accountId: "northwind",
@@ -55,6 +65,7 @@ const active: ActiveEmployee[] = [
   {
     id: "desmond-park",
     name: "Desmond Park",
+    photo: face(7),
     position: "Server",
     department: "Front of house",
     accountId: "northwind",
@@ -65,6 +76,7 @@ const active: ActiveEmployee[] = [
   {
     id: "alicia-reyes",
     name: "Alicia Reyes",
+    photo: face(38),
     position: "Shift supervisor",
     department: "Front of house",
     accountId: "northwind",
@@ -75,6 +87,7 @@ const active: ActiveEmployee[] = [
   {
     id: "priya-nandakumar",
     name: "Priya Nandakumar",
+    photo: face(163),
     position: "Bartender",
     department: "Bar",
     accountId: "northwind",
@@ -85,6 +98,7 @@ const active: ActiveEmployee[] = [
   {
     id: "tomas-bergeron",
     name: "Tomas Bergeron",
+    photo: face(21),
     position: "Prep cook",
     department: "Kitchen",
     accountId: "northwind",
@@ -95,6 +109,7 @@ const active: ActiveEmployee[] = [
   {
     id: "dylan-okonkwo",
     name: "Dylan Okonkwo",
+    photo: face(42),
     position: "Host",
     department: "Front of house",
     accountId: "northwind",
@@ -105,6 +120,7 @@ const active: ActiveEmployee[] = [
   {
     id: "sofia-delgado",
     name: "Sofia Delgado",
+    photo: face(26),
     position: "Sous chef",
     department: "Kitchen",
     accountId: "northwind",
@@ -115,6 +131,7 @@ const active: ActiveEmployee[] = [
   {
     id: "noah-fitzgerald",
     name: "Noah Fitzgerald",
+    photo: face(24),
     position: "Server",
     department: "Front of house",
     accountId: "northwind",
@@ -125,6 +142,7 @@ const active: ActiveEmployee[] = [
   {
     id: "marisol-vega",
     name: "Marisol Vega",
+    photo: face(123),
     position: "Barista",
     department: "Front of house",
     accountId: "blue-fig",
@@ -135,6 +153,7 @@ const active: ActiveEmployee[] = [
   {
     id: "theo-brandt",
     name: "Theo Brandt",
+    photo: face(22),
     position: "Baker",
     department: "Kitchen",
     accountId: "blue-fig",
@@ -145,6 +164,7 @@ const active: ActiveEmployee[] = [
   {
     id: "imani-sowande",
     name: "Imani Sowande",
+    photo: face(31),
     position: "Shift lead",
     department: "Front of house",
     accountId: "blue-fig",
@@ -155,6 +175,7 @@ const active: ActiveEmployee[] = [
   {
     id: "jonah-weiss",
     name: "Jonah Weiss",
+    photo: face(3),
     position: "Barista",
     department: "Front of house",
     accountId: "blue-fig",
@@ -165,6 +186,7 @@ const active: ActiveEmployee[] = [
   {
     id: "camille-okafor",
     name: "Camille Okafor",
+    photo: face(36),
     position: "Pastry cook",
     department: "Kitchen",
     accountId: "blue-fig",
@@ -175,6 +197,7 @@ const active: ActiveEmployee[] = [
   {
     id: "kwame-mensah",
     name: "Kwame Mensah",
+    photo: face(159),
     position: "Brewer",
     department: "Production",
     accountId: "harbourline",
@@ -185,6 +208,7 @@ const active: ActiveEmployee[] = [
   {
     id: "beatrix-hollins",
     name: "Beatrix Hollins",
+    photo: face(16),
     position: "Taproom server",
     department: "Taproom",
     accountId: "harbourline",
@@ -195,6 +219,7 @@ const active: ActiveEmployee[] = [
   {
     id: "freya-lindholm",
     name: "Freya Lindholm",
+    photo: face(150),
     position: "Cellar hand",
     department: "Production",
     accountId: "harbourline",
@@ -208,6 +233,7 @@ const onboarding: OnboardingEmployee[] = [
   {
     id: "jules-whitfield",
     name: "Jules Whitfield",
+    photo: face(29),
     position: "Dishwasher",
     department: "Kitchen",
     accountId: "northwind",
@@ -219,6 +245,7 @@ const onboarding: OnboardingEmployee[] = [
   {
     id: "nora-vasquez",
     name: "Nora Vasquez",
+    photo: face(164),
     position: "Server",
     department: "Front of house",
     accountId: "northwind",
@@ -230,6 +257,7 @@ const onboarding: OnboardingEmployee[] = [
   {
     id: "henry-oyelaran",
     name: "Henry Oyelaran",
+    photo: face(169),
     position: "Line cook",
     department: "Kitchen",
     accountId: "northwind",
@@ -241,6 +269,7 @@ const onboarding: OnboardingEmployee[] = [
   {
     id: "anaya-bhatt",
     name: "Anaya Bhatt",
+    photo: face(155),
     position: "Dishwasher",
     department: "Kitchen",
     accountId: "blue-fig",
@@ -252,6 +281,7 @@ const onboarding: OnboardingEmployee[] = [
   {
     id: "rhys-donnelly",
     name: "Rhys Donnelly",
+    photo: face(20),
     position: "Barista",
     department: "Front of house",
     accountId: "blue-fig",
@@ -263,6 +293,7 @@ const onboarding: OnboardingEmployee[] = [
   {
     id: "dov-alderman",
     name: "Dov Alderman",
+    photo: face(25),
     position: "Taproom server",
     department: "Taproom",
     accountId: "harbourline",
@@ -277,6 +308,7 @@ const onLeave: OnLeaveEmployee[] = [
   {
     id: "cassandra-liu",
     name: "Cassandra Liu",
+    photo: face(9),
     position: "Sous chef",
     department: "Kitchen",
     accountId: "northwind",
@@ -288,6 +320,7 @@ const onLeave: OnLeaveEmployee[] = [
   {
     id: "ethan-caldwell",
     name: "Ethan Caldwell",
+    photo: face(37),
     position: "Server",
     department: "Front of house",
     accountId: "northwind",
@@ -299,6 +332,7 @@ const onLeave: OnLeaveEmployee[] = [
   {
     id: "rosa-marchetti",
     name: "Rosa Marchetti",
+    photo: face(10),
     position: "Host",
     department: "Front of house",
     accountId: "northwind",
@@ -310,6 +344,7 @@ const onLeave: OnLeaveEmployee[] = [
   {
     id: "gregor-pavlik",
     name: "Gregor Pavlik",
+    photo: face(2),
     position: "Baker",
     department: "Kitchen",
     accountId: "blue-fig",
@@ -321,6 +356,7 @@ const onLeave: OnLeaveEmployee[] = [
   {
     id: "saoirse-bell",
     name: "Saoirse Bell",
+    photo: face(1),
     position: "Brewer",
     department: "Production",
     accountId: "harbourline",
@@ -335,6 +371,7 @@ const inactive: InactiveEmployee[] = [
   {
     id: "gavin-turnbull",
     name: "Gavin Turnbull",
+    photo: face(23),
     position: "Line cook",
     department: "Kitchen",
     accountId: "northwind",
@@ -345,6 +382,7 @@ const inactive: InactiveEmployee[] = [
   {
     id: "simone-adeyemi",
     name: "Simone Adeyemi",
+    photo: face(143),
     position: "Bartender",
     department: "Bar",
     accountId: "northwind",
@@ -355,6 +393,7 @@ const inactive: InactiveEmployee[] = [
   {
     id: "luca-fontaine",
     name: "Luca Fontaine",
+    photo: face(5),
     position: "Busser",
     department: "Front of house",
     accountId: "northwind",
@@ -365,6 +404,7 @@ const inactive: InactiveEmployee[] = [
   {
     id: "harriet-lindqvist",
     name: "Harriet Lindqvist",
+    photo: face(179),
     position: "Barista",
     department: "Front of house",
     accountId: "blue-fig",
@@ -375,6 +415,7 @@ const inactive: InactiveEmployee[] = [
   {
     id: "milo-arrington",
     name: "Milo Arrington",
+    photo: face(27),
     position: "Shift lead",
     department: "Front of house",
     accountId: "blue-fig",
@@ -385,6 +426,7 @@ const inactive: InactiveEmployee[] = [
   {
     id: "vance-pritchard",
     name: "Vance Pritchard",
+    photo: face(4),
     position: "Cellar hand",
     department: "Production",
     accountId: "harbourline",

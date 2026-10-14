@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { PlusIcon, SearchIcon } from "lucide-react";
 
 import { useActiveAccount } from "@components/active-account";
-import { Avatar, AvatarFallback } from "@components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardHeader } from "@components/ui/card";
@@ -57,8 +57,9 @@ function matches(
   );
 }
 
-/** The leading cell every table shares: initials beside the name. */
-function Person({ name }: { name: string }) {
+/** The leading cell every table shares: a photo beside the name, falling back
+ *  to the initials whenever the picture is missing or fails to load. */
+function Person({ name, photo }: { name: string; photo: string }) {
   const initials = name
     .split(" ")
     .map((part) => part[0])
@@ -67,6 +68,7 @@ function Person({ name }: { name: string }) {
   return (
     <div className="flex items-center gap-2">
       <Avatar size="sm">
+        <AvatarImage src={photo} alt="" />
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       <span className="font-medium">{name}</span>
@@ -217,7 +219,7 @@ export function Employees() {
                 {activeRows.map((employee) => (
                   <TableRow key={employee.id}>
                     <TableCell>
-                      <Person name={employee.name} />
+                      <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department}</TableCell>
@@ -266,7 +268,7 @@ export function Employees() {
                 {onboardingRows.map((employee) => (
                   <TableRow key={employee.id}>
                     <TableCell>
-                      <Person name={employee.name} />
+                      <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     {locationCell(employee)}
@@ -317,7 +319,7 @@ export function Employees() {
                 {onLeaveRows.map((employee) => (
                   <TableRow key={employee.id}>
                     <TableCell>
-                      <Person name={employee.name} />
+                      <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     {locationCell(employee)}
@@ -358,7 +360,7 @@ export function Employees() {
                 {inactiveRows.map((employee) => (
                   <TableRow key={employee.id}>
                     <TableCell>
-                      <Person name={employee.name} />
+                      <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department}</TableCell>
@@ -406,7 +408,7 @@ export function Employees() {
                 {allRows.map((employee) => (
                   <TableRow key={employee.id}>
                     <TableCell>
-                      <Person name={employee.name} />
+                      <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department}</TableCell>

@@ -45,6 +45,12 @@ export type OnLeaveEmployee = Employee & {
   returns: string;
 };
 
+export type OffboardingEmployee = Employee & {
+  lastDay: string;
+  progress: string;
+  status: string;
+};
+
 export type InactiveEmployee = Employee & {
   lastDay: string;
   reason: string;
@@ -367,6 +373,69 @@ const onLeave: OnLeaveEmployee[] = [
   },
 ];
 
+const offboarding: OffboardingEmployee[] = [
+  {
+    id: "bram-castellanos",
+    name: "Bram Castellanos",
+    photo: face(44),
+    position: "Line cook",
+    department: "Kitchen",
+    accountId: "northwind",
+    locationId: "kitsilano",
+    lastDay: "Oct 17, 2026",
+    progress: "5 of 5 steps",
+    status: "Ready to close",
+  },
+  {
+    id: "elena-marsh",
+    name: "Elena Marsh",
+    photo: face(11),
+    position: "Server",
+    department: "Front of house",
+    accountId: "northwind",
+    locationId: "gastown",
+    lastDay: "Oct 23, 2026",
+    progress: "4 of 5 steps",
+    status: "Equipment pending",
+  },
+  {
+    id: "opal-renner",
+    name: "Opal Renner",
+    photo: face(17),
+    position: "Host",
+    department: "Front of house",
+    accountId: "northwind",
+    locationId: "banff",
+    lastDay: "Nov 6, 2026",
+    progress: "1 of 5 steps",
+    status: "Exit interview booked",
+  },
+  {
+    id: "soren-daugaard",
+    name: "Soren Daugaard",
+    photo: face(33),
+    position: "Barista",
+    department: "Front of house",
+    accountId: "blue-fig",
+    locationId: "capitol-hill",
+    lastDay: "Oct 30, 2026",
+    progress: "2 of 5 steps",
+    status: "Final pay pending",
+  },
+  {
+    id: "nadia-hourani",
+    name: "Nadia Hourani",
+    photo: face(128),
+    position: "Taproom server",
+    department: "Taproom",
+    accountId: "harbourline",
+    locationId: "victoria-harbour",
+    lastDay: "Oct 19, 2026",
+    progress: "5 of 5 steps",
+    status: "Ready to close",
+  },
+];
+
 const inactive: InactiveEmployee[] = [
   {
     id: "gavin-turnbull",
@@ -437,7 +506,7 @@ const inactive: InactiveEmployee[] = [
 ];
 
 /**
- * The All tab is the four status lists in one, so it stays in step with them
+ * The All tab is the five status lists in one, so it stays in step with them
  * rather than carrying its own copy of everyone. Sorted by name, since without
  * a status to group by the only useful order is alphabetical.
  */
@@ -445,6 +514,7 @@ const all: (Employee & { status: string })[] = [
   ...active.map((employee) => ({ ...employee, status: "Active" })),
   ...onboarding.map((employee) => ({ ...employee, status: "Onboarding" })),
   ...onLeave.map((employee) => ({ ...employee, status: "On leave" })),
+  ...offboarding.map((employee) => ({ ...employee, status: "Offboarding" })),
   ...inactive.map((employee) => ({ ...employee, status: "Inactive" })),
 ].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -463,6 +533,7 @@ export function rosterFor(account: Account, location: Location | null) {
     active: active.filter(inScope),
     onboarding: onboarding.filter(inScope),
     onLeave: onLeave.filter(inScope),
+    offboarding: offboarding.filter(inScope),
     inactive: inactive.filter(inScope),
     all: all.filter(inScope),
   };

@@ -305,7 +305,9 @@ function FilterChip({
 
   return (
     <ButtonGroup>
-      <ButtonGroupText className="gap-1.5 text-sm">
+      {/* The chip sits on the grey filter band, so its leading segment takes
+          the card's background rather than the band's own grey. */}
+      <ButtonGroupText className="gap-1.5 bg-background text-sm">
         <Icon className="size-3.5 text-muted-foreground" />
         {label}
       </ButtonGroupText>

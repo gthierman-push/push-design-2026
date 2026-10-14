@@ -243,8 +243,7 @@ export function Employees() {
             </div>
           </div>
 
-          {/* Search, the way into a filter, and the filters themselves: one
-              line that says everything the table below is narrowed to. */}
+          {/* Search and the way into a filter, on one line. */}
           <div className="flex flex-wrap items-center gap-2">
             <SearchField value={query} onValueChange={setQuery} />
             <FilterMenu
@@ -252,12 +251,20 @@ export function Employees() {
               filters={filters}
               onFiltersChange={setFilters}
             />
-            <FilterChips
-              options={options}
-              filters={filters}
-              onFiltersChange={setFilters}
-            />
           </div>
+
+          {/* The filters themselves sit on their own band under the search,
+              there only while something is filtered: a strip of grey that
+              says, before the rows do, that the table is a subset. */}
+          {filters.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted p-2">
+              <FilterChips
+                options={options}
+                filters={filters}
+                onFiltersChange={setFilters}
+              />
+            </div>
+          )}
         </CardHeader>
 
         <TabDefaultContent value="active">

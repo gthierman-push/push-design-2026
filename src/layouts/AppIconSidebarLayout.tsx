@@ -109,8 +109,9 @@ function NavUser() {
 }
 
 /**
- * How many sections can stand open at once. Both variations show the same
- * nav; this is the whole of what sets them apart.
+ * How many sections can stand open at once, and with it how the sidebar
+ * collapses: many sections at a time down to a column of icons, or one
+ * section at a time and away altogether. Both variations show the same nav.
  */
 type SectionMode = "many" | "one";
 
@@ -151,8 +152,12 @@ function AppSidebar({ mode }: { mode: SectionMode }) {
   const solo = useOneOpenSection(pathname);
   const { isOpen, setOpen, activeSection } = mode === "one" ? solo : remembered;
 
+  // One section at a time goes the whole way out, as the default nav does;
+  // many sections at a time shrink to icons.
+  const collapsible = mode === "one" ? "offcanvas" : "icon";
+
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible={collapsible}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -187,11 +192,14 @@ function AppSidebar({ mode }: { mode: SectionMode }) {
                   render={<SidebarMenuItem />}
                 >
                   <SidebarMenuButton
-                    // Collapsed, the section icon is all there is to say which
-                    // page you are on; expanded, the page's own row says it,
-                    // and marking both would be twice too much.
+                    // Shrunk to icons, the section icon is all there is to say
+                    // which page you are on; expanded, the page's own row says
+                    // it, and marking both would be twice too much. A sidebar
+                    // that collapses away has nothing left to mark.
                     isActive={
-                      section.label === activeSection && state === "collapsed"
+                      collapsible === "icon" &&
+                      section.label === activeSection &&
+                      state === "collapsed"
                     }
                     tooltip={section.label}
                     render={<CollapsibleTrigger />}
@@ -258,9 +266,10 @@ function AppSidebar({ mode }: { mode: SectionMode }) {
 }
 
 /**
- * Variations 2 and 3: shadcn's sidebar-07. One sidebar that collapses to a
- * column of icons, with each section a row that unfolds its pages underneath
- * — either as many at a time as you like, or one at a time.
+ * Variations 2 and 3: shadcn's sidebar-07. One sidebar with each section a
+ * row that unfolds its pages underneath — either as many at a time as you
+ * like, collapsing to a column of icons, or one at a time, collapsing away
+ * entirely.
  */
 export function AppIconSidebarLayout({
   mode = "many",

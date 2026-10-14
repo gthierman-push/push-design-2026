@@ -79,6 +79,38 @@ type PaletteRow = {
 
 type RowGroup = { label: string; rows: PaletteRow[]; searchOnly?: boolean };
 
+/**
+ * Which rows a query keeps, and how they rank.
+ *
+ * cmdk scores subsequences by default, so "alici" turned up Cassandra Liu off
+ * the stray a-l-i-c-i scattered through her row. A list with the whole roster
+ * in it cannot carry that, so a row has to actually contain every word of the
+ * query; where each word lands is what sorts the survivors. Order does not
+ * matter either -- "reyes alicia" finds her the same as "alicia reyes".
+ */
+function score(value: string, search: string, keywords?: string[]) {
+  const haystack = [value, ...(keywords ?? [])].join(" ").toLowerCase();
+  /* Hyphens start a word too, so an id reads the way the name does. */
+  const words = haystack.split(/[\s-]+/);
+  const query = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (query.length === 0) return 1;
+
+  let total = 0;
+  for (const word of query) {
+    if (!haystack.includes(word)) return 0;
+
+    total += haystack.startsWith(word)
+      ? 1
+      : words.some((item) => item.startsWith(word))
+        ? 0.75
+        : 0.5;
+  }
+
+  /* The mean, so a two-word query that matches both halves well beats one
+     that only grazes them. */
+  return total / query.length;
+}
+
 export function CommandPalette({
   trigger,
 }: {
@@ -149,7 +181,12 @@ export function CommandPalette({
         title: employee.name,
         visual: <EmployeeAvatar employee={employee} />,
         detail: `${employee.position} · ${locationNames.get(employee.locationId) ?? "—"}`,
-        keywords: [employee.department, employee.status],
+        keywords: [
+          employee.position,
+          employee.department,
+          employee.status,
+          locationNames.get(employee.locationId) ?? "",
+        ],
         select: () => {
           /* There is no profile page yet, so the roster stands in for one:
              it opens with the name already searched. Someone at another
@@ -247,7 +284,7 @@ export function CommandPalette({
         title="Search"
         description="Search for a page or a person to jump to, or a company or location to switch to"
       >
-        <Command>
+        <Command filter={score}>
           <CommandInput
             value={search}
             onValueChange={setSearch}

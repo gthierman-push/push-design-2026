@@ -40,7 +40,7 @@ export function AppHeader({ trigger }: { trigger: ReactNode }) {
       <div className="ml-auto flex items-center gap-2">
         {current?.settingsUrl ? (
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon-sm"
             aria-label={`${current.title} settings`}
             render={<NavLink to={current.settingsUrl} />}
@@ -50,7 +50,7 @@ export function AppHeader({ trigger }: { trigger: ReactNode }) {
         ) : null}
         <RightPanelTrigger
           panel={askAiPanel}
-          render={<Button variant="outline" size="sm" />}
+          render={<Button variant="ghost" size="sm" />}
         >
           <ZapIcon data-icon="inline-start" />
           Ask A.I.

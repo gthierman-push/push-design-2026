@@ -5,7 +5,6 @@ import {
   ChevronsUpDownIcon,
   LogOutIcon,
   PlusIcon,
-  UserIcon,
 } from "lucide-react";
 
 import { cn } from "cn";
@@ -106,9 +105,8 @@ export function AccountSwitcher() {
             render={<NavLink to="/settings/administrators" />}
           >
             <Avatar size="sm">
-              <AvatarFallback>
-                <UserIcon className="size-3.5" />
-              </AvatarFallback>
+              <AvatarImage src={currentUser.photo} alt="" />
+              <AvatarFallback>{currentUser.initials}</AvatarFallback>
             </Avatar>
             <div className="flex min-w-0 flex-col leading-tight">
               <span className="truncate font-medium">{currentUser.name}</span>

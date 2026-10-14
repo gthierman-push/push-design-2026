@@ -1,10 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import {
+  ClockIcon,
+  EllipsisIcon,
+  PlusIcon,
+  SearchIcon,
+  UserRoundCheckIcon,
+  UserRoundIcon,
+  UserRoundXIcon,
+} from "lucide-react";
 
 import { useActiveAccount } from "@components/active-account";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardHeader } from "@components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu";
 import {
   InputGroup,
   InputGroupAddon,
@@ -79,6 +95,52 @@ function Person({ name, photo }: { name: string; photo: string }) {
       <EmployeeAvatar employee={{ name, photo }} />
       <span className="font-medium">{name}</span>
     </div>
+  );
+}
+
+/** The trailing cell every table shares: what can be done to one person.
+ *  Deactivating is the one that ends something, so it sits apart from the two
+ *  that only go and look -- and on someone already inactive it reads the other
+ *  way, since there is nothing left to end. */
+function RowActions({ name, inactive }: { name: string; inactive?: boolean }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Actions for ${name}`}
+          />
+        }
+      >
+        <EllipsisIcon />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>
+          <DropdownMenuItem>
+            <UserRoundIcon />
+            View profile
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <ClockIcon />
+            View clocks
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        {inactive ? (
+          <DropdownMenuItem>
+            <UserRoundCheckIcon />
+            Reactivate
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem variant="destructive">
+            <UserRoundXIcon />
+            Deactivate
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -245,15 +307,24 @@ export function Employees() {
       </TableCell>
     ));
 
-  /** Every table gains a column on the company-wide view, and one more for
-   *  each thing the filters asked about. */
+  /** Counted from the columns a tab names: every table carries the actions
+   *  column, gains another on the company-wide view, and one more for each
+   *  thing the filters asked about. */
   const columns = (base: number) =>
-    base + (showLocation ? 1 : 0) + extras.length;
+    base + 1 + (showLocation ? 1 : 0) + extras.length;
 
   const locationHead = showLocation ? <TableHead>Location</TableHead> : null;
 
   const locationCell = (employee: Employee) =>
     showLocation ? <TableCell>{employee.location}</TableCell> : null;
+
+  /* The actions column is last on every tab, and narrow: a header with nothing
+     to say, and one button per row. */
+  const actionsHead = (
+    <TableHead className="w-12">
+      <span className="sr-only">Actions</span>
+    </TableHead>
+  );
 
   return (
     <TabDefault value={tab} onValueChange={(value) => setTab(value as string)}>
@@ -335,6 +406,7 @@ export function Employees() {
                   <TableHead>Started</TableHead>
                   <TableHead>Employment</TableHead>
                   {extraHeads}
+                  {actionsHead}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -362,6 +434,9 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
+                    <TableCell>
+                      <RowActions name={employee.name} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -381,6 +456,7 @@ export function Employees() {
                   <TableHead>Progress</TableHead>
                   <TableHead>Status</TableHead>
                   {extraHeads}
+                  {actionsHead}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -410,6 +486,9 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
+                    <TableCell>
+                      <RowActions name={employee.name} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -429,6 +508,7 @@ export function Employees() {
                   <TableHead>Dates</TableHead>
                   <TableHead>Returns</TableHead>
                   {extraHeads}
+                  {actionsHead}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -448,6 +528,9 @@ export function Employees() {
                     <TableCell>{employee.dates}</TableCell>
                     <TableCell>{employee.returns}</TableCell>
                     {extraCells(employee)}
+                    <TableCell>
+                      <RowActions name={employee.name} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -467,6 +550,7 @@ export function Employees() {
                   <TableHead>Progress</TableHead>
                   <TableHead>Status</TableHead>
                   {extraHeads}
+                  {actionsHead}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -496,6 +580,9 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
+                    <TableCell>
+                      <RowActions name={employee.name} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -515,6 +602,7 @@ export function Employees() {
                   <TableHead>Last day</TableHead>
                   <TableHead>Reason</TableHead>
                   {extraHeads}
+                  {actionsHead}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -542,6 +630,9 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
+                    <TableCell>
+                      <RowActions name={employee.name} inactive />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -560,6 +651,7 @@ export function Employees() {
                   {locationHead}
                   <TableHead>Status</TableHead>
                   {extraHeads}
+                  {actionsHead}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -584,6 +676,12 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
+                    <TableCell>
+                      <RowActions
+                        name={employee.name}
+                        inactive={employee.status === "Inactive"}
+                      />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -23,8 +23,9 @@ export const navVariants = [
   },
   {
     id: "accordion",
-    name: "Variation 3 — Icon sidebar, one section",
-    summary: "Variation 2, with the sections opening one at a time",
+    name: "Variation 3 — One section at a time",
+    summary:
+      "Variation 2's rows, but one section open at a time and the sidebar collapses away",
   },
 ] as const;
 

@@ -195,8 +195,8 @@ export function Employees() {
         </div>
       </div>
 
-      <TabDefaultContent value="active" className="pt-6">
-        <Card>
+      <TabDefaultContent value="active" className="pt-5">
+        <Card className="gap-0">
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
@@ -244,8 +244,8 @@ export function Employees() {
         </Card>
       </TabDefaultContent>
 
-      <TabDefaultContent value="onboarding" className="pt-6">
-        <Card>
+      <TabDefaultContent value="onboarding" className="pt-5">
+        <Card className="gap-0">
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
@@ -295,8 +295,8 @@ export function Employees() {
         </Card>
       </TabDefaultContent>
 
-      <TabDefaultContent value="on-leave" className="pt-6">
-        <Card>
+      <TabDefaultContent value="on-leave" className="pt-5">
+        <Card className="gap-0">
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
@@ -336,8 +336,8 @@ export function Employees() {
         </Card>
       </TabDefaultContent>
 
-      <TabDefaultContent value="inactive" className="pt-6">
-        <Card>
+      <TabDefaultContent value="inactive" className="pt-5">
+        <Card className="gap-0">
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
@@ -385,8 +385,8 @@ export function Employees() {
         </Card>
       </TabDefaultContent>
 
-      <TabDefaultContent value="all" className="pt-6">
-        <Card>
+      <TabDefaultContent value="all" className="pt-5">
+        <Card className="gap-0">
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>

@@ -200,7 +200,7 @@ export function Employees() {
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-5">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -249,7 +249,7 @@ export function Employees() {
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-5">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -300,7 +300,7 @@ export function Employees() {
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-5">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -341,7 +341,7 @@ export function Employees() {
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-5">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -390,7 +390,7 @@ export function Employees() {
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-5">
             <Table>
               <TableHeader>
                 <TableRow>

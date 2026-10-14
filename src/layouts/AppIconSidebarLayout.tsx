@@ -140,6 +140,7 @@ function useOneOpenSection(pathname: string) {
 function AppSidebar({ mode }: { mode: SectionMode }) {
   const { pathname } = useLocation();
   const { state } = useSidebar();
+  const navigate = useNavigate();
 
   // Both are hooks, so both run whichever one is in charge; only the one
   // the variation asks for is read.
@@ -183,7 +184,15 @@ function AppSidebar({ mode }: { mode: SectionMode }) {
                 <Collapsible
                   key={section.label}
                   open={isOpen(section.label)}
-                  onOpenChange={(open) => setOpen(section.label, open)}
+                  onOpenChange={(open) => {
+                    setOpen(section.label, open);
+                    // With one section open at a time the section row is a
+                    // destination as well as a lid: opening it lands you on
+                    // the first page inside, so a single click gets you
+                    // somewhere rather than only showing you where you could
+                    // go. Closing one leaves you where you are.
+                    if (mode === "one" && open) navigate(section.items[0].url);
+                  }}
                   render={<SidebarMenuItem />}
                 >
                   <SidebarMenuButton

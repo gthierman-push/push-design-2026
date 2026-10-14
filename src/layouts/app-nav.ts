@@ -75,7 +75,7 @@ export const sections: NavSection[] = [
     icon: UsersIcon,
     items: [
       {
-        title: "Employees",
+        title: "People",
         url: "/employees",
         icon: UsersIcon,
         settingsUrl: "/settings/employee-settings",

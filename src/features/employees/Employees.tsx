@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PlusIcon, SearchIcon } from "lucide-react";
 
 import { useActiveAccount } from "@components/active-account";
@@ -27,6 +27,13 @@ import {
   TabDefaultTrigger,
 } from "@components/ui/tab-default";
 
+import {
+  FilterChips,
+  FilterMenu,
+  filterOptions,
+  matchesFilters,
+  type Filter,
+} from "./filters";
 import { rosterFor, type Employee } from "./roster";
 
 const tabs = [
@@ -85,7 +92,7 @@ function SearchField({
   onValueChange: (value: string) => void;
 }) {
   return (
-    <InputGroup className="w-full max-w-xs">
+    <InputGroup className="min-w-40 max-w-xs flex-1">
       <InputGroupAddon>
         <SearchIcon />
       </InputGroupAddon>
@@ -121,11 +128,40 @@ export function Employees() {
   // One query across every tab: searching, then switching tabs to see who else
   // turns up, is the whole reason the tabs sit beside each other.
   const [query, setQuery] = useState("");
+  // The filters run alongside it, and across the tabs for the same reason.
+  const [filters, setFilters] = useState<Filter[]>([]);
 
   const roster = useMemo(
     () => rosterFor(account, location),
     [account, location],
   );
+
+  /* The menu offers what this company -- or this location -- actually employs,
+     so switching away from a location never leaves a dead value behind. */
+  const options = useMemo(() => filterOptions(roster.all), [roster]);
+
+  /* A filter on a value that just left the roster would hide everyone, so the
+     switch drops it rather than asking why the table came back empty. */
+  useEffect(() => {
+    setFilters((current) => {
+      const kept = current
+        .map((filter) => ({
+          ...filter,
+          values: filter.values.filter((value) =>
+            options[filter.field].includes(value),
+          ),
+        }))
+        .filter((filter) => filter.values.length > 0);
+
+      return kept.length === current.length &&
+        kept.every(
+          (filter, index) =>
+            filter.values.length === current[index].values.length,
+        )
+        ? current
+        : kept;
+    });
+  }, [options]);
 
   /* With one location picked, a Location column would repeat that location on
      every row, so it only shows on the company-wide view. */
@@ -140,8 +176,10 @@ export function Employees() {
     locationNames.get(employee.locationId) ?? "—";
 
   const search = <T extends Employee>(rows: T[]) =>
-    rows.filter((employee) =>
-      matches(employee, query, showLocation ? nameOf(employee) : undefined),
+    rows.filter(
+      (employee) =>
+        matches(employee, query, showLocation ? nameOf(employee) : undefined) &&
+        matchesFilters(employee, filters),
     );
 
   const activeRows = search(roster.active);
@@ -152,10 +190,16 @@ export function Employees() {
   const allRows = search(roster.all);
 
   /* An empty table means one of two things, and "no match" is the wrong thing
-     to say about a location nobody has been hired into yet. */
+     to say about a location nobody has been hired into yet. When it is a
+     no match, it names what to loosen: the search, the filters, or both. */
+  const narrowedBy = [
+    query.trim() !== "" ? "that search" : null,
+    filters.length > 0 ? "those filters" : null,
+  ].filter(Boolean);
+
   const emptyMessage =
-    query.trim() !== ""
-      ? "No employees match that search."
+    narrowedBy.length > 0
+      ? `No employees match ${narrowedBy.join(" and ")}.`
       : location
         ? `No employees at ${location.name} yet.`
         : `No employees at ${account.name} yet.`;
@@ -199,7 +243,21 @@ export function Employees() {
             </div>
           </div>
 
-          <SearchField value={query} onValueChange={setQuery} />
+          {/* Search, the way into a filter, and the filters themselves: one
+              line that says everything the table below is narrowed to. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <SearchField value={query} onValueChange={setQuery} />
+            <FilterMenu
+              options={options}
+              filters={filters}
+              onFiltersChange={setFilters}
+            />
+            <FilterChips
+              options={options}
+              filters={filters}
+              onFiltersChange={setFilters}
+            />
+          </div>
         </CardHeader>
 
         <TabDefaultContent value="active">

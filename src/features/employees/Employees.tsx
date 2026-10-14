@@ -33,6 +33,7 @@ const tabs = [
   { value: "active", label: "Active" },
   { value: "onboarding", label: "Onboarding" },
   { value: "on-leave", label: "On leave" },
+  { value: "offboarding", label: "Offboarding" },
   { value: "inactive", label: "Inactive" },
   { value: "all", label: "All" },
 ];
@@ -146,6 +147,7 @@ export function Employees() {
   const activeRows = search(roster.active);
   const onboardingRows = search(roster.onboarding);
   const onLeaveRows = search(roster.onLeave);
+  const offboardingRows = search(roster.offboarding);
   const inactiveRows = search(roster.inactive);
   const allRows = search(roster.all);
 
@@ -168,38 +170,39 @@ export function Employees() {
 
   return (
     <TabDefault value={tab} onValueChange={(value) => setTab(value as string)}>
-      {/* The tab rail doubles as the page's header row: no title above it, so
-          the actions sit on the same line as the tabs. */}
-      <div className="flex items-center justify-between gap-4">
-        <TabSelect
-          tabs={tabs}
-          value={tab}
-          onValueChange={setTab}
-          className="md:hidden"
-        />
+      <Card>
+        {/* The card's header carries the whole control surface: the tab rail
+            and the actions on one line, the search beneath them. */}
+        <CardHeader className="gap-(--card-spacing)">
+          <div className="flex items-center justify-between gap-4">
+            <TabSelect
+              tabs={tabs}
+              value={tab}
+              onValueChange={setTab}
+              className="md:hidden"
+            />
 
-        <TabDefaultList className="hidden md:inline-flex">
-          {tabs.map((item) => (
-            <TabDefaultTrigger key={item.value} value={item.value}>
-              {item.label}
-            </TabDefaultTrigger>
-          ))}
-        </TabDefaultList>
+            <TabDefaultList className="hidden md:inline-flex">
+              {tabs.map((item) => (
+                <TabDefaultTrigger key={item.value} value={item.value}>
+                  {item.label}
+                </TabDefaultTrigger>
+              ))}
+            </TabDefaultList>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline">Export</Button>
-          <Button>
-            <PlusIcon data-icon="inline-start" />
-            Add employee
-          </Button>
-        </div>
-      </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline">Export</Button>
+              <Button>
+                <PlusIcon data-icon="inline-start" />
+                Add employee
+              </Button>
+            </div>
+          </div>
 
-      <TabDefaultContent value="active" className="pt-5">
-        <Card>
-          <CardHeader>
-            <SearchField value={query} onValueChange={setQuery} />
-          </CardHeader>
+          <SearchField value={query} onValueChange={setQuery} />
+        </CardHeader>
+
+        <TabDefaultContent value="active">
           <CardContent>
             <Table>
               <TableHeader>
@@ -241,14 +244,9 @@ export function Employees() {
               </TableBody>
             </Table>
           </CardContent>
-        </Card>
-      </TabDefaultContent>
+        </TabDefaultContent>
 
-      <TabDefaultContent value="onboarding" className="pt-5">
-        <Card>
-          <CardHeader>
-            <SearchField value={query} onValueChange={setQuery} />
-          </CardHeader>
+        <TabDefaultContent value="onboarding">
           <CardContent>
             <Table>
               <TableHeader>
@@ -292,14 +290,9 @@ export function Employees() {
               </TableBody>
             </Table>
           </CardContent>
-        </Card>
-      </TabDefaultContent>
+        </TabDefaultContent>
 
-      <TabDefaultContent value="on-leave" className="pt-5">
-        <Card>
-          <CardHeader>
-            <SearchField value={query} onValueChange={setQuery} />
-          </CardHeader>
+        <TabDefaultContent value="on-leave">
           <CardContent>
             <Table>
               <TableHeader>
@@ -333,14 +326,55 @@ export function Employees() {
               </TableBody>
             </Table>
           </CardContent>
-        </Card>
-      </TabDefaultContent>
+        </TabDefaultContent>
 
-      <TabDefaultContent value="inactive" className="pt-5">
-        <Card>
-          <CardHeader>
-            <SearchField value={query} onValueChange={setQuery} />
-          </CardHeader>
+        <TabDefaultContent value="offboarding">
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Position</TableHead>
+                  {locationHead}
+                  <TableHead>Last day</TableHead>
+                  <TableHead>Progress</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {offboardingRows.length === 0 && (
+                  <NoResults columns={columns(5)} message={emptyMessage} />
+                )}
+                {offboardingRows.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell>
+                      <Person name={employee.name} photo={employee.photo} />
+                    </TableCell>
+                    <TableCell>{employee.position}</TableCell>
+                    {locationCell(employee)}
+                    <TableCell>{employee.lastDay}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {employee.progress}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          employee.status === "Ready to close"
+                            ? "secondary"
+                            : "outline"
+                        }
+                      >
+                        {employee.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </TabDefaultContent>
+
+        <TabDefaultContent value="inactive">
           <CardContent>
             <Table>
               <TableHeader>
@@ -382,14 +416,9 @@ export function Employees() {
               </TableBody>
             </Table>
           </CardContent>
-        </Card>
-      </TabDefaultContent>
+        </TabDefaultContent>
 
-      <TabDefaultContent value="all" className="pt-5">
-        <Card>
-          <CardHeader>
-            <SearchField value={query} onValueChange={setQuery} />
-          </CardHeader>
+        <TabDefaultContent value="all">
           <CardContent>
             <Table>
               <TableHeader>
@@ -427,8 +456,8 @@ export function Employees() {
               </TableBody>
             </Table>
           </CardContent>
-        </Card>
-      </TabDefaultContent>
+        </TabDefaultContent>
+      </Card>
     </TabDefault>
   );
 }

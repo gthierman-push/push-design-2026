@@ -20,7 +20,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -129,18 +128,13 @@ function withValues(
 /** How a filter reads out loud: one value names itself, more are counted,
  *  since three positions spelled out would push the search off the line. */
 function phrase({ field, values }: Filter) {
-  const { label, plural } = describe(field);
+  const { plural } = describe(field);
   const operator = values.length === 1 ? "is" : "is any of";
   const summary =
     values.length === 1 ? values[0] : `${values.length} ${plural}`;
 
-  return { operator, summary, sentence: `${label} ${operator} ${summary}` };
+  return { operator, summary };
 }
-
-/** What a saved set goes by: what it narrows to, which is what anyone
- *  reaching for it again has in mind -- "Kitchen, 2 positions". */
-const nameFor = (filters: Filter[]) =>
-  filters.map((filter) => phrase(filter).summary).join(", ");
 
 /** A saved set is only offered where the roster can still satisfy it: a view
  *  built at one location would otherwise empty the table at the next. */
@@ -329,16 +323,11 @@ export function FilterMenu({
                   return (
                     <ContextMenuFilterProvider key={item.field} autoHighlight>
                       <ContextMenuSub>
+                        {/* No count beside the field: what it is narrowed to
+                            is on the band below, in the chip's own words. */}
                         <ContextMenuSubTrigger>
                           <item.icon />
                           {item.label}
-                          {/* What the field is already narrowed to, without
-                            opening it: the count the chip spells out. */}
-                          {values.length > 0 && (
-                            <span className="ml-auto text-xs tabular-nums">
-                              {values.length}
-                            </span>
-                          )}
                         </ContextMenuSubTrigger>
                         <ContextMenuSubContent className="w-56 overflow-hidden p-0">
                           <ValueSearch plural={item.plural} />
@@ -447,17 +436,15 @@ function FilterChip({
  * than whatever was typed and abandoned last time.
  */
 function SaveViewForm({
-  filters,
   saved,
   onSave,
 }: {
-  filters: Filter[];
   saved: SavedFilter[];
   onSave: (name: string) => void;
 }) {
-  /* What it narrows to, offered as the name: right often enough to just
-     press Save, and a head start on the times it isn't. */
-  const [name, setName] = React.useState(() => nameFor(filters));
+  /* The box starts empty: what to call a set is the one thing the filters
+     cannot say for you. */
+  const [name, setName] = React.useState("");
 
   /* Two views under one name are indistinguishable in the menu, which is the
      only place either of them is ever picked. */
@@ -477,22 +464,28 @@ function SaveViewForm({
     <form className="grid gap-8" onSubmit={submit}>
       <FieldGroup>
         <Field data-invalid={taken || undefined}>
-          <FieldLabel htmlFor="view-name">View name</FieldLabel>
+          <FieldLabel htmlFor="view-name">Name</FieldLabel>
+          {/* A lone text field inside a form reads as a credential to a
+              password manager, which then offers to fill or save it. These
+              are the opt-outs 1Password, LastPass, Dashlane and Bitwarden
+              each look for; between them they cover the usual suspects. */}
           <Input
             id="view-name"
             autoFocus
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            data-form-type="other"
+            data-bwignore
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder={nameFor(filters)}
             aria-invalid={taken || undefined}
           />
-          <FieldDescription>
-            {taken
-              ? `A view called ${name.trim()} is already saved.`
-              : `Keeps the employees where ${filters
-                  .map((filter) => phrase(filter).sentence)
-                  .join(" and ")}.`}
-          </FieldDescription>
+          {taken && (
+            <FieldDescription>
+              A view called {name.trim()} is already saved.
+            </FieldDescription>
+          )}
         </Field>
       </FieldGroup>
 
@@ -543,17 +536,14 @@ export function FilterActions({
       </Button>
 
       <Dialog open={saving} onOpenChange={setSaving}>
-        <DialogContent className="sm:max-w-md">
+        {/* Cancel is right there in the footer; a second way out in the
+            corner is one more thing on a dialog this small. */}
+        <DialogContent className="sm:max-w-md" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Save view</DialogTitle>
-            <DialogDescription>
-              The filters this table is on now, kept under Saved in the Filter
-              menu for the rest of the session.
-            </DialogDescription>
           </DialogHeader>
 
           <SaveViewForm
-            filters={filters}
             saved={saved}
             onSave={(name) => {
               onSavedChange([...saved, { name, filters }]);

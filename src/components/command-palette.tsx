@@ -5,6 +5,7 @@ import { BuildingIcon, MapPinIcon, PlusIcon, SearchIcon } from "lucide-react";
 import type { NavItem } from "@layouts/app-nav";
 import { footerNavigation, home, sections } from "@layouts/app-nav";
 import { sections as settingsSections } from "@layouts/settings-nav";
+import { EmployeeAvatar, rosterFor } from "@features/employees";
 import { AccountAvatar } from "@components/account-switcher";
 import { useActiveAccount } from "@components/active-account";
 import { SidebarMenuButton } from "@components/ui/sidebar";
@@ -78,6 +79,38 @@ type PaletteRow = {
 
 type RowGroup = { label: string; rows: PaletteRow[]; searchOnly?: boolean };
 
+/**
+ * Which rows a query keeps, and how they rank.
+ *
+ * cmdk scores subsequences by default, so "alici" turned up Cassandra Liu off
+ * the stray a-l-i-c-i scattered through her row. A list with the whole roster
+ * in it cannot carry that, so a row has to actually contain every word of the
+ * query; where each word lands is what sorts the survivors. Order does not
+ * matter either -- "reyes alicia" finds her the same as "alicia reyes".
+ */
+function score(value: string, search: string, keywords?: string[]) {
+  const haystack = [value, ...(keywords ?? [])].join(" ").toLowerCase();
+  /* Hyphens start a word too, so an id reads the way the name does. */
+  const words = haystack.split(/[\s-]+/);
+  const query = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (query.length === 0) return 1;
+
+  let total = 0;
+  for (const word of query) {
+    if (!haystack.includes(word)) return 0;
+
+    total += haystack.startsWith(word)
+      ? 1
+      : words.some((item) => item.startsWith(word))
+        ? 0.75
+        : 0.5;
+  }
+
+  /* The mean, so a two-word query that matches both halves well beats one
+     that only grazes them. */
+  return total / query.length;
+}
+
 export function CommandPalette({
   trigger,
 }: {
@@ -109,6 +142,19 @@ export function CommandPalette({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  /**
+   * Everyone the open company employs, whichever location they work at and
+   * whatever their status -- the palette is how you find a person you only
+   * half remember, so narrowing it to the location the app happens to be
+   * pointed at would hide most of the people worth finding.
+   */
+  const people = React.useMemo(() => rosterFor(active, null).all, [active]);
+
+  const locationNames = React.useMemo(
+    () => new Map(active.locations.map((item) => [item.id, item.name])),
+    [active],
+  );
+
   const groups: RowGroup[] = [
     ...navGroups.map((group) => ({
       label: group.label,
@@ -121,6 +167,42 @@ export function CommandPalette({
         select: () => navigate(item.url),
       })),
     })),
+    /**
+     * The roster, search-only like the groups below it: a list this long has
+     * no business in the resting palette.
+     */
+    {
+      label: "Employees",
+      searchOnly: true,
+      rows: people.map((employee) => ({
+        /* The id rides along because two people can share a name, and cmdk
+           keys every row on its value. */
+        value: `${employee.name} employee ${employee.id}`,
+        title: employee.name,
+        visual: <EmployeeAvatar employee={employee} />,
+        detail: `${employee.position} · ${locationNames.get(employee.locationId) ?? "—"}`,
+        keywords: [
+          employee.position,
+          employee.department,
+          employee.status,
+          locationNames.get(employee.locationId) ?? "",
+        ],
+        select: () => {
+          /* There is no profile page yet, so the roster stands in for one:
+             it opens with the name already searched. Someone at another
+             location would fall outside what that page is showing, so the
+             app follows them there rather than turning up empty. */
+          if (location && location.id !== employee.locationId) {
+            const theirs = active.locations.find(
+              (item) => item.id === employee.locationId,
+            );
+            if (theirs) select(active, theirs);
+          }
+
+          navigate(`/employees?q=${encodeURIComponent(employee.name)}`);
+        },
+      })),
+    },
     /**
      * The companies and locations the switcher holds. Both are search-only,
      * like Settings: the resting palette stays about the handful of things
@@ -200,13 +282,13 @@ export function CommandPalette({
         open={open}
         onOpenChange={setOpen}
         title="Search"
-        description="Search for a page to jump to, or a company or location to switch to"
+        description="Search for a page or a person to jump to, or a company or location to switch to"
       >
-        <Command>
+        <Command filter={score}>
           <CommandInput
             value={search}
             onValueChange={setSearch}
-            placeholder="Search pages, companies, locations..."
+            placeholder="Search pages, people, companies..."
             hint={
               <KbdGroup>
                 <Kbd>⌘</Kbd>

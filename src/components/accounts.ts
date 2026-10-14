@@ -93,4 +93,11 @@ export function regionsOf(account: Account) {
 export const currentUser = {
   name: "Alex Morgan",
   email: "alex@northwindhospitality.com",
+  /**
+   * A stand-in photo from the same free human set the roster hotlinks
+   * (uifaces.co, numbered 1-222), picked from outside the numbers the staff
+   * already use. Out of reach, and the avatar falls back to the initials.
+   */
+  photo: "https://mockmind-api.uifaces.co/content/human/18.jpg",
+  initials: "AM",
 };

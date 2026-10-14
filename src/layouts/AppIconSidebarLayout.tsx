@@ -12,7 +12,7 @@ import { currentUser } from "@components/accounts";
 import { CommandPalette } from "@components/command-palette";
 import { GetStarted } from "@components/get-started";
 import { RightPanel, RightPanelProvider } from "@components/right-panel";
-import { Avatar, AvatarFallback } from "@components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import {
   Collapsible,
   CollapsibleContent,
@@ -64,9 +64,8 @@ function NavUser() {
     <DropdownMenu>
       <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />}>
         <Avatar>
-          <AvatarFallback>
-            <UserIcon className="size-3.5" />
-          </AvatarFallback>
+          <AvatarImage src={currentUser.photo} alt="" />
+          <AvatarFallback>{currentUser.initials}</AvatarFallback>
         </Avatar>
         <div className="flex min-w-0 flex-col leading-tight">
           <span className="truncate font-medium">{currentUser.name}</span>

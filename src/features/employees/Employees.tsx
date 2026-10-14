@@ -196,11 +196,11 @@ export function Employees() {
       </div>
 
       <TabDefaultContent value="active" className="pt-5">
-        <Card className="gap-0">
+        <Card>
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent className="pt-5">
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -245,11 +245,11 @@ export function Employees() {
       </TabDefaultContent>
 
       <TabDefaultContent value="onboarding" className="pt-5">
-        <Card className="gap-0">
+        <Card>
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent className="pt-5">
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -296,11 +296,11 @@ export function Employees() {
       </TabDefaultContent>
 
       <TabDefaultContent value="on-leave" className="pt-5">
-        <Card className="gap-0">
+        <Card>
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent className="pt-5">
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -337,11 +337,11 @@ export function Employees() {
       </TabDefaultContent>
 
       <TabDefaultContent value="inactive" className="pt-5">
-        <Card className="gap-0">
+        <Card>
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent className="pt-5">
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -386,11 +386,11 @@ export function Employees() {
       </TabDefaultContent>
 
       <TabDefaultContent value="all" className="pt-5">
-        <Card className="gap-0">
+        <Card>
           <CardHeader>
             <SearchField value={query} onValueChange={setQuery} />
           </CardHeader>
-          <CardContent className="pt-5">
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>

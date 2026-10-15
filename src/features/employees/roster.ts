@@ -548,8 +548,8 @@ export function rosterFor(account: Account, location: Location | null) {
   const filled = {
     active: fill(active, "Active"),
     onboarding: fill(onboarding, "Onboarding"),
-    onLeave: fill(onLeave, "On leave"),
     offboarding: fill(offboarding, "Offboarding"),
+    onLeave: fill(onLeave, "On leave"),
     inactive: fill(inactive, "Inactive"),
   };
 

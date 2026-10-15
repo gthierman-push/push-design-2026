@@ -11,7 +11,7 @@ import { Candidates } from "@features/candidates";
 import { Chat } from "@features/chat";
 import { Clocks } from "@features/clocks";
 import { Dashboard } from "@features/dashboard";
-import { Employees } from "@features/employees";
+import { EmployeeProfile, Employees } from "@features/employees";
 import { Help } from "@features/help";
 import { Interviews } from "@features/interviews";
 import { Jobs } from "@features/jobs";
@@ -99,6 +99,7 @@ export const router = createBrowserRouter([
       { path: "clocks", element: <Clocks /> },
       { path: "shifts", element: <Shifts /> },
       { path: "employees", element: <Employees /> },
+      { path: "employees/:id", element: <EmployeeProfile /> },
       { path: "milestones", element: <Milestones /> },
       { path: "performance", element: <Performance /> },
       { path: "surveys", element: <Surveys /> },

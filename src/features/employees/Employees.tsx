@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { NavLink, useNavigate } from "react-router";
 import {
   ClockIcon,
   EllipsisIcon,
@@ -89,12 +90,19 @@ function matches(
   );
 }
 
-/** The leading cell every table shares: a photo beside the name. */
-function Person({ name, photo }: { name: string; photo: string }) {
+/** The leading cell every table shares: a photo beside the name, the name
+ *  being the link to the person it names. The whole row opens the same
+ *  profile; this is the half of it a keyboard can reach. */
+function Person({ employee }: { employee: Employee }) {
   return (
     <div className="flex items-center gap-2">
-      <EmployeeAvatar employee={{ name, photo }} />
-      <span className="font-medium">{name}</span>
+      <EmployeeAvatar employee={employee} />
+      <NavLink
+        to={`/employees/${employee.id}`}
+        className="font-medium hover:underline"
+      >
+        {employee.name}
+      </NavLink>
     </div>
   );
 }
@@ -103,7 +111,15 @@ function Person({ name, photo }: { name: string; photo: string }) {
  *  Deactivating is the one that ends something, so it sits apart from the two
  *  that only go and look -- and on someone already inactive it reads the other
  *  way, since there is nothing left to end. */
-function RowActions({ name, inactive }: { name: string; inactive?: boolean }) {
+function RowActions({
+  id,
+  name,
+  inactive,
+}: {
+  id: string;
+  name: string;
+  inactive?: boolean;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -119,7 +135,7 @@ function RowActions({ name, inactive }: { name: string; inactive?: boolean }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem render={<NavLink to={`/employees/${id}`} />}>
             <UserRoundIcon />
             View profile
           </DropdownMenuItem>
@@ -144,6 +160,11 @@ function RowActions({ name, inactive }: { name: string; inactive?: boolean }) {
     </DropdownMenu>
   );
 }
+
+/** A cell whose click is its own: the row around it opens a profile, and
+ *  ticking someone or opening their menu is not that. */
+const stopRow = (event: { stopPropagation: () => void }) =>
+  event.stopPropagation();
 
 function SearchField({
   value,
@@ -197,6 +218,8 @@ export function Employees() {
   // Fields an answer asked to see rather than filter by: "what are they paid"
   // wants the wage beside the names.
   const [asked, setAsked] = useState<string[]>([]);
+  const navigate = useNavigate();
+
   // Who is ticked, by id. Held here rather than per tab so the bar, the
   // header's tick and the rows are all reading the same list.
   const [picked, setPicked] = useState<string[]>([]);
@@ -354,7 +377,7 @@ export function Employees() {
   /* The tick column is first on every tab, and narrow: the header's box takes
      the whole tab, each row's takes one person. */
   const selectCell = (employee: Employee) => (
-    <TableCell>
+    <TableCell onClick={stopRow}>
       <SelectRow
         employee={employee}
         picked={picked}
@@ -364,9 +387,17 @@ export function Employees() {
   );
 
   /* A picked row takes the table's own selected grey, so the selection reads
-     off the rows as much as off the header. */
-  const rowState = (employee: Employee) =>
-    picked.includes(employee.id) ? "selected" : undefined;
+     off the rows as much as off the header.
+
+     Clicking the row opens the person on it -- a row is one employee, and
+     the name is a small target for what the whole row means. Ticking one and
+     acting on it are the two things in a row that mean something else, so
+     those cells keep their clicks. */
+  const rowProps = (employee: Employee) => ({
+    "data-state": picked.includes(employee.id) ? "selected" : undefined,
+    className: "cursor-pointer",
+    onClick: () => navigate(`/employees/${employee.id}`),
+  });
 
   /** Every tab's header row: its own columns while the table is being read,
    *  and what can be done to a selection once one exists.
@@ -393,6 +424,12 @@ export function Employees() {
       {heads}
       {actionsHead}
     </TableRow>
+  );
+
+  const actionsCell = (employee: Employee, inactive?: boolean) => (
+    <TableCell onClick={stopRow}>
+      <RowActions id={employee.id} name={employee.name} inactive={inactive} />
+    </TableCell>
   );
 
   /* The actions column is last on every tab, and narrow: a header with nothing
@@ -493,10 +530,10 @@ export function Employees() {
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {activeRows.map((employee) => (
-                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                  <TableRow key={employee.id} {...rowProps(employee)}>
                     {selectCell(employee)}
                     <TableCell>
-                      <Person name={employee.name} photo={employee.photo} />
+                      <Person employee={employee} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department}</TableCell>
@@ -514,9 +551,7 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
-                    <TableCell>
-                      <RowActions name={employee.name} />
-                    </TableCell>
+                    {actionsCell(employee)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -546,10 +581,10 @@ export function Employees() {
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {onboardingRows.map((employee) => (
-                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                  <TableRow key={employee.id} {...rowProps(employee)}>
                     {selectCell(employee)}
                     <TableCell>
-                      <Person name={employee.name} photo={employee.photo} />
+                      <Person employee={employee} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     {locationCell(employee)}
@@ -569,9 +604,7 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
-                    <TableCell>
-                      <RowActions name={employee.name} />
-                    </TableCell>
+                    {actionsCell(employee)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -601,10 +634,10 @@ export function Employees() {
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {offboardingRows.map((employee) => (
-                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                  <TableRow key={employee.id} {...rowProps(employee)}>
                     {selectCell(employee)}
                     <TableCell>
-                      <Person name={employee.name} photo={employee.photo} />
+                      <Person employee={employee} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     {locationCell(employee)}
@@ -624,9 +657,7 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
-                    <TableCell>
-                      <RowActions name={employee.name} />
-                    </TableCell>
+                    {actionsCell(employee)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -656,10 +687,10 @@ export function Employees() {
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {onLeaveRows.map((employee) => (
-                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                  <TableRow key={employee.id} {...rowProps(employee)}>
                     {selectCell(employee)}
                     <TableCell>
-                      <Person name={employee.name} photo={employee.photo} />
+                      <Person employee={employee} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     {locationCell(employee)}
@@ -669,9 +700,7 @@ export function Employees() {
                     <TableCell>{employee.dates}</TableCell>
                     <TableCell>{employee.returns}</TableCell>
                     {extraCells(employee)}
-                    <TableCell>
-                      <RowActions name={employee.name} />
-                    </TableCell>
+                    {actionsCell(employee)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -701,10 +730,10 @@ export function Employees() {
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {inactiveRows.map((employee) => (
-                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                  <TableRow key={employee.id} {...rowProps(employee)}>
                     {selectCell(employee)}
                     <TableCell>
-                      <Person name={employee.name} photo={employee.photo} />
+                      <Person employee={employee} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department}</TableCell>
@@ -722,9 +751,7 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
-                    <TableCell>
-                      <RowActions name={employee.name} inactive />
-                    </TableCell>
+                    {actionsCell(employee, true)}
                   </TableRow>
                 ))}
               </TableBody>
@@ -753,10 +780,10 @@ export function Employees() {
                   <NoResults columns={columns(4)} message={emptyMessage} />
                 )}
                 {allRows.map((employee) => (
-                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                  <TableRow key={employee.id} {...rowProps(employee)}>
                     {selectCell(employee)}
                     <TableCell>
-                      <Person name={employee.name} photo={employee.photo} />
+                      <Person employee={employee} />
                     </TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department}</TableCell>
@@ -771,12 +798,7 @@ export function Employees() {
                       </Badge>
                     </TableCell>
                     {extraCells(employee)}
-                    <TableCell>
-                      <RowActions
-                        name={employee.name}
-                        inactive={employee.status === "Inactive"}
-                      />
-                    </TableCell>
+                    {actionsCell(employee, employee.status === "Inactive")}
                   </TableRow>
                 ))}
               </TableBody>

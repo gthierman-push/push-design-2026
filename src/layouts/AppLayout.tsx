@@ -47,7 +47,7 @@ import {
 
 import { useAuth } from "../auth";
 import { AppHeader } from "./AppHeader";
-import { footerNavigation, isSection, nav, sections } from "./app-nav";
+import { footerNavigation, isSection, nav, pageFor, sections } from "./app-nav";
 
 /**
  * The signed-in user at the foot of the sidebar, as the block has it: the
@@ -130,7 +130,10 @@ function useOneOpenSection(pathname: string) {
 function AppSidebar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { isOpen, setOpen } = useOneOpenSection(pathname);
+  /* A page one level down -- an employee's profile -- still marks the page it
+     came from, rather than leaving the nav pointing at nothing. */
+  const current = pageFor(pathname)?.url ?? pathname;
+  const { isOpen, setOpen } = useOneOpenSection(current);
 
   return (
     <Sidebar collapsible="offcanvas">
@@ -153,7 +156,7 @@ function AppSidebar() {
                 !isSection(entry) ? (
                   <SidebarMenuItem key={entry.url}>
                     <SidebarMenuButton
-                      isActive={pathname === entry.url}
+                      isActive={current === entry.url}
                       tooltip={entry.title}
                       render={<NavLink to={entry.url} />}
                     >
@@ -192,7 +195,7 @@ function AppSidebar() {
                         {entry.items.map((item) => (
                           <SidebarMenuSubItem key={item.url}>
                             <SidebarMenuSubButton
-                              isActive={pathname === item.url}
+                              isActive={current === item.url}
                               render={<NavLink to={item.url} />}
                             >
                               <span>{item.title}</span>

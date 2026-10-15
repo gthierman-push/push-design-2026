@@ -138,3 +138,16 @@ export const footerNavigation: NavItem[] = [
   { title: "Help", url: "/help", icon: CircleHelpIcon },
   { title: "Settings", url: "/settings", icon: SettingsIcon },
 ];
+
+/**
+ * Which page the app is on, for a path that may sit under one: an employee's
+ * profile is still the People page as far as the nav and the breadcrumb are
+ * concerned. Dashboard is matched exactly -- every path sits under "/".
+ */
+export function pageFor(pathname: string): NavItem | undefined {
+  return pages.find(
+    (item) =>
+      item.url === pathname ||
+      (item.url !== "/" && pathname.startsWith(`${item.url}/`)),
+  );
+}

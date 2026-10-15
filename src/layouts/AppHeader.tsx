@@ -13,7 +13,7 @@ import {
 import { Button } from "@components/ui/button";
 import { Separator } from "@components/ui/separator";
 
-import { pages } from "./app-nav";
+import { pageFor } from "./app-nav";
 
 /**
  * The bar above the page, shared by every nav variation — only the control
@@ -21,7 +21,7 @@ import { pages } from "./app-nav";
  */
 export function AppHeader({ trigger }: { trigger: ReactNode }) {
   const { pathname } = useLocation();
-  const current = pages.find((item) => item.url === pathname);
+  const current = pageFor(pathname);
 
   return (
     <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">

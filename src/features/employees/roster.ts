@@ -563,3 +563,12 @@ export function rosterFor(account: Account, location: Location | null) {
       .sort((a, b) => a.name.localeCompare(b.name)),
   };
 }
+
+/**
+ * One person, by the id their row carries. Looked up across the whole
+ * company rather than the location the app is pointed at: a profile opened
+ * from a link is still that person's profile, whichever site they work at.
+ */
+export function employeeFor(account: Account, id: string) {
+  return rosterFor(account, null).all.find((employee) => employee.id === id);
+}

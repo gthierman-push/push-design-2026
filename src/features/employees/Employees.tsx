@@ -353,12 +353,6 @@ export function Employees() {
 
   /* The tick column is first on every tab, and narrow: the header's box takes
      the whole tab, each row's takes one person. */
-  const selectHead = (rows: Employee[]) => (
-    <TableHead className="w-8">
-      <SelectAll rows={rows} picked={picked} onPickedChange={setPicked} />
-    </TableHead>
-  );
-
   const selectCell = (employee: Employee) => (
     <TableCell>
       <SelectRow
@@ -375,21 +369,29 @@ export function Employees() {
     picked.includes(employee.id) ? "selected" : undefined;
 
   /** Every tab's header row: its own columns while the table is being read,
-   *  and what can be done to a selection once one exists. The tick stays
-   *  where it is through both, since it is what moves between them. */
-  const headRow = (rows: Employee[], base: number, heads: ReactNode) => (
-    <TableRow>
-      {selectHead(rows)}
-      {chosen.length > 0 ? (
-        <TableHead colSpan={columns(base) - 1}>
-          <SelectionActions chosen={chosen} onClear={() => setPicked([])} />
-        </TableHead>
-      ) : (
-        <>
-          {heads}
-          {actionsHead}
-        </>
-      )}
+   *  and what can be done to a selection once one exists.
+   *
+   *  The headings do not leave when the actions arrive, they are hidden where
+   *  they stand: their words are half of what sets a column's width, and
+   *  columns that jump sideways the moment a box is ticked are a worse shift
+   *  than the one this was meant to avoid. The actions are laid over them,
+   *  out of the table's flow, starting from the tick they belong to. */
+  const headRow = (rows: Employee[], heads: ReactNode) => (
+    <TableRow
+      className={
+        chosen.length > 0 ? "[&>th:not(:first-child)]:invisible" : undefined
+      }
+    >
+      <TableHead className="relative w-8">
+        <SelectAll rows={rows} picked={picked} onPickedChange={setPicked} />
+        {chosen.length > 0 && (
+          <div className="absolute inset-y-0 left-8 flex items-center pl-2">
+            <SelectionActions chosen={chosen} onClear={() => setPicked([])} />
+          </div>
+        )}
+      </TableHead>
+      {heads}
+      {actionsHead}
     </TableRow>
   );
 
@@ -475,7 +477,6 @@ export function Employees() {
               <TableHeader>
                 {headRow(
                   activeRows,
-                  5,
                   <>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>
@@ -529,7 +530,6 @@ export function Employees() {
               <TableHeader>
                 {headRow(
                   onboardingRows,
-                  5,
                   <>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>
@@ -585,7 +585,6 @@ export function Employees() {
               <TableHeader>
                 {headRow(
                   offboardingRows,
-                  5,
                   <>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>
@@ -641,7 +640,6 @@ export function Employees() {
               <TableHeader>
                 {headRow(
                   onLeaveRows,
-                  5,
                   <>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>
@@ -687,7 +685,6 @@ export function Employees() {
               <TableHeader>
                 {headRow(
                   inactiveRows,
-                  5,
                   <>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>
@@ -741,7 +738,6 @@ export function Employees() {
               <TableHeader>
                 {headRow(
                   allRows,
-                  4,
                   <>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>

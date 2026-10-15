@@ -437,21 +437,14 @@ export function Employees() {
   /* Clicking a row opens the person on it -- a row is one employee, and the
      name is a small target for what the whole row means.
 
-     A held key says you are building a list instead, and so goes nowhere:
-     shift reaches back to the last person picked and takes everyone in
-     between, alt adds this one and leaves their neighbours alone. Both are
-     taken here rather than left to the browser, which would otherwise read a
-     modified click on the name as a new window or a download. */
+     Shift says you are building a list instead, and so goes nowhere: it
+     reaches back to the last person picked and takes everyone in between.
+     That is taken here rather than left to the browser, which would read a
+     shift-click on the name as a new window. */
   const clickRow = (employee: Employee, event: MouseEvent) => {
     if (event.shiftKey) {
       event.preventDefault();
       selection.extendTo(employee.id);
-      return;
-    }
-
-    if (event.altKey) {
-      event.preventDefault();
-      selection.toggle(employee.id);
       return;
     }
 

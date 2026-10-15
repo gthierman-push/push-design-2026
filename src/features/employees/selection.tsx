@@ -46,10 +46,9 @@ function them(rows: Employee[]) {
 }
 
 /**
- * Who is ticked, and the ways somebody joins them: their own box, an
- * alt-click that adds one person and leaves their neighbours alone, and a
- * shift-click that reaches back to the last one picked and takes everyone in
- * between.
+ * Who is ticked, and the two ways somebody joins them: their own box, one
+ * person at a time, and a shift-click that reaches back to the last one
+ * picked and takes everyone in between.
  *
  * A range is measured over the rows as they stand -- this tab's, after the
  * search and the filters have had their say -- so it is the people you can

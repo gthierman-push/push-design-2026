@@ -62,8 +62,8 @@ import { useRosterQuery } from "./use-roster-query";
 const tabs = [
   { value: "active", label: "Active" },
   { value: "onboarding", label: "Onboarding" },
-  { value: "on-leave", label: "On leave" },
   { value: "offboarding", label: "Offboarding" },
+  { value: "on-leave", label: "On leave" },
   { value: "inactive", label: "Inactive" },
   { value: "all", label: "All" },
 ];
@@ -257,8 +257,8 @@ export function Employees() {
 
   const activeRows = search(roster.active);
   const onboardingRows = search(roster.onboarding);
-  const onLeaveRows = search(roster.onLeave);
   const offboardingRows = search(roster.offboarding);
+  const onLeaveRows = search(roster.onLeave);
   const inactiveRows = search(roster.inactive);
   const allRows = search(roster.all);
 
@@ -496,48 +496,6 @@ export function Employees() {
           </CardContent>
         </TabDefaultContent>
 
-        <TabDefaultContent value="on-leave">
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  {locationHead}
-                  <TableHead>Leave</TableHead>
-                  <TableHead>Dates</TableHead>
-                  <TableHead>Returns</TableHead>
-                  {extraHeads}
-                  {actionsHead}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {onLeaveRows.length === 0 && (
-                  <NoResults columns={columns(5)} message={emptyMessage} />
-                )}
-                {onLeaveRows.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell>
-                      <Person name={employee.name} photo={employee.photo} />
-                    </TableCell>
-                    <TableCell>{employee.position}</TableCell>
-                    {locationCell(employee)}
-                    <TableCell>
-                      <Badge variant="outline">{employee.type}</Badge>
-                    </TableCell>
-                    <TableCell>{employee.dates}</TableCell>
-                    <TableCell>{employee.returns}</TableCell>
-                    {extraCells(employee)}
-                    <TableCell>
-                      <RowActions name={employee.name} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </TabDefaultContent>
-
         <TabDefaultContent value="offboarding">
           <CardContent>
             <Table>
@@ -579,6 +537,48 @@ export function Employees() {
                         {employee.status}
                       </Badge>
                     </TableCell>
+                    {extraCells(employee)}
+                    <TableCell>
+                      <RowActions name={employee.name} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </TabDefaultContent>
+
+        <TabDefaultContent value="on-leave">
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Position</TableHead>
+                  {locationHead}
+                  <TableHead>Leave</TableHead>
+                  <TableHead>Dates</TableHead>
+                  <TableHead>Returns</TableHead>
+                  {extraHeads}
+                  {actionsHead}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {onLeaveRows.length === 0 && (
+                  <NoResults columns={columns(5)} message={emptyMessage} />
+                )}
+                {onLeaveRows.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell>
+                      <Person name={employee.name} photo={employee.photo} />
+                    </TableCell>
+                    <TableCell>{employee.position}</TableCell>
+                    {locationCell(employee)}
+                    <TableCell>
+                      <Badge variant="outline">{employee.type}</Badge>
+                    </TableCell>
+                    <TableCell>{employee.dates}</TableCell>
+                    <TableCell>{employee.returns}</TableCell>
                     {extraCells(employee)}
                     <TableCell>
                       <RowActions name={employee.name} />

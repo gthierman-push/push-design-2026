@@ -603,7 +603,7 @@ function FilterChip({
 }) {
   const { label } = describe(condition.field);
   const Icon = iconFor(condition.field);
-  const { operator, summary } = phrase(condition);
+  const { operator, summary, more } = phrase(condition);
   const editable = options !== undefined && "values" in condition;
 
   return (
@@ -623,7 +623,12 @@ function FilterChip({
               render={<Button variant="outline" className="font-normal" />}
             >
               <span className="text-muted-foreground">{operator}</span>
-              <span className="max-w-40 truncate font-medium">{summary}</span>
+              {/* The count rides outside the truncation, so a long first
+                  value is what gives way and the +2 stays readable. */}
+              <span className="flex min-w-0 font-medium">
+                <span className="max-w-40 truncate">{summary}</span>
+                {more > 0 && <span className="shrink-0">, +{more}</span>}
+              </span>
             </ContextMenuTrigger>
             <ContextMenuContent className="w-56 overflow-hidden p-0">
               <ValueSearch label={label} />

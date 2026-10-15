@@ -45,20 +45,128 @@ function them(rows: Employee[]) {
   return "They";
 }
 
+/**
+ * Who is ticked, and the ways somebody joins them: their own box, an
+ * alt-click that adds one person and leaves their neighbours alone, and a
+ * shift-click that reaches back to the last one picked and takes everyone in
+ * between.
+ *
+ * A range is measured over the rows as they stand -- this tab's, after the
+ * search and the filters have had their say -- so it is the people you can
+ * see between the two you clicked, never the ones something is hiding
+ * between them.
+ */
+export type Selection = {
+  has: (id: string) => boolean;
+  /** Tick or untick one person, and make them where a range measures from. */
+  toggle: (id: string) => void;
+  /** Everyone from the last person ticked to this one. */
+  extendTo: (id: string) => void;
+  /** Whoever is named, and nobody else: the header's box, either way up. */
+  set: (ids: string[]) => void;
+  clear: () => void;
+};
+
+/** Where a range measures from: the last person ticked on their own, and who
+ *  was already ticked when they were. Keeping the second is what lets a range
+ *  run back over itself -- the people it no longer covers go back to however
+ *  they were before it started, rather than being left behind ticked. */
+type Anchor = { id: string; were: string[] };
+
+export function useSelection(rows: Employee[]): {
+  picked: string[];
+  selection: Selection;
+} {
+  const [picked, setPicked] = React.useState<string[]>([]);
+  const [anchor, setAnchor] = React.useState<Anchor | null>(null);
+
+  const ids = rows.map((row) => row.id);
+
+  /* Anyone the view stops showing -- a tab switched away from, a search typed
+     past them -- is let go of, so the count on the bar and the people a
+     button acts on can never drift apart. Compared as a string: the rows are
+     rebuilt every render, and only the names in them matter. */
+  const onScreen = ids.join(" ");
+
+  React.useEffect(() => {
+    const here = onScreen.split(" ");
+
+    setPicked((current) => {
+      const kept = current.filter((id) => here.includes(id));
+      return kept.length === current.length ? current : kept;
+    });
+
+    /* And a range cannot be measured from someone who is no longer there. */
+    setAnchor((current) =>
+      current === null || here.includes(current.id) ? current : null,
+    );
+  }, [onScreen]);
+
+  const toggle = (id: string) => {
+    const next = picked.includes(id)
+      ? picked.filter((other) => other !== id)
+      : [...picked, id];
+
+    setPicked(next);
+    setAnchor({ id, were: next });
+  };
+
+  const extendTo = (id: string) => {
+    const start = anchor ? ids.indexOf(anchor.id) : -1;
+    const end = ids.indexOf(id);
+
+    /* Nothing to reach back to yet: the first shift-click is an ordinary
+       click, and becomes the end the next one measures from. */
+    if (anchor === null || start === -1 || end === -1) {
+      toggle(id);
+      return;
+    }
+
+    const between = ids.slice(Math.min(start, end), Math.max(start, end) + 1);
+
+    setPicked([
+      ...anchor.were.filter(
+        (other) => ids.includes(other) && !between.includes(other),
+      ),
+      ...between,
+    ]);
+  };
+
+  return {
+    picked,
+    selection: {
+      has: (id) => picked.includes(id),
+      toggle,
+      extendTo,
+      set: (next) => {
+        setPicked(next);
+        setAnchor(null);
+      },
+      clear: () => {
+        setPicked([]);
+        setAnchor(null);
+      },
+    },
+  };
+}
+
+/** Whether the key that means "and everyone in between" was held down. */
+const ranged = (event: Event) =>
+  (event instanceof MouseEvent || event instanceof KeyboardEvent) &&
+  event.shiftKey;
+
 /** The header's tick: on when every row on the tab is picked, half-on while
  *  only some of them are, and off the moment it is clicked in either state --
  *  one box that both selects everything and gets you back out. */
 export function SelectAll({
   rows,
-  picked,
-  onPickedChange,
+  selection,
 }: {
   rows: Employee[];
-  picked: string[];
-  onPickedChange: (picked: string[]) => void;
+  selection: Selection;
 }) {
   const ids = rows.map((row) => row.id);
-  const count = ids.filter((id) => picked.includes(id)).length;
+  const count = ids.filter((id) => selection.has(id)).length;
   const every = count > 0 && count === ids.length;
 
   return (
@@ -69,32 +177,32 @@ export function SelectAll({
       checked={every}
       indeterminate={count > 0 && !every}
       disabled={rows.length === 0}
-      onCheckedChange={(checked) => onPickedChange(checked ? ids : [])}
+      onCheckedChange={(checked) => selection.set(checked ? ids : [])}
     />
   );
 }
 
 /** A row's own tick, named after the person so a screen reader says who it
- *  belongs to rather than "checkbox, checkbox, checkbox". */
+ *  belongs to rather than "checkbox, checkbox, checkbox".
+ *
+ *  Shift means here what it means on the rows themselves: ticking one box and
+ *  shift-ticking another further down is the oldest way there is of saying
+ *  "these ones", and it works from the keyboard for the same reason. */
 export function SelectRow({
   employee,
-  picked,
-  onPickedChange,
+  selection,
 }: {
   employee: Employee;
-  picked: string[];
-  onPickedChange: (picked: string[]) => void;
+  selection: Selection;
 }) {
   return (
     <Checkbox
       aria-label={`Select ${employee.name}`}
-      checked={picked.includes(employee.id)}
-      onCheckedChange={(checked) =>
-        onPickedChange(
-          checked
-            ? [...picked, employee.id]
-            : picked.filter((id) => id !== employee.id),
-        )
+      checked={selection.has(employee.id)}
+      onCheckedChange={(_, details) =>
+        ranged(details.event)
+          ? selection.extendTo(employee.id)
+          : selection.toggle(employee.id)
       }
     />
   );

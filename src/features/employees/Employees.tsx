@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentType,
+  type MouseEvent,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { NavLink, useNavigate } from "react-router";
 import {
   ClockIcon,
@@ -14,6 +22,14 @@ import { useActiveAccount } from "@components/active-account";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardHeader } from "@components/ui/card";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuGroup,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@components/ui/context-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,7 +74,12 @@ import {
   type Condition,
 } from "./query";
 import { rosterFor, type Employee } from "./roster";
-import { SelectAll, SelectRow, SelectionActions } from "./selection";
+import {
+  SelectAll,
+  SelectRow,
+  SelectionActions,
+  useSelection,
+} from "./selection";
 import { useRosterQuery } from "./use-roster-query";
 
 const tabs = [
@@ -107,10 +128,75 @@ function Person({ employee }: { employee: Employee }) {
   );
 }
 
-/** The trailing cell every table shares: what can be done to one person.
- *  Deactivating is the one that ends something, so it sits apart from the two
- *  that only go and look -- and on someone already inactive it reads the other
- *  way, since there is nothing left to end. */
+/** The parts a menu is made of, since what a row offers is said in two of
+ *  them: the one behind the ellipsis and the one a right-click opens. They
+ *  are different components with the same shape, so the shape is what the
+ *  list below asks for. */
+type MenuParts = {
+  Group: ComponentType<{ children: ReactNode }>;
+  Item: ComponentType<{
+    children: ReactNode;
+    render?: ReactElement;
+    variant?: "default" | "destructive";
+  }>;
+  Separator: ComponentType;
+};
+
+const ellipsisMenu: MenuParts = {
+  Group: DropdownMenuGroup,
+  Item: DropdownMenuItem,
+  Separator: DropdownMenuSeparator,
+};
+
+const rightClickMenu: MenuParts = {
+  Group: ContextMenuGroup,
+  Item: ContextMenuItem,
+  Separator: ContextMenuSeparator,
+};
+
+/** What can be done to one person. Deactivating is the one that ends
+ *  something, so it sits apart from the two that only go and look -- and on
+ *  someone already inactive it reads the other way, since there is nothing
+ *  left to end. */
+function RowActionItems({
+  id,
+  inactive,
+  parts: { Group, Item, Separator },
+}: {
+  id: string;
+  inactive?: boolean;
+  parts: MenuParts;
+}) {
+  return (
+    <>
+      <Group>
+        <Item render={<NavLink to={`/employees/${id}`} />}>
+          <UserRoundIcon />
+          View profile
+        </Item>
+        <Item>
+          <ClockIcon />
+          View clocks
+        </Item>
+      </Group>
+      <Separator />
+      {inactive ? (
+        <Item>
+          <UserRoundCheckIcon />
+          Reactivate
+        </Item>
+      ) : (
+        <Item variant="destructive">
+          <UserRoundXIcon />
+          Deactivate
+        </Item>
+      )}
+    </>
+  );
+}
+
+/** The trailing cell every table shares: the way into those actions that a
+ *  keyboard can reach and a first-time reader can see. */
 function RowActions({
   id,
   name,
@@ -134,28 +220,7 @@ function RowActions({
         <EllipsisIcon />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuGroup>
-          <DropdownMenuItem render={<NavLink to={`/employees/${id}`} />}>
-            <UserRoundIcon />
-            View profile
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <ClockIcon />
-            View clocks
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        {inactive ? (
-          <DropdownMenuItem>
-            <UserRoundCheckIcon />
-            Reactivate
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem variant="destructive">
-            <UserRoundXIcon />
-            Deactivate
-          </DropdownMenuItem>
-        )}
+        <RowActionItems id={id} inactive={inactive} parts={ellipsisMenu} />
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -219,10 +284,6 @@ export function Employees() {
   // wants the wage beside the names.
   const [asked, setAsked] = useState<string[]>([]);
   const navigate = useNavigate();
-
-  // Who is ticked, by id. Held here rather than per tab so the bar, the
-  // header's tick and the rows are all reading the same list.
-  const [picked, setPicked] = useState<string[]>([]);
 
   const roster = useMemo(
     () => rosterFor(account, location),
@@ -301,22 +362,13 @@ export function Employees() {
       all: allRows,
     }[tab] ?? [];
 
+  /* Who is ticked, by id. Held across the tabs rather than inside one, so
+     the bar, the header's tick and the rows are all reading the same list --
+     and measured against the rows in front of you, so a range runs over what
+     the tab, the search and the filters have left on screen. */
+  const { picked, selection } = useSelection(visible);
+
   const chosen = visible.filter((employee) => picked.includes(employee.id));
-
-  /* Anyone the view stops showing -- a tab switched away from, a search typed
-     past them -- is let go of, so the count on the bar and the people a
-     button acts on can never drift apart. Compared as a string: the rows are
-     rebuilt every render, and only the names in them matter. */
-  const onScreen = visible.map((employee) => employee.id).join(" ");
-
-  useEffect(() => {
-    const ids = onScreen.split(" ");
-
-    setPicked((current) => {
-      const kept = current.filter((id) => ids.includes(id));
-      return kept.length === current.length ? current : kept;
-    });
-  }, [onScreen]);
 
   /* An empty table means one of two things, and "no match" is the wrong thing
      to say about a location nobody has been hired into yet. When it is a
@@ -378,26 +430,38 @@ export function Employees() {
      the whole tab, each row's takes one person. */
   const selectCell = (employee: Employee) => (
     <TableCell onClick={stopRow}>
-      <SelectRow
-        employee={employee}
-        picked={picked}
-        onPickedChange={setPicked}
-      />
+      <SelectRow employee={employee} selection={selection} />
     </TableCell>
   );
 
-  /* A picked row takes the table's own selected grey, so the selection reads
-     off the rows as much as off the header.
+  /* Clicking a row opens the person on it -- a row is one employee, and the
+     name is a small target for what the whole row means.
 
-     Clicking the row opens the person on it -- a row is one employee, and
-     the name is a small target for what the whole row means. Ticking one and
-     acting on it are the two things in a row that mean something else, so
-     those cells keep their clicks. */
-  const rowProps = (employee: Employee) => ({
-    "data-state": picked.includes(employee.id) ? "selected" : undefined,
-    className: "cursor-pointer",
-    onClick: () => navigate(`/employees/${employee.id}`),
-  });
+     A held key says you are building a list instead, and so goes nowhere:
+     shift reaches back to the last person picked and takes everyone in
+     between, alt adds this one and leaves their neighbours alone. Both are
+     taken here rather than left to the browser, which would otherwise read a
+     modified click on the name as a new window or a download. */
+  const clickRow = (employee: Employee, event: MouseEvent) => {
+    if (event.shiftKey) {
+      event.preventDefault();
+      selection.extendTo(employee.id);
+      return;
+    }
+
+    if (event.altKey) {
+      event.preventDefault();
+      selection.toggle(employee.id);
+      return;
+    }
+
+    /* A control-click is a right-click on a mac, and a command-click is the
+       browser's own way of opening the name in a new tab. Either way the menu
+       or the tab is already on its way, and this row stays where it is. */
+    if (event.ctrlKey || event.metaKey) return;
+
+    navigate(`/employees/${employee.id}`);
+  };
 
   /** Every tab's header row: its own columns while the table is being read,
    *  and what can be done to a selection once one exists.
@@ -414,10 +478,10 @@ export function Employees() {
       }
     >
       <TableHead className="relative w-8">
-        <SelectAll rows={rows} picked={picked} onPickedChange={setPicked} />
+        <SelectAll rows={rows} selection={selection} />
         {chosen.length > 0 && (
           <div className="absolute inset-y-0 left-8 flex items-center pl-2">
-            <SelectionActions chosen={chosen} onClear={() => setPicked([])} />
+            <SelectionActions chosen={chosen} onClear={selection.clear} />
           </div>
         )}
       </TableHead>
@@ -438,6 +502,43 @@ export function Employees() {
     <TableHead className="w-12">
       <span className="sr-only">Actions</span>
     </TableHead>
+  );
+
+  /* One person, and what every tab says about them the same way: the tick
+     first, the tab's own columns, the actions last.
+
+     Those actions are also what a right-click anywhere along the row asks for
+     -- a control-click on a mac, a long press on a touchscreen -- so the row
+     is the menu's trigger as well. A picked row takes the table's own
+     selected grey and the one the menu is open over takes the lighter hover
+     grey, so both read off the rows rather than off the header alone.
+
+     Ticking someone and opening their menu are the two things inside a row
+     that mean something other than the row, so those cells keep their
+     clicks. */
+  const row = (employee: Employee, cells: ReactNode, inactive?: boolean) => (
+    <ContextMenu key={employee.id}>
+      <ContextMenuTrigger
+        render={
+          <TableRow
+            data-state={picked.includes(employee.id) ? "selected" : undefined}
+            className="cursor-pointer data-popup-open:bg-muted/50"
+            onClick={(event) => clickRow(employee, event)}
+          />
+        }
+      >
+        {selectCell(employee)}
+        {cells}
+        {actionsCell(employee, inactive)}
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <RowActionItems
+          id={employee.id}
+          inactive={inactive}
+          parts={rightClickMenu}
+        />
+      </ContextMenuContent>
+    </ContextMenu>
   );
 
   return (
@@ -529,31 +630,32 @@ export function Employees() {
                 {activeRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
-                {activeRows.map((employee) => (
-                  <TableRow key={employee.id} {...rowProps(employee)}>
-                    {selectCell(employee)}
-                    <TableCell>
-                      <Person employee={employee} />
-                    </TableCell>
-                    <TableCell>{employee.position}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    {locationCell(employee)}
-                    <TableCell>{employee.started}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          employee.employment === "Full-time"
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {employee.employment}
-                      </Badge>
-                    </TableCell>
-                    {extraCells(employee)}
-                    {actionsCell(employee)}
-                  </TableRow>
-                ))}
+                {activeRows.map((employee) =>
+                  row(
+                    employee,
+                    <>
+                      <TableCell>
+                        <Person employee={employee} />
+                      </TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      {locationCell(employee)}
+                      <TableCell>{employee.started}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            employee.employment === "Full-time"
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          {employee.employment}
+                        </Badge>
+                      </TableCell>
+                      {extraCells(employee)}
+                    </>,
+                  ),
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -580,33 +682,34 @@ export function Employees() {
                 {onboardingRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
-                {onboardingRows.map((employee) => (
-                  <TableRow key={employee.id} {...rowProps(employee)}>
-                    {selectCell(employee)}
-                    <TableCell>
-                      <Person employee={employee} />
-                    </TableCell>
-                    <TableCell>{employee.position}</TableCell>
-                    {locationCell(employee)}
-                    <TableCell>{employee.starts}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {employee.progress}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          employee.status === "Ready to start"
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {employee.status}
-                      </Badge>
-                    </TableCell>
-                    {extraCells(employee)}
-                    {actionsCell(employee)}
-                  </TableRow>
-                ))}
+                {onboardingRows.map((employee) =>
+                  row(
+                    employee,
+                    <>
+                      <TableCell>
+                        <Person employee={employee} />
+                      </TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      {locationCell(employee)}
+                      <TableCell>{employee.starts}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {employee.progress}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            employee.status === "Ready to start"
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          {employee.status}
+                        </Badge>
+                      </TableCell>
+                      {extraCells(employee)}
+                    </>,
+                  ),
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -633,33 +736,34 @@ export function Employees() {
                 {offboardingRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
-                {offboardingRows.map((employee) => (
-                  <TableRow key={employee.id} {...rowProps(employee)}>
-                    {selectCell(employee)}
-                    <TableCell>
-                      <Person employee={employee} />
-                    </TableCell>
-                    <TableCell>{employee.position}</TableCell>
-                    {locationCell(employee)}
-                    <TableCell>{employee.lastDay}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {employee.progress}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          employee.status === "Ready to close"
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {employee.status}
-                      </Badge>
-                    </TableCell>
-                    {extraCells(employee)}
-                    {actionsCell(employee)}
-                  </TableRow>
-                ))}
+                {offboardingRows.map((employee) =>
+                  row(
+                    employee,
+                    <>
+                      <TableCell>
+                        <Person employee={employee} />
+                      </TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      {locationCell(employee)}
+                      <TableCell>{employee.lastDay}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {employee.progress}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            employee.status === "Ready to close"
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          {employee.status}
+                        </Badge>
+                      </TableCell>
+                      {extraCells(employee)}
+                    </>,
+                  ),
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -686,23 +790,24 @@ export function Employees() {
                 {onLeaveRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
-                {onLeaveRows.map((employee) => (
-                  <TableRow key={employee.id} {...rowProps(employee)}>
-                    {selectCell(employee)}
-                    <TableCell>
-                      <Person employee={employee} />
-                    </TableCell>
-                    <TableCell>{employee.position}</TableCell>
-                    {locationCell(employee)}
-                    <TableCell>
-                      <Badge variant="outline">{employee.type}</Badge>
-                    </TableCell>
-                    <TableCell>{employee.dates}</TableCell>
-                    <TableCell>{employee.returns}</TableCell>
-                    {extraCells(employee)}
-                    {actionsCell(employee)}
-                  </TableRow>
-                ))}
+                {onLeaveRows.map((employee) =>
+                  row(
+                    employee,
+                    <>
+                      <TableCell>
+                        <Person employee={employee} />
+                      </TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      {locationCell(employee)}
+                      <TableCell>
+                        <Badge variant="outline">{employee.type}</Badge>
+                      </TableCell>
+                      <TableCell>{employee.dates}</TableCell>
+                      <TableCell>{employee.returns}</TableCell>
+                      {extraCells(employee)}
+                    </>,
+                  ),
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -729,31 +834,33 @@ export function Employees() {
                 {inactiveRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
-                {inactiveRows.map((employee) => (
-                  <TableRow key={employee.id} {...rowProps(employee)}>
-                    {selectCell(employee)}
-                    <TableCell>
-                      <Person employee={employee} />
-                    </TableCell>
-                    <TableCell>{employee.position}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    {locationCell(employee)}
-                    <TableCell>{employee.lastDay}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          employee.reason === "Terminated"
-                            ? "destructive"
-                            : "outline"
-                        }
-                      >
-                        {employee.reason}
-                      </Badge>
-                    </TableCell>
-                    {extraCells(employee)}
-                    {actionsCell(employee, true)}
-                  </TableRow>
-                ))}
+                {inactiveRows.map((employee) =>
+                  row(
+                    employee,
+                    <>
+                      <TableCell>
+                        <Person employee={employee} />
+                      </TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      {locationCell(employee)}
+                      <TableCell>{employee.lastDay}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            employee.reason === "Terminated"
+                              ? "destructive"
+                              : "outline"
+                          }
+                        >
+                          {employee.reason}
+                        </Badge>
+                      </TableCell>
+                      {extraCells(employee)}
+                    </>,
+                    true,
+                  ),
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -779,28 +886,32 @@ export function Employees() {
                 {allRows.length === 0 && (
                   <NoResults columns={columns(4)} message={emptyMessage} />
                 )}
-                {allRows.map((employee) => (
-                  <TableRow key={employee.id} {...rowProps(employee)}>
-                    {selectCell(employee)}
-                    <TableCell>
-                      <Person employee={employee} />
-                    </TableCell>
-                    <TableCell>{employee.position}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    {locationCell(employee)}
-                    <TableCell>
-                      <Badge
-                        variant={
-                          employee.status === "Active" ? "secondary" : "outline"
-                        }
-                      >
-                        {employee.status}
-                      </Badge>
-                    </TableCell>
-                    {extraCells(employee)}
-                    {actionsCell(employee, employee.status === "Inactive")}
-                  </TableRow>
-                ))}
+                {allRows.map((employee) =>
+                  row(
+                    employee,
+                    <>
+                      <TableCell>
+                        <Person employee={employee} />
+                      </TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      {locationCell(employee)}
+                      <TableCell>
+                        <Badge
+                          variant={
+                            employee.status === "Active"
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          {employee.status}
+                        </Badge>
+                      </TableCell>
+                      {extraCells(employee)}
+                    </>,
+                    employee.status === "Inactive",
+                  ),
+                )}
               </TableBody>
             </Table>
           </CardContent>

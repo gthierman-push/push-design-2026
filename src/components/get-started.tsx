@@ -3,7 +3,6 @@ import { NavLink } from "react-router";
 import {
   CircleCheckIcon,
   CircleDashedIcon,
-  RocketIcon,
   ChevronRightIcon,
 } from "lucide-react";
 
@@ -84,6 +83,11 @@ export function GetStarted() {
   const done = state.done.length;
   const complete = done === total;
 
+  /* Steps can be ticked off in any order, so the step being counted is the
+     first one still outstanding rather than however many are behind it. */
+  const current =
+    getStartedSteps.findIndex((step) => !state.done.includes(step.id)) + 1;
+
   const markDone = (id: string) =>
     setState((previous) =>
       previous.done.includes(id)
@@ -101,13 +105,14 @@ export function GetStarted() {
           left without the list having to be open. */}
       <CollapsibleTrigger className="group/get-started flex w-full flex-col gap-2 p-2 text-left">
         <div className="flex w-full items-center gap-2">
-          <RocketIcon className="text-primary-alt size-4 shrink-0" />
           <span className="flex-1 truncate text-sm font-medium">
             {complete ? "You're all set" : "Get started"}
           </span>
-          <span className="text-muted-foreground text-xs tabular-nums">
-            {done}/{total}
-          </span>
+          {complete ? null : (
+            <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+              Step {current} of {total}
+            </span>
+          )}
           <ChevronRightIcon className="text-muted-foreground size-4 shrink-0 transition-transform group-data-[panel-open]/get-started:rotate-90" />
         </div>
         <Progress

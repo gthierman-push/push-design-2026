@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ClockIcon,
   EllipsisIcon,
@@ -57,6 +57,7 @@ import {
   type Condition,
 } from "./query";
 import { rosterFor, type Employee } from "./roster";
+import { SelectAll, SelectRow, SelectionActions } from "./selection";
 import { useRosterQuery } from "./use-roster-query";
 
 const tabs = [
@@ -196,6 +197,9 @@ export function Employees() {
   // Fields an answer asked to see rather than filter by: "what are they paid"
   // wants the wage beside the names.
   const [asked, setAsked] = useState<string[]>([]);
+  // Who is ticked, by id. Held here rather than per tab so the bar, the
+  // header's tick and the rows are all reading the same list.
+  const [picked, setPicked] = useState<string[]>([]);
 
   const roster = useMemo(
     () => rosterFor(account, location),
@@ -262,6 +266,35 @@ export function Employees() {
   const inactiveRows = search(roster.inactive);
   const allRows = search(roster.all);
 
+  /* The selection belongs to the rows in front of you: the tab's, after the
+     search and the filters have had their say. */
+  const visible: Employee[] =
+    {
+      active: activeRows,
+      onboarding: onboardingRows,
+      offboarding: offboardingRows,
+      "on-leave": onLeaveRows,
+      inactive: inactiveRows,
+      all: allRows,
+    }[tab] ?? [];
+
+  const chosen = visible.filter((employee) => picked.includes(employee.id));
+
+  /* Anyone the view stops showing -- a tab switched away from, a search typed
+     past them -- is let go of, so the count on the bar and the people a
+     button acts on can never drift apart. Compared as a string: the rows are
+     rebuilt every render, and only the names in them matter. */
+  const onScreen = visible.map((employee) => employee.id).join(" ");
+
+  useEffect(() => {
+    const ids = onScreen.split(" ");
+
+    setPicked((current) => {
+      const kept = current.filter((id) => ids.includes(id));
+      return kept.length === current.length ? current : kept;
+    });
+  }, [onScreen]);
+
   /* An empty table means one of two things, and "no match" is the wrong thing
      to say about a location nobody has been hired into yet. When it is a
      no match, it names what to loosen: the search, the filters, or both. */
@@ -307,16 +340,60 @@ export function Employees() {
       </TableCell>
     ));
 
-  /** Counted from the columns a tab names: every table carries the actions
-   *  column, gains another on the company-wide view, and one more for each
-   *  thing the filters asked about. */
+  /** Counted from the columns a tab names: every table carries the tick and
+   *  the actions column, gains another on the company-wide view, and one more
+   *  for each thing the filters asked about. */
   const columns = (base: number) =>
-    base + 1 + (showLocation ? 1 : 0) + extras.length;
+    base + 2 + (showLocation ? 1 : 0) + extras.length;
 
   const locationHead = showLocation ? <TableHead>Location</TableHead> : null;
 
   const locationCell = (employee: Employee) =>
     showLocation ? <TableCell>{employee.location}</TableCell> : null;
+
+  /* The tick column is first on every tab, and narrow: the header's box takes
+     the whole tab, each row's takes one person. */
+  const selectCell = (employee: Employee) => (
+    <TableCell>
+      <SelectRow
+        employee={employee}
+        picked={picked}
+        onPickedChange={setPicked}
+      />
+    </TableCell>
+  );
+
+  /* A picked row takes the table's own selected grey, so the selection reads
+     off the rows as much as off the header. */
+  const rowState = (employee: Employee) =>
+    picked.includes(employee.id) ? "selected" : undefined;
+
+  /** Every tab's header row: its own columns while the table is being read,
+   *  and what can be done to a selection once one exists.
+   *
+   *  The headings do not leave when the actions arrive, they are hidden where
+   *  they stand: their words are half of what sets a column's width, and
+   *  columns that jump sideways the moment a box is ticked are a worse shift
+   *  than the one this was meant to avoid. The actions are laid over them,
+   *  out of the table's flow, starting from the tick they belong to. */
+  const headRow = (rows: Employee[], heads: ReactNode) => (
+    <TableRow
+      className={
+        chosen.length > 0 ? "[&>th:not(:first-child)]:invisible" : undefined
+      }
+    >
+      <TableHead className="relative w-8">
+        <SelectAll rows={rows} picked={picked} onPickedChange={setPicked} />
+        {chosen.length > 0 && (
+          <div className="absolute inset-y-0 left-8 flex items-center pl-2">
+            <SelectionActions chosen={chosen} onClear={() => setPicked([])} />
+          </div>
+        )}
+      </TableHead>
+      {heads}
+      {actionsHead}
+    </TableRow>
+  );
 
   /* The actions column is last on every tab, and narrow: a header with nothing
      to say, and one button per row. */
@@ -398,23 +475,26 @@ export function Employees() {
           <CardContent>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Department</TableHead>
-                  {locationHead}
-                  <TableHead>Started</TableHead>
-                  <TableHead>Employment</TableHead>
-                  {extraHeads}
-                  {actionsHead}
-                </TableRow>
+                {headRow(
+                  activeRows,
+                  <>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Department</TableHead>
+                    {locationHead}
+                    <TableHead>Started</TableHead>
+                    <TableHead>Employment</TableHead>
+                    {extraHeads}
+                  </>,
+                )}
               </TableHeader>
               <TableBody>
                 {activeRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {activeRows.map((employee) => (
-                  <TableRow key={employee.id}>
+                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                    {selectCell(employee)}
                     <TableCell>
                       <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
@@ -448,23 +528,26 @@ export function Employees() {
           <CardContent>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  {locationHead}
-                  <TableHead>Start date</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Status</TableHead>
-                  {extraHeads}
-                  {actionsHead}
-                </TableRow>
+                {headRow(
+                  onboardingRows,
+                  <>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Position</TableHead>
+                    {locationHead}
+                    <TableHead>Start date</TableHead>
+                    <TableHead>Progress</TableHead>
+                    <TableHead>Status</TableHead>
+                    {extraHeads}
+                  </>,
+                )}
               </TableHeader>
               <TableBody>
                 {onboardingRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {onboardingRows.map((employee) => (
-                  <TableRow key={employee.id}>
+                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                    {selectCell(employee)}
                     <TableCell>
                       <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
@@ -500,23 +583,26 @@ export function Employees() {
           <CardContent>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  {locationHead}
-                  <TableHead>Last day</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Status</TableHead>
-                  {extraHeads}
-                  {actionsHead}
-                </TableRow>
+                {headRow(
+                  offboardingRows,
+                  <>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Position</TableHead>
+                    {locationHead}
+                    <TableHead>Last day</TableHead>
+                    <TableHead>Progress</TableHead>
+                    <TableHead>Status</TableHead>
+                    {extraHeads}
+                  </>,
+                )}
               </TableHeader>
               <TableBody>
                 {offboardingRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {offboardingRows.map((employee) => (
-                  <TableRow key={employee.id}>
+                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                    {selectCell(employee)}
                     <TableCell>
                       <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
@@ -552,23 +638,26 @@ export function Employees() {
           <CardContent>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  {locationHead}
-                  <TableHead>Leave</TableHead>
-                  <TableHead>Dates</TableHead>
-                  <TableHead>Returns</TableHead>
-                  {extraHeads}
-                  {actionsHead}
-                </TableRow>
+                {headRow(
+                  onLeaveRows,
+                  <>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Position</TableHead>
+                    {locationHead}
+                    <TableHead>Leave</TableHead>
+                    <TableHead>Dates</TableHead>
+                    <TableHead>Returns</TableHead>
+                    {extraHeads}
+                  </>,
+                )}
               </TableHeader>
               <TableBody>
                 {onLeaveRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {onLeaveRows.map((employee) => (
-                  <TableRow key={employee.id}>
+                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                    {selectCell(employee)}
                     <TableCell>
                       <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
@@ -594,23 +683,26 @@ export function Employees() {
           <CardContent>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Department</TableHead>
-                  {locationHead}
-                  <TableHead>Last day</TableHead>
-                  <TableHead>Reason</TableHead>
-                  {extraHeads}
-                  {actionsHead}
-                </TableRow>
+                {headRow(
+                  inactiveRows,
+                  <>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Department</TableHead>
+                    {locationHead}
+                    <TableHead>Last day</TableHead>
+                    <TableHead>Reason</TableHead>
+                    {extraHeads}
+                  </>,
+                )}
               </TableHeader>
               <TableBody>
                 {inactiveRows.length === 0 && (
                   <NoResults columns={columns(5)} message={emptyMessage} />
                 )}
                 {inactiveRows.map((employee) => (
-                  <TableRow key={employee.id}>
+                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                    {selectCell(employee)}
                     <TableCell>
                       <Person name={employee.name} photo={employee.photo} />
                     </TableCell>
@@ -644,22 +736,25 @@ export function Employees() {
           <CardContent>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Department</TableHead>
-                  {locationHead}
-                  <TableHead>Status</TableHead>
-                  {extraHeads}
-                  {actionsHead}
-                </TableRow>
+                {headRow(
+                  allRows,
+                  <>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Department</TableHead>
+                    {locationHead}
+                    <TableHead>Status</TableHead>
+                    {extraHeads}
+                  </>,
+                )}
               </TableHeader>
               <TableBody>
                 {allRows.length === 0 && (
                   <NoResults columns={columns(4)} message={emptyMessage} />
                 )}
                 {allRows.map((employee) => (
-                  <TableRow key={employee.id}>
+                  <TableRow key={employee.id} data-state={rowState(employee)}>
+                    {selectCell(employee)}
                     <TableCell>
                       <Person name={employee.name} photo={employee.photo} />
                     </TableCell>

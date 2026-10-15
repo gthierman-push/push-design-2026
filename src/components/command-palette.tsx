@@ -183,20 +183,10 @@ export function CommandPalette({
           employee.status,
           locationNames.get(employee.locationId) ?? "",
         ],
-        select: () => {
-          /* There is no profile page yet, so the roster stands in for one:
-             it opens with the name already searched. Someone at another
-             location would fall outside what that page is showing, so the
-             app follows them there rather than turning up empty. */
-          if (location && location.id !== employee.locationId) {
-            const theirs = active.locations.find(
-              (item) => item.id === employee.locationId,
-            );
-            if (theirs) select(active, theirs);
-          }
-
-          navigate(`/employees?q=${encodeURIComponent(employee.name)}`);
-        },
+        /* Straight to the person, the way a roster row goes. The profile
+           reads the whole company's roster, so someone at another location
+           opens without the app having to follow them there. */
+        select: () => navigate(`/employees/${employee.id}`),
       })),
     },
     /**

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { BuildingIcon, MapPinIcon, PlusIcon, SearchIcon } from "lucide-react";
 
 import type { NavItem } from "@layouts/app-nav";
-import { footerNavigation, home, sections } from "@layouts/app-nav";
+import { footerNavigation, pages } from "@layouts/app-nav";
 import { sections as settingsSections } from "@layouts/settings-nav";
 import { EmployeeAvatar, rosterFor } from "@features/employees";
 import { AccountAvatar } from "@components/account-switcher";
@@ -42,11 +42,7 @@ const navGroups: PaletteGroup[] = [
   {
     /** Every page the sidebar holds, read top to bottom the way it reads. */
     label: "Pages",
-    items: [
-      home,
-      ...sections.flatMap((section) => section.items),
-      ...footerNavigation,
-    ],
+    items: [...pages, ...footerNavigation],
   },
   {
     /**

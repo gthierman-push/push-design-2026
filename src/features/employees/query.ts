@@ -266,8 +266,15 @@ export const matchesQuery = (employee: Employee, conditions: Condition[]) =>
 const day = (value: string) => format(parseISO(value), "MMM d, yyyy");
 
 /** How a condition reads on its chip: an operator and what follows it, so the
- *  chip is a sentence -- Permit expiry is between Oct 13 and Jan 13. */
-export function phrase(condition: Condition) {
+ *  chip is a sentence -- Permit expiry is between Oct 13 and Jan 13. A list
+ *  of values keeps its count apart from its summary, so a long first value
+ *  is what truncates and the +2 after it survives. */
+export const phrase = (condition: Condition) => ({
+  more: 0,
+  ...said(condition),
+});
+
+function said(condition: Condition) {
   const field = fieldFor(condition.field);
   const write = (value: number) =>
     field?.write ? field.write(value) : String(value);
@@ -275,12 +282,12 @@ export function phrase(condition: Condition) {
   switch (condition.op) {
     case "is":
     case "is not":
+      /* The one picked first, and a count of the rest. "3 of them" says
+         nothing about who any of them are; Bartender, +2 names one. */
       return {
         operator: condition.op,
-        summary:
-          condition.values.length === 1
-            ? condition.values[0]
-            : `${condition.values.length} of them`,
+        summary: condition.values[0] ?? "",
+        more: condition.values.length - 1,
       };
     case "contains":
       return { operator: "contains", summary: condition.text };
@@ -322,8 +329,9 @@ export function display(field: Field, employee: Employee) {
 export const readout = (conditions: Condition[]) =>
   conditions
     .map((condition) => {
-      const { operator, summary } = phrase(condition);
-      return `${fieldFor(condition.field)?.label} ${operator} ${summary}`;
+      const { operator, summary, more } = phrase(condition);
+      const values = more > 0 ? `${summary}, +${more}` : summary;
+      return `${fieldFor(condition.field)?.label} ${operator} ${values}`;
     })
     .join(", ");
 

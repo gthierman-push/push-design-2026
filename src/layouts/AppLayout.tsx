@@ -48,7 +48,7 @@ import {
 
 import { useAuth } from "../auth";
 import { AppHeader } from "./AppHeader";
-import { footerNavigation, home, sections } from "./app-nav";
+import { footerNavigation, isSection, nav, sections } from "./app-nav";
 
 /**
  * The signed-in user at the foot of the sidebar, as the block has it: the
@@ -150,61 +150,64 @@ function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === home.url}
-                  tooltip={home.title}
-                  render={<NavLink to={home.url} />}
-                >
-                  <home.icon />
-                  <span>{home.title}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {sections.map((section) => (
-                <Collapsible
-                  key={section.label}
-                  open={isOpen(section.label)}
-                  onOpenChange={(open) => {
-                    setOpen(section.label, open);
-                    // The section row is a destination as well as a lid:
-                    // opening it lands you on the first page inside, so a
-                    // single click gets you somewhere rather than only
-                    // showing you where you could go. Closing one leaves you
-                    // where you are.
-                    if (open) navigate(section.items[0].url);
-                  }}
-                  render={<SidebarMenuItem />}
-                >
-                  <SidebarMenuButton
-                    // The page's own row says which page you are on, and
-                    // marking the section as well would be twice too much.
-                    tooltip={section.label}
-                    render={<CollapsibleTrigger />}
+              {nav.map((entry) =>
+                !isSection(entry) ? (
+                  <SidebarMenuItem key={entry.url}>
+                    <SidebarMenuButton
+                      isActive={pathname === entry.url}
+                      tooltip={entry.title}
+                      render={<NavLink to={entry.url} />}
+                    >
+                      <entry.icon />
+                      <span>{entry.title}</span>
+                    </SidebarMenuButton>
+                    {entry.notify ? <SidebarMenuBadge /> : null}
+                  </SidebarMenuItem>
+                ) : (
+                  <Collapsible
+                    key={entry.label}
+                    open={isOpen(entry.label)}
+                    onOpenChange={(open) => {
+                      setOpen(entry.label, open);
+                      // The section row is a destination as well as a lid:
+                      // opening it lands you on the first page inside, so a
+                      // single click gets you somewhere rather than only
+                      // showing you where you could go. Closing one leaves you
+                      // where you are.
+                      if (open) navigate(entry.items[0].url);
+                    }}
+                    render={<SidebarMenuItem />}
                   >
-                    <section.icon />
-                    <span>{section.label}</span>
-                  </SidebarMenuButton>
+                    <SidebarMenuButton
+                      // The page's own row says which page you are on, and
+                      // marking the section as well would be twice too much.
+                      tooltip={entry.label}
+                      render={<CollapsibleTrigger />}
+                    >
+                      <entry.icon />
+                      <span>{entry.label}</span>
+                    </SidebarMenuButton>
 
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {section.items.map((item) => (
-                        <SidebarMenuSubItem key={item.url}>
-                          <SidebarMenuSubButton
-                            isActive={pathname === item.url}
-                            render={<NavLink to={item.url} />}
-                          >
-                            <span>{item.title}</span>
-                          </SidebarMenuSubButton>
-                          {item.notify ? (
-                            <SidebarMenuBadge className="top-2.5" />
-                          ) : null}
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </Collapsible>
-              ))}
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {entry.items.map((item) => (
+                          <SidebarMenuSubItem key={item.url}>
+                            <SidebarMenuSubButton
+                              isActive={pathname === item.url}
+                              render={<NavLink to={item.url} />}
+                            >
+                              <span>{item.title}</span>
+                            </SidebarMenuSubButton>
+                            {item.notify ? (
+                              <SidebarMenuBadge className="top-2.5" />
+                            ) : null}
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                ),
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -241,9 +244,9 @@ function AppSidebar() {
 }
 
 /**
- * The app shell: one sidebar, each section a row that unfolds its pages
- * underneath, one section open at a time, and the whole sidebar collapsing
- * away when you want the page to itself.
+ * The app shell: one sidebar, the day's pages up top and each section below a
+ * row that unfolds its pages underneath, one section open at a time, and the
+ * whole sidebar collapsing away when you want the page to itself.
  */
 export function AppLayout() {
   return (

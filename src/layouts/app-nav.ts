@@ -48,28 +48,25 @@ export type NavSection = {
   items: NavItem[];
 };
 
-/** The page the logo and the breadcrumb fall back to. */
-export const home: NavItem = {
-  title: "Dashboard",
-  url: "/",
-  icon: LayoutDashboardIcon,
-};
+/** A nav row: either a page on its own, or a section that unfolds into pages. */
+export type NavEntry = NavItem | NavSection;
 
-export const sections: NavSection[] = [
-  {
-    label: "Scheduling",
-    icon: CalendarRangeIcon,
-    items: [
-      { title: "Scheduler", url: "/scheduler", icon: CalendarRangeIcon },
-      { title: "Clocks", url: "/clocks", icon: ClockIcon, notify: true },
-      {
-        title: "Shifts",
-        url: "/shifts",
-        icon: ClipboardListIcon,
-        notify: true,
-      },
-    ],
-  },
+/** Which of the two a row is — a section is the one holding pages. */
+export function isSection(entry: NavEntry): entry is NavSection {
+  return "items" in entry;
+}
+
+/**
+ * The nav, read top to bottom. A page sitting at this level is one a manager
+ * opens all day and should not have to unfold a section to reach; everything
+ * else is grouped, and the two kinds of row are interleaved in whatever order
+ * reads best rather than pages-then-sections.
+ */
+export const nav: NavEntry[] = [
+  { title: "Dashboard", url: "/", icon: LayoutDashboardIcon },
+  { title: "Scheduler", url: "/scheduler", icon: CalendarRangeIcon },
+  { title: "Clocks", url: "/clocks", icon: ClockIcon, notify: true },
+  { title: "Shifts", url: "/shifts", icon: ClipboardListIcon, notify: true },
   {
     label: "Workforce",
     icon: UsersIcon,
@@ -83,10 +80,10 @@ export const sections: NavSection[] = [
       { title: "Milestones", url: "/milestones", icon: FlagIcon },
       { title: "Performance", url: "/performance", icon: TrophyIcon },
       { title: "Surveys", url: "/surveys", icon: ClipboardCheckIcon },
-      { title: "Time Off", url: "/time-off", icon: PalmtreeIcon },
       { title: "Tasks", url: "/tasks", icon: ListChecksIcon },
     ],
   },
+  { title: "Time Off", url: "/time-off", icon: PalmtreeIcon },
   {
     label: "Hiring",
     icon: UserPlusIcon,
@@ -128,6 +125,14 @@ export const sections: NavSection[] = [
     ],
   },
 ];
+
+/** The sections alone, for the one-open-at-a-time bookkeeping. */
+export const sections: NavSection[] = nav.filter(isSection);
+
+/** Every page the nav reaches, flattened, the way the nav reads. */
+export const pages: NavItem[] = nav.flatMap((entry) =>
+  isSection(entry) ? entry.items : entry,
+);
 
 export const footerNavigation: NavItem[] = [
   { title: "Help", url: "/help", icon: CircleHelpIcon },

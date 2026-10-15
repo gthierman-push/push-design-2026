@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-/** The shape both navs share: a labelled group of pages. */
+/** The shape a nav has: a labelled group of pages. */
 type NavSectionLike = {
   label: string;
   items: { url: string }[];
@@ -40,9 +40,9 @@ function loadOpenSections(sections: NavSectionLike[], storageKey: string) {
 
 /**
  * Tracks which sidebar sections are open, as the reader last left them —
- * across visits, not just across navigations. Shared by the app sidebar and
- * the settings sidebar, which collapse their sections the same way the design
- * system's own sidebar does.
+ * across visits, not just across navigations. Used by the settings sidebar,
+ * which collapses its sections the same way the design system's own sidebar
+ * does.
  */
 export function useNavSections({ sections, storageKey, pathname }: Options) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(

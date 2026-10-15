@@ -27,7 +27,6 @@ import {
 import { Input } from "@components/ui/input";
 import { Separator } from "@components/ui/separator";
 import { Slider } from "@components/ui/slider";
-import { navVariants, useNavVariant } from "@components/nav-variant";
 import { useTheme } from "@components/theme-provider";
 import {
   RADIUS_TOKEN,
@@ -165,53 +164,6 @@ function ThemePicker() {
             </DropdownMenuItem>
           </>
         ) : null}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-/** Picks which nav the app wears, so variations can be compared side by side. */
-function NavPicker() {
-  const { variant, setVariant } = useNavVariant();
-  const current = navVariants.find((item) => item.id === variant);
-
-  return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-between font-normal"
-          />
-        }
-      >
-        <span className="truncate">{current?.name ?? "Default"}</span>
-        <ChevronsUpDownIcon className="text-muted-foreground" />
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent>
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Navigation</DropdownMenuLabel>
-
-          {navVariants.map((item) => (
-            <DropdownMenuItem
-              key={item.id}
-              onClick={() => setVariant(item.id)}
-              className="items-start"
-            >
-              <CheckIcon
-                className={cn("mt-0.5", variant !== item.id && "invisible")}
-              />
-              <span className="flex min-w-0 flex-col">
-                <span className="truncate">{item.name}</span>
-                <span className="text-muted-foreground text-xs">
-                  {item.summary}
-                </span>
-              </span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -383,19 +335,9 @@ export function ThemePanel() {
         </Button>
       </header>
 
-      <div className="flex shrink-0 flex-col gap-3 border-b p-3">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-muted-foreground text-xs font-medium">
-            Theme
-          </span>
-          <ThemePicker />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-muted-foreground text-xs font-medium">
-            Nav variation
-          </span>
-          <NavPicker />
-        </div>
+      <div className="flex shrink-0 flex-col gap-1.5 border-b p-3">
+        <span className="text-muted-foreground text-xs font-medium">Theme</span>
+        <ThemePicker />
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-3">

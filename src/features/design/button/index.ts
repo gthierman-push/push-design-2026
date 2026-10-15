@@ -1,1 +1,1 @@
-export { Button } from "./Button";
+export { ButtonPage as Button } from "./Button";

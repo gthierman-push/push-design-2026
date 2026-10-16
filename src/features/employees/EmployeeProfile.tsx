@@ -11,6 +11,7 @@ import {
   KeyRoundIcon,
   ListChecksIcon,
   MailIcon,
+  MessagesSquareIcon,
   PencilIcon,
   PhoneIcon,
   PlaneIcon,
@@ -333,7 +334,6 @@ function OverviewTab({
               <Detail label="Preferred last name">
                 {personal.preferredLast ?? <Unset />}
               </Detail>
-              <Detail label="Email">{contact.email}</Detail>
               {/* The age came across with the date it is worked out from,
                   which is the only thing anybody reads a birthday for. */}
               <Detail label="Birthday">
@@ -343,15 +343,30 @@ function OverviewTab({
                   · {employee.age}
                 </span>
               </Detail>
-              <Detail label="Phone number">{contact.phone}</Detail>
-              <Detail label="Alternate phone number">
-                {personal.altPhone ?? <Unset />}
-              </Detail>
               <Detail label="Language preference">{personal.language}</Detail>
               {/* A SIN at the Canadian sites and an SSN at the American
                   ones, both in full. */}
               <Detail label={personal.governmentId.label}>
                 {personal.governmentId.number}
+              </Detail>
+            </DetailList>
+          </CardContent>
+        </Card>
+
+        {/* Whatever a company chose to track about its people on top of the
+            form everybody fills in. The names and the values come from the
+            backend once there is one; these two stand in until then. */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Custom attributes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DetailList>
+              <Detail label="Custom field 1">
+                <Unset />
+              </Detail>
+              <Detail label="Custom field 2">
+                <Unset />
               </Detail>
             </DetailList>
           </CardContent>
@@ -419,6 +434,39 @@ function OverviewTab({
                 <span className="block">{contact.city}</span>
               </Detail>
             </DetailList>
+            {/* The three ways of reaching somebody, beside the addresses
+                they each go to rather than up in the header. Email and Call
+                are real links, which Base UI needs telling or it warns that
+                the native button semantics have gone; Message opens the chat
+                the Communication section holds, so it stays a button. They
+                share the width where there is enough of it and wrap onto a
+                second line in a column too narrow for all three. */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                nativeButton={false}
+                render={<a href={`mailto:${contact.email}`} />}
+              >
+                <MailIcon data-icon="inline-start" />
+                Email
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                nativeButton={false}
+                render={<a href={`tel:${contact.phone}`} />}
+              >
+                <PhoneIcon data-icon="inline-start" />
+                Call
+              </Button>
+              <Button variant="outline" size="sm" className="flex-1">
+                <MessagesSquareIcon data-icon="inline-start" />
+                Message
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -553,24 +601,6 @@ export function EmployeeProfile() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Real links, not buttons: Base UI needs telling, or it warns
-                that the native button semantics have gone. */}
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<a href={`mailto:${profile.contact.email}`} />}
-          >
-            <MailIcon data-icon="inline-start" />
-            Email
-          </Button>
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<a href={`tel:${profile.contact.phone}`} />}
-          >
-            <PhoneIcon data-icon="inline-start" />
-            Call
-          </Button>
           <Button>
             <PencilIcon data-icon="inline-start" />
             Edit

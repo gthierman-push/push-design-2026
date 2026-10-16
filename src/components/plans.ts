@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { IconComponent } from "@components/icons";
 
 import {
   BadgeDollarSignIcon,
@@ -13,7 +13,7 @@ import {
   TrophyIcon,
   UserSearchIcon,
   UsersIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 /**
  * The packages on pushoperations.com/pushpricing, and the one this account is
@@ -26,7 +26,7 @@ import {
 
 export type PlanFeature = {
   /** Falls back to a check when the feature is just another line on the list. */
-  icon?: LucideIcon;
+  icon?: IconComponent;
   /** Also what an upgrade prompt matches on to find the plan that unlocks it. */
   label: string;
   /** The line that hangs under the label — what the feature covers. */

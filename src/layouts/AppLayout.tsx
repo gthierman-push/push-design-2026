@@ -5,7 +5,7 @@ import {
   CircleHelpIcon,
   LogOutIcon,
   UserIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 import { AccountSwitcher } from "@components/account-switcher";
 import { currentUser } from "@components/accounts";

@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { IconComponent } from "@components/icons";
 
 import {
   AlarmClockIcon,
@@ -31,7 +31,7 @@ import {
   UserCogIcon,
   UserPlusIcon,
   UsersIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 /**
  * The settings nav, kept beside the layout so the search index and the sidebar
@@ -40,7 +40,7 @@ import {
 export type SettingsNavItem = {
   title: string;
   url: string;
-  icon: LucideIcon;
+  icon: IconComponent;
 };
 
 export type SettingsNavSection = {

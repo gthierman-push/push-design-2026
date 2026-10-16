@@ -11,7 +11,8 @@ import {
   Trash2Icon,
   Undo2Icon,
   XIcon,
-} from "lucide-react";
+  iconSets,
+} from "@components/icons";
 
 import { cn } from "cn";
 import { Button } from "@components/ui/button";
@@ -27,7 +28,12 @@ import {
 import { Input } from "@components/ui/input";
 import { Separator } from "@components/ui/separator";
 import { Slider } from "@components/ui/slider";
-import { useTheme } from "@components/theme-provider";
+import { NativeSelect, NativeSelectOption } from "@components/ui/native-select";
+import {
+  iconWeights,
+  useTheme,
+  type IconWeight,
+} from "@components/theme-provider";
 import {
   RADIUS_TOKEN,
   colorGroups,
@@ -166,6 +172,56 @@ function ThemePicker() {
         ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/**
+ * Picks the icon library the whole app draws with. Each button wears its own
+ * set's gear, so the two styles are side by side before anything is chosen.
+ * The Icons page in the design section shows it as well as the panel does.
+ */
+export function IconPicker() {
+  const { icons, setIconSet, setIconWeight } = useTheme();
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="grid grid-cols-2 gap-1.5">
+        {iconSets.map((set) => {
+          const Sample = set.sample;
+          const active = icons.set === set.id;
+          return (
+            <Button
+              key={set.id}
+              variant={active ? "secondary" : "ghost"}
+              size="sm"
+              aria-pressed={active}
+              className="justify-start font-normal"
+              onClick={() => setIconSet(set.id)}
+            >
+              <Sample data-icon="inline-start" />
+              {set.label}
+            </Button>
+          );
+        })}
+      </div>
+
+      {/* Weight is Phosphor's alone -- Lucide draws at one stroke. */}
+      {icons.set === "phosphor" ? (
+        <NativeSelect
+          size="sm"
+          aria-label="Icon weight"
+          className="w-full"
+          value={icons.weight}
+          onChange={(event) => setIconWeight(event.target.value as IconWeight)}
+        >
+          {iconWeights.map((weight) => (
+            <NativeSelectOption key={weight} value={weight}>
+              {weight[0].toUpperCase() + weight.slice(1)}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      ) : null}
+    </div>
   );
 }
 
@@ -338,6 +394,11 @@ export function ThemePanel() {
       <div className="flex shrink-0 flex-col gap-1.5 border-b p-3">
         <span className="text-muted-foreground text-xs font-medium">Theme</span>
         <ThemePicker />
+      </div>
+
+      <div className="flex shrink-0 flex-col gap-1.5 border-b p-3">
+        <span className="text-muted-foreground text-xs font-medium">Icons</span>
+        <IconPicker />
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-3">

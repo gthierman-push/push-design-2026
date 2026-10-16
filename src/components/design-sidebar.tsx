@@ -1,6 +1,6 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router";
-import { ArrowLeftIcon, ChevronRightIcon, SwatchBookIcon } from "lucide-react";
+import { ArrowLeftIcon, ChevronRightIcon, SwatchBookIcon } from "@components/icons";
 
 import { designSections } from "@components/design-nav";
 import {

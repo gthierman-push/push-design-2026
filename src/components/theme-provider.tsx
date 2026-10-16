@@ -22,10 +22,37 @@ export type Theme = {
 /** `null` means the default theme: `style.css` with nothing painted over it. */
 export type ActiveThemeId = string | null;
 
+/** Which of the two icon libraries the whole app draws with. */
+export type IconSet = "lucide" | "phosphor";
+
+/** Phosphor draws at six weights; Lucide has only the one. */
+export type IconWeight =
+  | "thin"
+  | "light"
+  | "regular"
+  | "bold"
+  | "fill"
+  | "duotone";
+
+export const iconWeights: IconWeight[] = [
+  "thin",
+  "light",
+  "regular",
+  "bold",
+  "fill",
+  "duotone",
+];
+
+/** The icon settings, which sit beside the themes rather than inside one. */
+export type IconSettings = { set: IconSet; weight: IconWeight };
+
+const defaultIcons: IconSettings = { set: "lucide", weight: "regular" };
+
 type Stored = {
   mode: ThemeMode;
   activeId: ActiveThemeId;
   themes: Theme[];
+  icons: IconSettings;
 };
 
 const emptyOverrides = (): Overrides => ({ light: {}, dark: {} });
@@ -59,8 +86,23 @@ function readBaseline(mode: ThemeMode): Record<string, string> {
   return values;
 }
 
+function readIcons(stored: Partial<IconSettings> | undefined): IconSettings {
+  return {
+    set: stored?.set === "phosphor" ? "phosphor" : "lucide",
+    weight:
+      stored?.weight && iconWeights.includes(stored.weight)
+        ? stored.weight
+        : "regular",
+  };
+}
+
 function loadStored(): Stored {
-  const fallback: Stored = { mode: "light", activeId: null, themes: [] };
+  const fallback: Stored = {
+    mode: "light",
+    activeId: null,
+    themes: [],
+    icons: defaultIcons,
+  };
 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -77,6 +119,7 @@ function loadStored(): Stored {
         activeId: themes.some((theme) => theme.id === parsed.activeId)
           ? (parsed.activeId ?? null)
           : null,
+        icons: readIcons(parsed.icons),
       };
     }
 
@@ -97,6 +140,7 @@ function loadStored(): Stored {
       mode: parsed.mode === "dark" ? "dark" : "light",
       themes: [theme],
       activeId: parsed.custom === false ? null : theme.id,
+      icons: defaultIcons,
     };
   } catch {
     return fallback;
@@ -106,6 +150,10 @@ function loadStored(): Stored {
 type ThemeContextValue = {
   mode: ThemeMode;
   setMode: (mode: ThemeMode) => void;
+  /** The icon library on screen, and the weight Phosphor draws it at. */
+  icons: IconSettings;
+  setIconSet: (set: IconSet) => void;
+  setIconWeight: (weight: IconWeight) => void;
   themes: Theme[];
   activeId: ActiveThemeId;
   activeTheme: Theme | null;
@@ -135,6 +183,16 @@ export function useTheme() {
   return context;
 }
 
+/**
+ * What `@components/icons` asks on every render. Unlike `useTheme` it answers
+ * outside the provider too: an icon is drawn in enough odd corners -- a
+ * portal, a story, a test -- that failing there would be worse than falling
+ * back to the set the app starts in.
+ */
+export function useIcons(): IconSettings {
+  return React.useContext(ThemeContext)?.icons ?? defaultIcons;
+}
+
 export function ThemeProvider({ children }: React.PropsWithChildren) {
   const [baselines] = React.useState(() => ({
     light: readBaseline("light"),
@@ -146,6 +204,7 @@ export function ThemeProvider({ children }: React.PropsWithChildren) {
   const [activeId, setActiveId] = React.useState<ActiveThemeId>(
     stored.activeId,
   );
+  const [icons, setIcons] = React.useState<IconSettings>(stored.icons);
 
   const activeTheme = themes.find((theme) => theme.id === activeId) ?? null;
 
@@ -165,9 +224,9 @@ export function ThemeProvider({ children }: React.PropsWithChildren) {
   React.useEffect(() => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ mode, activeId, themes } satisfies Stored),
+      JSON.stringify({ mode, activeId, themes, icons } satisfies Stored),
     );
-  }, [activeId, mode, themes]);
+  }, [activeId, icons, mode, themes]);
 
   const value = React.useMemo<ThemeContextValue>(() => {
     const editActive = (edit: (overrides: Overrides) => Overrides) =>
@@ -196,6 +255,10 @@ export function ThemeProvider({ children }: React.PropsWithChildren) {
     return {
       mode,
       setMode,
+      icons,
+      setIconSet: (set) => setIcons((current) => ({ ...current, set })),
+      setIconWeight: (weight) =>
+        setIcons((current) => ({ ...current, weight })),
       themes,
       activeId,
       activeTheme,
@@ -268,7 +331,7 @@ export function ThemeProvider({ children }: React.PropsWithChildren) {
         return `${title}:root {\n${block("light")}\n}\n\n.dark {\n${block("dark")}\n}\n`;
       },
     };
-  }, [activeId, activeTheme, baselines, mode, themes]);
+  }, [activeId, activeTheme, baselines, icons, mode, themes]);
 
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

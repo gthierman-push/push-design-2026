@@ -1,4 +1,4 @@
-import { TrendingUpIcon } from "lucide-react";
+import { TrendingUpIcon } from "@components/icons";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import {

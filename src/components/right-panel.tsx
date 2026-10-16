@@ -1,7 +1,7 @@
 import * as React from "react";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { XIcon } from "lucide-react";
+import { XIcon } from "@components/icons";
 
 import { cn } from "cn";
 import { useIsMobile } from "@components/hooks/use-mobile";

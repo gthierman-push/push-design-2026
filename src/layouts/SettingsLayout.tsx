@@ -6,7 +6,7 @@ import {
   CornerDownRightIcon,
   SearchIcon,
   XIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 import {
   Breadcrumb,

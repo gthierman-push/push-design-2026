@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import { NavLink, useLocation, useMatches } from "react-router";
-import { SettingsIcon, ZapIcon } from "lucide-react";
+import { SettingsIcon, ZapIcon } from "@components/icons";
 
 import { useActiveAccount } from "@components/active-account";
 import { askAiPanel } from "@components/ask-ai-panel";

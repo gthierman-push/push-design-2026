@@ -4,7 +4,7 @@ import {
   InfoIcon,
   LockIcon,
   TriangleAlertIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 import {
   Alert,

@@ -1,4 +1,4 @@
-import { BellIcon, ChartPieIcon, UsersIcon } from "lucide-react";
+import { BellIcon, ChartPieIcon, UsersIcon } from "@components/icons";
 
 import {
   TabDefault as Tab,

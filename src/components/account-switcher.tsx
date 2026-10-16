@@ -5,7 +5,7 @@ import {
   ChevronsUpDownIcon,
   LogOutIcon,
   PlusIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 import { cn } from "cn";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";

@@ -4,7 +4,7 @@ import {
   CircleCheckIcon,
   CircleDashedIcon,
   ChevronRightIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 import {
   getStartedStorageKey,

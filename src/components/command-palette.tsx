@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router";
-import { BuildingIcon, MapPinIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { BuildingIcon, MapPinIcon, PlusIcon, SearchIcon } from "@components/icons";
 
 import type { NavItem } from "@layouts/app-nav";
 import { footerNavigation, pages } from "@layouts/app-nav";

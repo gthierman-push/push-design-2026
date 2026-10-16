@@ -545,7 +545,7 @@ export function EmployeeProfile() {
       {/* Who they are sits on the page rather than in a card: the rail and
           the cards beside it are the things with edges, and a third one
           across the top only boxed in the name. */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4">
           {/* Bigger than any size the avatar ships, so it takes the
                 plain one -- the sm and lg classes are data-variants and

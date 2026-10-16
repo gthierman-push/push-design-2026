@@ -61,18 +61,16 @@ import { EmployeeAvatar } from "./EmployeeAvatar";
 import {
   managerFor,
   profileFor,
-  rateOf,
   teamOf,
   type Profile,
 } from "./profile";
 import {
   Detail,
   DetailList,
-  Expiry,
   StatusBadge,
+  Unset,
   day,
   daysUntil,
-  tint,
 } from "./profile-parts";
 import {
   ActivityTab,
@@ -96,9 +94,10 @@ export const employeeCrumb: Crumb = ({ params, account }) =>
 
 /**
  * What they are, beside their name up in the bar: the state their record is
- * in, and the number payroll calls them by. Both sat under the heading on the
- * page, where they were a third line of small print below the name and the
- * email; up here they read as what the crumb is pointing at.
+ * in, how much of a week they are hired for, and the number payroll calls
+ * them by. All three sat under the heading on the page, where they were a
+ * third line of small print below the name and the email; up here they read
+ * as what the crumb is pointing at.
  */
 export const employeeMarks: Marks = ({ params, account }) => {
   const employee = params.id ? employeeFor(account, params.id) : undefined;
@@ -107,6 +106,9 @@ export const employeeMarks: Marks = ({ params, account }) => {
   return (
     <>
       <StatusBadge status={employee.status} />
+      {/* Plain beside the number rather than filled like the status: up here
+          these two are both labels on the record, not a state to read. */}
+      <Badge variant="outline">{employee.employment}</Badge>
       <Badge variant="outline">{profileFor(employee).employeeNumber}</Badge>
     </>
   );
@@ -305,11 +307,7 @@ function OverviewTab({
   employee: RosterRow;
   profile: Profile;
 }) {
-  const { contact, emergency, pay } = profile;
-  /* Their main job, where it is one that is paid by the year. */
-  const salary = profile.positions.find(
-    (position) => position.primary && position.basis === "Salary",
-  );
+  const { contact, emergency, personal } = profile;
   /* Tenure stops on the day somebody left, rather than running to today. */
   const left =
     "reason" in employee
@@ -321,34 +319,53 @@ function OverviewTab({
       <div className="flex flex-col gap-4 lg:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle>Job</CardTitle>
+            <CardTitle>Personal details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DetailList>
+              <Detail label="First name">{personal.firstName}</Detail>
+              <Detail label="Last name">{personal.lastName}</Detail>
+              {/* The optional half of the form. Most people fill none of it
+                  in, so these rows are blank more often than not. */}
+              <Detail label="Preferred first name">
+                {personal.preferredFirst ?? <Unset />}
+              </Detail>
+              <Detail label="Preferred last name">
+                {personal.preferredLast ?? <Unset />}
+              </Detail>
+              <Detail label="Email">{contact.email}</Detail>
+              {/* The age came across with the date it is worked out from,
+                  which is the only thing anybody reads a birthday for. */}
+              <Detail label="Birthday">
+                {day(contact.bornOn)}
+                <span className="text-muted-foreground font-normal">
+                  {" "}
+                  · {employee.age}
+                </span>
+              </Detail>
+              <Detail label="Phone number">{contact.phone}</Detail>
+              <Detail label="Alternate phone number">
+                {personal.altPhone ?? <Unset />}
+              </Detail>
+              <Detail label="Language preference">{personal.language}</Detail>
+              {/* A SIN at the Canadian sites and an SSN at the American
+                  ones, both in full. */}
+              <Detail label={personal.governmentId.label}>
+                {personal.governmentId.number}
+              </Detail>
+            </DetailList>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Employment details</CardTitle>
           </CardHeader>
           <CardContent>
             <DetailList>
               <Detail label="Employee number">{profile.employeeNumber}</Detail>
-              <Detail label="Position">
-                {employee.position}
-                {/* The one the roster names is not always the only one they
-                    hold -- the rest are a tab away. */}
-                {profile.positions.length > 1 && (
-                  <span className="text-muted-foreground font-normal">
-                    {" "}
-                    · and {profile.positions.length - 1} more
-                  </span>
-                )}
-              </Detail>
-              <Detail label="Department">{employee.department}</Detail>
-              <Detail label="Location">{employee.location}</Detail>
               <Detail label="Employment">
-                <Badge
-                  variant={
-                    employee.employment === "Full-time"
-                      ? "secondary"
-                      : "outline"
-                  }
-                >
-                  {employee.employment}
-                </Badge>
+                <Badge variant="outline">{employee.employment}</Badge>
               </Detail>
               <Detail label="Status">
                 <StatusBadge status={employee.status} />
@@ -362,97 +379,11 @@ function OverviewTab({
               >
                 {day(employee.hiredOn)}
               </Detail>
-              <Detail label="Scheduled hours">
-                {employee.weeklyHours} hrs a week
-              </Detail>
-              {/* Tenure and the last review had nowhere else on the page to
-                  be, so they came down off the strip into the record. */}
+              {/* Tenure had nowhere else on the page to be, so it came down
+                  off the strip into the record. */}
               <Detail label="Tenure">
                 {tenure(employee.hiredOn, left?.on ?? null)}
               </Detail>
-              <Detail label="Last review">
-                {employee.lastReviewOn ? (
-                  <>
-                    {employee.rating} of 5
-                    <span className="text-muted-foreground font-normal">
-                      {" "}
-                      · {day(employee.lastReviewOn)}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-muted-foreground font-normal">
-                    Never reviewed
-                  </span>
-                )}
-              </Detail>
-            </DetailList>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Right to work and certificates</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DetailList>
-              <Detail label={employee.permitStatus}>
-                {/* Citizenship and residency do not run out, so there is
-                    nothing here to warn about. */}
-                {employee.permitExpires ? (
-                  <Expiry expires={employee.permitExpires} />
-                ) : (
-                  <Badge variant="secondary" className={tint.good}>
-                    No expiry
-                  </Badge>
-                )}
-              </Detail>
-              <Detail label="FoodSafe Level 1">
-                <Expiry
-                  expires={employee.foodSafeExpires}
-                  required={employee.foodSafeExpires !== null}
-                />
-              </Detail>
-              <Detail label="Serving It Right">
-                <Expiry
-                  expires={employee.servingItRightExpires}
-                  required={employee.servingItRightExpires !== null}
-                />
-              </Detail>
-            </DetailList>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Pay</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DetailList>
-              <Detail label="Hourly rate">
-                ${employee.wage.toFixed(2)}
-                {/* Payroll keeps an hourly rate for everybody, salaried or
-                    not; the year is what a salaried job is paid, and the
-                    Positions tab says it the same way. */}
-                {salary && (
-                  <span className="text-muted-foreground font-normal">
-                    {" "}
-                    · {rateOf(salary)} a year
-                  </span>
-                )}
-              </Detail>
-              <Detail label="Rate set">{day(pay.effectiveFrom)}</Detail>
-              <Detail label="Pay cycle">{pay.cycle}</Detail>
-              <Detail label="Paid by">{pay.method}</Detail>
-              {/* Every rate before this one, so a raise can be read as the
-                  change it was rather than as a number on its own. */}
-              {pay.history.map((entry) => (
-                <Detail key={entry.from} label={`Was, from ${day(entry.from)}`}>
-                  <span className="text-muted-foreground font-normal">
-                    {entry.reason} ·{" "}
-                  </span>
-                  ${entry.wage.toFixed(2)}
-                </Detail>
-              ))}
             </DetailList>
           </CardContent>
         </Card>
@@ -482,17 +413,10 @@ function OverviewTab({
                 </a>
               </Detail>
               <Detail label="Address">
+                {/* Two lines of one address, so the city is set the same
+                    way as the street above it. */}
                 <span className="block">{contact.street}</span>
-                <span className="text-muted-foreground block font-normal">
-                  {contact.city}
-                </span>
-              </Detail>
-              <Detail label="Date of birth">
-                {day(contact.bornOn)}
-                <span className="text-muted-foreground font-normal">
-                  {" "}
-                  · {employee.age}
-                </span>
+                <span className="block">{contact.city}</span>
               </Detail>
             </DetailList>
           </CardContent>
@@ -574,8 +498,8 @@ export function EmployeeProfile() {
               {employee.name}
             </h1>
             {/* Their address rather than their job: position, department
-                and location are all on the Job card a scroll below, and the
-                thing anyone copies off a heading is the email. */}
+                and location are all on the Positions tab, and the thing
+                anyone copies off a heading is the email. */}
             <a
               href={`mailto:${profile.contact.email}`}
               title={profile.contact.email}

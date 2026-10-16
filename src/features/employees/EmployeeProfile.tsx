@@ -551,34 +551,11 @@ export function EmployeeProfile() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Real links, not buttons: Base UI needs telling, or it warns
-                that the native button semantics have gone. */}
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<a href={`mailto:${profile.contact.email}`} />}
-          >
-            <MailIcon data-icon="inline-start" />
-            Email
-          </Button>
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<a href={`tel:${profile.contact.phone}`} />}
-          >
-            <PhoneIcon data-icon="inline-start" />
-            Call
-          </Button>
-          <Button>
-            <PencilIcon data-icon="inline-start" />
-            Edit
-          </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="icon"
                   aria-label={`More actions for ${employee.name}`}
                 />
@@ -615,6 +592,29 @@ export function EmployeeProfile() {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Real links, not buttons: Base UI needs telling, or it warns
+                that the native button semantics have gone. */}
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<a href={`mailto:${profile.contact.email}`} />}
+          >
+            <MailIcon data-icon="inline-start" />
+            Email
+          </Button>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<a href={`tel:${profile.contact.phone}`} />}
+          >
+            <PhoneIcon data-icon="inline-start" />
+            Call
+          </Button>
+          <Button>
+            <PencilIcon data-icon="inline-start" />
+            Edit
+          </Button>
         </div>
       </div>
 

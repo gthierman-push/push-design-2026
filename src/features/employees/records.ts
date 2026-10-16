@@ -62,8 +62,11 @@ const isoFrom = (written: string) =>
  * One number per employee, and a stream of them from it. A hash rather than
  * a random seed, so a record survives a reload -- a demo where everybody's
  * wage changes on refresh is not a demo of anything.
+ *
+ * Exported because the profile page generates its own half of the record the
+ * same way, off a seed of its own, so the two never draw the same numbers.
  */
-function stream(id: string) {
+export function stream(id: string) {
   let state = 2166136261;
   for (const character of id) {
     state = Math.imul(state ^ character.charCodeAt(0), 16777619) >>> 0;
@@ -76,7 +79,7 @@ function stream(id: string) {
 }
 
 /** A whole number in a range, ends included. */
-const between = (next: () => number, low: number, high: number) =>
+export const between = (next: () => number, low: number, high: number) =>
   low + Math.floor(next() * (high - low + 1));
 
 /** The first band whose words the position matches, else the last. */

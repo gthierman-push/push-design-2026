@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -185,14 +184,13 @@ function AddLocationForm({
             id="location-name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Mount Pleasant"
             aria-invalid={taken || undefined}
           />
-          <FieldDescription>
-            {taken
-              ? `${account.name} already runs a location called ${name.trim()}.`
-              : "What staff and managers will see in the location switcher."}
-          </FieldDescription>
+          {taken ? (
+            <FieldDescription>
+              {`${account.name} already runs a location called ${name.trim()}.`}
+            </FieldDescription>
+          ) : null}
         </Field>
 
         <Field>
@@ -201,7 +199,6 @@ function AddLocationForm({
             id="location-address"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
-            placeholder="1055 Main Street"
           />
         </Field>
 
@@ -213,7 +210,6 @@ function AddLocationForm({
               id="location-city"
               value={city}
               onChange={(event) => setCity(event.target.value)}
-              placeholder="Vancouver"
             />
           </Field>
 
@@ -225,7 +221,6 @@ function AddLocationForm({
               id="location-postal-code"
               value={postalCode}
               onChange={(event) => setPostalCode(event.target.value)}
-              placeholder="V5T 3E7"
             />
           </Field>
 
@@ -251,9 +246,6 @@ function AddLocationForm({
                 ))}
               </SelectContent>
             </Select>
-            <FieldDescription>
-              Groups the location in the switcher.
-            </FieldDescription>
           </Field>
 
           <Field>
@@ -273,7 +265,6 @@ function AddLocationForm({
                 ))}
               </SelectContent>
             </Select>
-            <FieldDescription>Shifts and clock-ins run on it.</FieldDescription>
           </Field>
         </div>
       </FieldGroup>
@@ -306,17 +297,11 @@ export function AddLocationDialog({
       needs to tidy up -- closing the mobile sidebar behind the dialog. */
   onAdded?: (location: Location) => void;
 }) {
-  const { account } = useActiveAccount();
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add location</DialogTitle>
-          <DialogDescription>
-            A new location for {account.name}. It starts with no staff and no
-            schedule, and everything here can be changed later in Settings.
-          </DialogDescription>
         </DialogHeader>
 
         <AddLocationForm

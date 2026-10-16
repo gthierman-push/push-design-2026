@@ -448,13 +448,13 @@ function OverviewTab({
                 <span className="block">{contact.city}</span>
               </Detail>
             </DetailList>
-            {/* The three ways of reaching somebody, beside the addresses
-                they each go to rather than up in the header. Email and Call
-                are real links, which Base UI needs telling or it warns that
-                the native button semantics have gone; Message opens the chat
-                the Communication section holds, so it stays a button. They
-                share the width where there is enough of it and wrap onto a
-                second line in a column too narrow for all three. */}
+            {/* The two addresses on the card, each under the one it goes
+                to. Both are real links, which Base UI needs telling or it
+                warns that the native button semantics have gone. Message
+                went up to the header beside Edit: it dials nothing listed
+                here, so it belongs with the actions rather than the
+                addresses. The pair share the width and wrap onto a second
+                line in a column too narrow for both. */}
             <div className="mt-4 flex flex-wrap gap-2">
               <Button
                 variant="outline"
@@ -475,10 +475,6 @@ function OverviewTab({
               >
                 <PhoneIcon data-icon="inline-start" />
                 Call
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1">
-                <MessagesSquareIcon data-icon="inline-start" />
-                Message
               </Button>
             </div>
           </CardContent>
@@ -615,6 +611,15 @@ export function EmployeeProfile() {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Writing to somebody is the other thing a manager opens a
+              profile to do, so it sits out here beside Edit rather than
+              down in the Contact card -- it opens the chat the
+              Communication section holds, not an address on the record. */}
+          <Button variant="outline">
+            <MessagesSquareIcon data-icon="inline-start" />
+            Message
+          </Button>
 
           <Button>
             <PencilIcon data-icon="inline-start" />

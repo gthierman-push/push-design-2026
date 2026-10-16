@@ -35,6 +35,36 @@ export type Contact = {
   bornOn: string;
 };
 
+/**
+ * The name-and-number half of the record, the part somebody fills in on
+ * their first day. Half of it is optional and most people leave it that way,
+ * so the nullable fields here are usually null -- which is what the card
+ * drawing them has to be built to show.
+ */
+export type Personal = {
+  firstName: string;
+  lastName: string;
+  /** What they go by, where that is not what the record says. */
+  preferredFirst: string | null;
+  preferredLast: string | null;
+  /** A second number, which most people never give. */
+  altPhone: string | null;
+  language: string;
+  /** Whatever the country they work in issues, in full. */
+  governmentId: GovernmentId;
+};
+
+/**
+ * The number a government knows somebody by: a SIN at the Canadian sites, an
+ * SSN at the American ones. Neither is a number anybody could actually hold
+ * -- see `governmentIdFor` -- which is what makes them safe to print in full
+ * on a page this one shows to anybody who can open it.
+ */
+export type GovernmentId = {
+  label: "SIN" | "SSN";
+  number: string;
+};
+
 export type EmergencyContact = {
   name: string;
   relation: string;
@@ -107,6 +137,7 @@ export type ActivityEvent = {
 
 export type Profile = {
   employeeNumber: string;
+  personal: Personal;
   contact: Contact;
   emergency: EmergencyContact;
   pay: Pay;
@@ -153,6 +184,30 @@ const streets = [
 ];
 
 const relations = ["Spouse", "Partner", "Parent", "Sibling", "Friend"];
+
+/**
+ * Who goes by a short form of their name, and who by another surname
+ * altogether. A table rather than a generator: a preferred name is a thing
+ * somebody types in, so most of the roster has none and the few who do have
+ * one that follows from the name they were given.
+ */
+const shortForms: { [firstName: string]: string } = {
+  Alicia: "Ali",
+  Beatrix: "Bea",
+  Camille: "Cam",
+  Cassandra: "Cassie",
+  Desmond: "Des",
+  Gregor: "Greg",
+  Harriet: "Hattie",
+  Henry: "Hank",
+  Marisol: "Mari",
+  Priya: "Pri",
+};
+
+const usedSurnames: { [lastName: string]: string } = {
+  Nandakumar: "Nanda",
+  Lindqvist: "Lind",
+};
 
 const givenNames = [
   "Ruth",
@@ -228,6 +283,90 @@ export function teamOf(account: Account, employee: Employee) {
         person.status !== "Inactive",
     )
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * A social insurance or social security number, written out in full. Both
+ * are built so they cannot belong to a real person -- the page prints every
+ * digit, and demo data that reads as somebody's actual number is not a thing
+ * to leave lying around in a repository.
+ *
+ * The American side takes an area number in the 900s, which the SSA has
+ * never issued and never will. The Canadian side has no reserved range, so
+ * the check digit is set one past the one that would make the number add up,
+ * leaving it a SIN that fails the arithmetic every SIN is checked by.
+ */
+function governmentIdFor(next: () => number, inCanada: boolean): GovernmentId {
+  const pad = (value: number, width: number) =>
+    String(value).padStart(width, "0");
+
+  if (!inCanada) {
+    return {
+      label: "SSN",
+      number: `${between(next, 900, 999)}-${pad(between(next, 1, 99), 2)}-${pad(
+        between(next, 1, 9999),
+        4,
+      )}`,
+    };
+  }
+
+  /* Eight digits of their own, then a ninth that is wrong on purpose. */
+  const digits = [
+    between(next, 1, 7),
+    ...Array.from({ length: 7 }, () => between(next, 0, 9)),
+  ];
+  const sum = digits.reduce((total, digit, index) => {
+    /* Every second digit counts double, and a double that runs past nine
+       counts as its own two digits added together. */
+    const counted = index % 2 === 1 ? digit * 2 : digit;
+    return total + (counted > 9 ? counted - 9 : counted);
+  }, 0);
+  const checks = (10 - (sum % 10)) % 10;
+  digits.push((checks + 1) % 10);
+
+  const number = digits.join("");
+  return {
+    label: "SIN",
+    number: `${number.slice(0, 3)}-${number.slice(3, 6)}-${number.slice(6)}`,
+  };
+}
+
+function personalFor(employee: Employee, homePhone: string): Personal {
+  const next = stream(`${employee.id}:personal`);
+  const [firstName, ...rest] = employee.name.split(" ");
+  const lastName = rest.join(" ");
+  const place = places[employee.locationId];
+  /* The company's Canadian sites and its American ones are offered a
+     different pair of languages, which is the only thing the country
+     decides here. */
+  const inCanada = /, (BC|AB)$/.test(place?.city ?? "");
+
+  /* A second number is asked for and mostly left blank, so most people here
+     do not have one either. The printable range is only a hundred numbers
+     wide, so draw again where it lands on the first number -- two identical
+     rows read as a bug rather than as a coincidence. */
+  let altPhone: string | null = null;
+  if (between(next, 1, 3) === 1) {
+    do {
+      altPhone = phoneIn(next, place?.areaCode ?? "604");
+    } while (altPhone === homePhone);
+  }
+
+  return {
+    firstName,
+    lastName,
+    preferredFirst: shortForms[firstName] ?? null,
+    preferredLast: usedSurnames[lastName] ?? null,
+    altPhone,
+    language: inCanada
+      ? between(next, 1, 5) === 1
+        ? "French (Canada)"
+        : "English (Canada)"
+      : between(next, 1, 5) === 1
+        ? "Spanish (United States)"
+        : "English (United States)",
+    governmentId: governmentIdFor(next, inCanada),
+  };
 }
 
 function contactFor(employee: Employee): Contact {
@@ -673,6 +812,7 @@ function activityFor(employee: RosterRow, pay: Pay): ActivityEvent[] {
 export function profileFor(employee: RosterRow): Profile {
   const next = stream(`${employee.id}:number`);
   const pay = payFor(employee);
+  const contact = contactFor(employee);
 
   return {
     employeeNumber: `${
@@ -680,7 +820,8 @@ export function profileFor(employee: RosterRow): Profile {
         .find((item) => item.id === employee.accountId)
         ?.initials.toUpperCase() ?? "EM"
     }-${String(between(next, 1000, 9999))}`,
-    contact: contactFor(employee),
+    personal: personalFor(employee, contact.phone),
+    contact,
     emergency: emergencyFor(employee),
     pay,
     positions: positionsFor(employee),

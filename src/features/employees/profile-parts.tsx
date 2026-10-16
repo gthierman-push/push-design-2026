@@ -62,6 +62,21 @@ export function Detail({
   );
 }
 
+/**
+ * A field nobody filled in. A dash rather than an empty cell, so a row that
+ * is blank because there is nothing to say reads differently from one that
+ * failed to load -- and the words go to a screen reader, which would
+ * otherwise be read a punctuation mark or nothing at all.
+ */
+export function Unset() {
+  return (
+    <span className="text-muted-foreground font-normal">
+      <span aria-hidden>-</span>
+      <span className="sr-only">Not set</span>
+    </span>
+  );
+}
+
 /** Where someone is in their time with the company, in one pill. Active is
  *  the quiet case and everything else is something to notice, so only Active
  *  and Inactive go untinted. */

@@ -1,9 +1,9 @@
 /**
- * The five tabs of a profile that are records rather than fields: every job
- * they hold, what they are rostered on, what they have asked off, what is in
- * their file, and what has happened to the record. The Overview tab stays on
- * the page itself, because it is the page -- these are what you go looking
- * for.
+ * Every tab of a profile but the first: every job they hold, what they are
+ * rostered on, what they have asked off, how they are doing, what they owe,
+ * what is in their file, and what has happened to the record. The Overview
+ * tab stays on the page itself, because it is the page -- these are what you
+ * go looking for.
  */
 
 import type { ReactNode } from "react";
@@ -12,8 +12,11 @@ import {
   CalendarOffIcon,
   DownloadIcon,
   FileTextIcon,
+  ListChecksIcon,
   PlusIcon,
+  TrophyIcon,
   UploadIcon,
+  type LucideIcon,
 } from "lucide-react";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
@@ -384,7 +387,7 @@ export function FilesTab({ profile }: { profile: Profile }) {
 
   return (
     <TableCard
-      title="Documents"
+      title="Files"
       description={
         unsigned > 0
           ? `${profile.files.length} on file, ${unsigned} still to be signed`
@@ -494,5 +497,54 @@ export function ActivityTab({ profile }: { profile: Profile }) {
         </ol>
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * A tab with nothing behind it yet. The rail is the point of these: someone
+ * looking for a review or a checklist finds the place it will live rather
+ * than concluding the profile has no such thing. The dashed edge is the same
+ * one an unknown employee gets, which is what marks it as a hole rather than
+ * an empty table.
+ */
+function Unbuilt({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Empty className="border-border min-h-80 border">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Icon />
+        </EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
+export function PerformanceTab({ employee }: { employee: RosterRow }) {
+  return (
+    <Unbuilt
+      icon={TrophyIcon}
+      title="Nothing here yet"
+      description={`Reviews, ratings and goals for ${employee.name.split(" ")[0]} will be here. The company-wide view is on the Performance page.`}
+    />
+  );
+}
+
+export function TasksTab({ employee }: { employee: RosterRow }) {
+  return (
+    <Unbuilt
+      icon={ListChecksIcon}
+      title="Nothing here yet"
+      description={`What ${employee.name.split(" ")[0]} has been asked to do — onboarding, training, anything assigned — will be here.`}
+    />
   );
 }

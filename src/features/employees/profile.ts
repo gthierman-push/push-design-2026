@@ -1,8 +1,9 @@
 /**
  * The rest of what one person's page shows. The roster says who they are and
  * `records.ts` says what is on file for them; this says how to reach them,
- * who they answer to, what they are rostered on next, what they have asked
- * for and what has happened to their record lately.
+ * who they answer to, every job they hold rather than the one the roster
+ * names, what they are rostered on next, what they have asked for and what
+ * has happened to their record lately.
  *
  * Generated the way the records are -- deterministic in the employee's id --
  * so a profile is the same profile on every visit, off a seed of its own so
@@ -22,7 +23,7 @@ import {
 
 import { accounts, type Account } from "@components/accounts";
 
-import { between, iso, stream, today } from "./records";
+import { between, iso, stream, today, wageFor } from "./records";
 import { rosterFor, type Employee, type RosterRow } from "./roster";
 
 export type Contact = {
@@ -46,6 +47,24 @@ export type Pay = {
   method: string;
   /** Every rate before this one, newest first. */
   history: { from: string; wage: number; reason: string }[];
+};
+
+/**
+ * One of the jobs somebody holds. Most people hold one -- the one the roster
+ * names and the rest of the app shows -- but a kitchen that is short on a
+ * Friday trains its servers to prep, and the second job is paid at its own
+ * rate, in its own department, often at another of the company's sites.
+ */
+export type Position = {
+  id: string;
+  name: string;
+  department: string;
+  location: string;
+  /** Dollars an hour, or dollars a year where the job is a salaried one. */
+  rate: number;
+  basis: "Hourly" | "Salary";
+  /** The one the roster row, the schedule and this page's heading name. */
+  primary: boolean;
 };
 
 export type Shift = {
@@ -87,6 +106,7 @@ export type Profile = {
   contact: Contact;
   emergency: EmergencyContact;
   pay: Pay;
+  positions: Position[];
   shifts: Shift[];
   timeOff: TimeOffRequest[];
   files: EmployeeFile[];
@@ -277,6 +297,114 @@ function payFor(employee: Employee): Pay {
     method: "Direct deposit",
     history,
   };
+}
+
+/** The jobs that are paid for the year rather than for the shift: on a
+ *  hospitality roster that is the ones that run a kitchen or a building. */
+const salaried = (position: string) => /chef|manager/i.test(position);
+
+/** The jobs somebody is promoted into rather than picks up a shift of, which
+ *  is the same list the profile reads a manager off. */
+const senior = (position: string) =>
+  /manager|supervisor|lead|chef/i.test(position);
+
+/** A salary from what the job pays an hour -- a full year of full weeks,
+ *  which is the arithmetic payroll does in reverse to pay a salaried person
+ *  for a statutory holiday. Exact both ways, so the two never disagree. */
+const salaryFrom = (wage: number) => wage * 2080;
+
+/** What a position pays, written the way that kind of pay is written: a
+ *  salary in whole dollars, an hourly rate to the cent. */
+export const rateOf = (position: Position) =>
+  position.basis === "Salary"
+    ? `$${position.rate.toLocaleString("en-US")}`
+    : `$${position.rate.toFixed(2)}`;
+
+/** Every job this company has anyone doing, with the department it belongs
+ *  to. Taken off its own roster rather than listed here, so a second position
+ *  is something somebody at the company already does. */
+function jobsAt(accountId: string) {
+  const account = accounts.find((item) => item.id === accountId);
+  if (!account) return [];
+
+  const jobs = new Map<string, { name: string; department: string }>();
+  for (const person of rosterFor(account, null).all) {
+    jobs.set(person.position, {
+      name: person.position,
+      department: person.department,
+    });
+  }
+
+  return [...jobs.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Every job they hold. The first is the one the roster names, at the site and
+ * in the department it names, paid what their record says -- so the tab and
+ * the rest of the page can never disagree about their main job.
+ *
+ * The rest are the ones an operator ends up giving somebody: a server who
+ * also bars, a prep cook who covers dish, usually at their own site and
+ * sometimes at another of the company's. Each is paid for what it is, which
+ * is the reason they are worth keeping apart.
+ */
+function positionsFor(employee: RosterRow): Position[] {
+  const next = stream(`${employee.id}:positions`);
+  const salary = salaried(employee.position);
+
+  const primary: Position = {
+    id: `${employee.id}-0`,
+    name: employee.position,
+    department: employee.department,
+    location: employee.location,
+    rate: salary ? salaryFrom(employee.wage) : employee.wage,
+    basis: salary ? "Salary" : "Hourly",
+    primary: true,
+  };
+
+  /* Nobody on a salary is picking up a shift at the hourly rate, and nobody
+     who has not started yet has been given a second job to do. */
+  if (salary || "starts" in employee) return [primary];
+
+  const draw = next();
+  const extras = draw < 0.38 ? 1 : draw < 0.56 ? 2 : 0;
+  if (extras === 0) return [primary];
+
+  /* Their own job is not a second one, and running a floor is a job you are
+     given rather than one you cover a shift of. */
+  const choices = jobsAt(employee.accountId).filter(
+    (job) => job.name !== employee.position && !senior(job.name),
+  );
+
+  const elsewhere = (
+    accounts.find((item) => item.id === employee.accountId)?.locations ?? []
+  )
+    .filter((location) => location.id !== employee.locationId)
+    .map((location) => location.name);
+
+  const positions = [primary];
+
+  for (let index = 1; index <= extras && choices.length > 0; index += 1) {
+    const [job] = choices.splice(between(next, 0, choices.length - 1), 1);
+    const [low, high] = wageFor(job.name);
+
+    positions.push({
+      id: `${employee.id}-${index}`,
+      name: job.name,
+      department: job.department,
+      /* Mostly the site they already work at: covering a shift across town
+         is the rarer half of why anybody holds a second position. */
+      location:
+        next() < 0.74 || elsewhere.length === 0
+          ? employee.location
+          : oneOf(next, elsewhere),
+      rate: between(next, low * 4, high * 4) / 4,
+      basis: "Hourly",
+      primary: false,
+    });
+  }
+
+  return positions;
 }
 
 /**
@@ -543,6 +671,7 @@ export function profileFor(employee: RosterRow): Profile {
     contact: contactFor(employee),
     emergency: emergencyFor(employee),
     pay,
+    positions: positionsFor(employee),
     shifts: shiftsFor(employee),
     timeOff: timeOffFor(employee),
     files: filesFor(employee),

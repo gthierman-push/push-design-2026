@@ -509,13 +509,6 @@ export function EmployeeProfile() {
             </p>
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <StatusBadge status={employee.status} />
-              <Badge
-                variant={
-                  employee.employment === "Full-time" ? "secondary" : "outline"
-                }
-              >
-                {employee.employment}
-              </Badge>
               <Badge variant="outline">{profile.employeeNumber}</Badge>
             </div>
           </div>

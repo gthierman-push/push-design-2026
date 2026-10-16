@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, useParams } from "react-router";
 import { differenceInMonths, isAfter, parse, parseISO } from "date-fns";
 import {
+  BriefcaseIcon,
   CalendarDaysIcon,
   ClockIcon,
   EllipsisIcon,
@@ -57,7 +58,13 @@ import {
 } from "@components/ui/tab-vertical";
 
 import { EmployeeAvatar } from "./EmployeeAvatar";
-import { managerFor, profileFor, teamOf, type Profile } from "./profile";
+import {
+  managerFor,
+  profileFor,
+  rateOf,
+  teamOf,
+  type Profile,
+} from "./profile";
 import {
   Detail,
   DetailList,
@@ -71,6 +78,7 @@ import {
   ActivityTab,
   FilesTab,
   PerformanceTab,
+  PositionsTab,
   ScheduleTab,
   TasksTab,
   TimeOffTab,
@@ -106,6 +114,7 @@ export const employeeMarks: Marks = ({ params, account }) => {
 
 const tabs = [
   { value: "overview", label: "Overview", icon: UserRoundIcon },
+  { value: "positions", label: "Positions", icon: BriefcaseIcon },
   { value: "schedule", label: "Schedule", icon: CalendarDaysIcon },
   { value: "time-off", label: "Time off", icon: TreePalmIcon },
   { value: "performance", label: "Performance", icon: TrophyIcon },
@@ -118,6 +127,8 @@ const tabs = [
  *  the one list rather than kept in step by hand. */
 function panelFor(value: string, employee: RosterRow, profile: Profile) {
   switch (value) {
+    case "positions":
+      return <PositionsTab employee={employee} profile={profile} />;
     case "schedule":
       return <ScheduleTab employee={employee} profile={profile} />;
     case "time-off":
@@ -295,6 +306,10 @@ function OverviewTab({
   profile: Profile;
 }) {
   const { contact, emergency, pay } = profile;
+  /* Their main job, where it is one that is paid by the year. */
+  const salary = profile.positions.find(
+    (position) => position.primary && position.basis === "Salary",
+  );
   /* Tenure stops on the day somebody left, rather than running to today. */
   const left =
     "reason" in employee
@@ -311,7 +326,17 @@ function OverviewTab({
           <CardContent>
             <DetailList>
               <Detail label="Employee number">{profile.employeeNumber}</Detail>
-              <Detail label="Position">{employee.position}</Detail>
+              <Detail label="Position">
+                {employee.position}
+                {/* The one the roster names is not always the only one they
+                    hold -- the rest are a tab away. */}
+                {profile.positions.length > 1 && (
+                  <span className="text-muted-foreground font-normal">
+                    {" "}
+                    · and {profile.positions.length - 1} more
+                  </span>
+                )}
+              </Detail>
               <Detail label="Department">{employee.department}</Detail>
               <Detail label="Location">{employee.location}</Detail>
               <Detail label="Employment">
@@ -403,7 +428,18 @@ function OverviewTab({
           </CardHeader>
           <CardContent>
             <DetailList>
-              <Detail label="Hourly rate">${employee.wage.toFixed(2)}</Detail>
+              <Detail label="Hourly rate">
+                ${employee.wage.toFixed(2)}
+                {/* Payroll keeps an hourly rate for everybody, salaried or
+                    not; the year is what a salaried job is paid, and the
+                    Positions tab says it the same way. */}
+                {salary && (
+                  <span className="text-muted-foreground font-normal">
+                    {" "}
+                    · {rateOf(salary)} a year
+                  </span>
+                )}
+              </Detail>
               <Detail label="Rate set">{day(pay.effectiveFrom)}</Detail>
               <Detail label="Pay cycle">{pay.cycle}</Detail>
               <Detail label="Paid by">{pay.method}</Detail>

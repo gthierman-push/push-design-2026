@@ -88,9 +88,14 @@ const band = <T>(position: string, bands: [string[], T][]) =>
     words.some((word) => position.toLowerCase().includes(word)),
   )?.[1] ?? bands[bands.length - 1][1];
 
-/** Roughly what the job pays an hour, before the jitter that makes two line
- *  cooks on the same roster paid differently, which they are. */
-const wageFor = (position: string) =>
+/**
+ * Roughly what the job pays an hour, before the jitter that makes two line
+ * cooks on the same roster paid differently, which they are.
+ *
+ * Exported because a second position is paid for what it is rather than for
+ * what the person's main job pays, and the profile prices one the same way.
+ */
+export const wageFor = (position: string) =>
   band<[number, number]>(position, [
     [
       ["chef", "manager", "supervisor", "lead"],

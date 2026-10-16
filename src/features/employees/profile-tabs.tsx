@@ -1,8 +1,9 @@
 /**
- * Every tab of a profile but the first: what they are rostered on, what they
- * have asked off, how they are doing, what they owe, what is in their file,
- * and what has happened to the record. The Overview tab stays on the page
- * itself, because it is the page -- these are what you go looking for.
+ * Every tab of a profile but the first: every job they hold, what they are
+ * rostered on, what they have asked off, how they are doing, what they owe,
+ * what is in their file, and what has happened to the record. The Overview
+ * tab stays on the page itself, because it is the page -- these are what you
+ * go looking for.
  */
 
 import type { ReactNode } from "react";
@@ -44,7 +45,7 @@ import {
 } from "@components/ui/table";
 
 import { Detail, DetailList, day, tint } from "./profile-parts";
-import type { Profile } from "./profile";
+import { rateOf, type Profile } from "./profile";
 import type { RosterRow } from "./roster";
 
 /** A table is flush with its card, so the first and last cells put the
@@ -75,6 +76,102 @@ function TableCard({
       </CardHeader>
       {children}
     </Card>
+  );
+}
+
+/** One labelled value in a row of them, which is how a card as wide as the
+ *  page says three short things without stretching any of them. The Team
+ *  card writes a label the same way. */
+function Fact({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className="font-medium">{children}</span>
+    </div>
+  );
+}
+
+/**
+ * Every job they hold, a card each and the one the roster names first. A
+ * second position is paid at its own rate and often sits in another
+ * department, so each one is a record in its own right rather than a line on
+ * the Job card -- and the cards read as the Overview's cards do.
+ */
+export function PositionsTab({
+  employee,
+  profile,
+}: {
+  employee: RosterRow;
+  profile: Profile;
+}) {
+  const { positions } = profile;
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* The cards are the things with edges here, so what they are and the
+          one action over them sit on the page above them. The cards are the
+          count, so nothing above them has to say it. */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-heading leading-snug font-medium">Positions</h2>
+        {/* Nobody is given a job to do after they have gone. */}
+        {employee.status !== "Inactive" && (
+          <Button variant="outline" size="sm">
+            <PlusIcon data-icon="inline-start" />
+            Add position
+          </Button>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-4">
+        {positions.map((position) => (
+          <Card key={position.id}>
+            <CardHeader>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                {position.name}
+                {/* Which of them the roster, the schedule and the heading of
+                    this page are talking about -- worth saying only where
+                    there is another job it could have been. */}
+                {position.primary && positions.length > 1 && (
+                  <Badge variant="secondary">Primary</Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* A card with the page's whole width reads across rather than
+                  down: a label and its value a metre apart is harder to read,
+                  not easier, which is what ruled lines would do here. */}
+              <div className="grid grid-cols-2 gap-4 border-t pt-4 sm:grid-cols-3">
+                <Fact label="Department">{position.department}</Fact>
+                <Fact label="Location">{position.location}</Fact>
+                <Fact
+                  label={position.basis === "Salary" ? "Salary" : "Hourly rate"}
+                >
+                  {/* A salary is a year of their hourly rate to the dollar,
+                      so the number payroll works in is a hover away rather
+                      than gone. */}
+                  <span
+                    className="tabular-nums"
+                    title={
+                      position.basis === "Salary"
+                        ? `$${employee.wage.toFixed(2)} an hour`
+                        : undefined
+                    }
+                  >
+                    {rateOf(position)}
+                    {position.basis === "Salary" && (
+                      <span className="text-muted-foreground font-normal">
+                        {" "}
+                        a year
+                      </span>
+                    )}
+                  </span>
+                </Fact>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 }
 

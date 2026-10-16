@@ -244,13 +244,41 @@ const clock = (hour: number, minutes: number) =>
 const phoneIn = (next: () => number, areaCode: string) =>
   `(${areaCode}) 555-${String(between(next, 100, 199)).padStart(4, "0")}`;
 
-/** Roughly when a department's day starts, which is what decides a shift. */
-const startsBetween = (department: string): [number, number] =>
-  /kitchen|production/i.test(department)
-    ? [6, 11]
+/**
+ * When a shift starts, as hours from midnight -- half past being .5, so the
+ * start can be added to a length and compared without being taken apart.
+ *
+ * A hospitality day is two services rather than one long one, and everybody
+ * is dealt an opening or a closing. Drawing a single hour out of the whole
+ * span instead would staff a dinner rush with whoever happened to start
+ * late, which is not how anyone writes a schedule.
+ *
+ * Exported because the dot on an avatar says who is on the floor this
+ * minute, and the two disagreeing about when a kitchen works would be a bug
+ * on screen.
+ */
+export function startHourFor(department: string, next: () => number) {
+  const [opening, closing]: [number, number][] = /kitchen|production/i.test(
+    department,
+  )
+    ? [
+        [6, 10],
+        [13, 17],
+      ]
     : /bar|taproom/i.test(department)
-      ? [15, 18]
-      : [8, 15];
+      ? [
+          [13, 16],
+          [16, 19],
+        ]
+      : [
+          [8, 11],
+          [14, 18],
+        ];
+
+  const [low, high] = next() < 0.45 ? opening : closing;
+
+  return between(next, low, high) + (next() < 0.6 ? 0 : 0.5);
+}
 
 /** Who, if anyone, this person answers to: someone senior at their own site,
  *  else whoever runs one of the company's others. Nobody is their own
@@ -576,7 +604,6 @@ function shiftsFor(employee: RosterRow): Shift[] {
   /* Someone being offboarded stops being rostered the day they leave. */
   const last =
     "lastDay" in employee ? parse(employee.lastDay, "MMM d, yyyy", now) : null;
-  const [low, high] = startsBetween(employee.department);
 
   const shifts: Shift[] = [];
 
@@ -585,15 +612,14 @@ function shiftsFor(employee: RosterRow): Shift[] {
     if (last && isAfter(on, last)) break;
     if (next() > 0.52) continue;
 
-    const hour = between(next, low, high);
-    const minutes = next() < 0.6 ? 0 : 30;
+    const start = startHourFor(employee.department, next);
     const hours = between(next, 8, 19) / 2;
-    const ends = hour + minutes / 60 + hours;
+    const ends = start + hours;
 
     shifts.push({
       id: `${employee.id}-${iso(on)}`,
       on: iso(on),
-      start: clock(hour, minutes),
+      start: clock(Math.floor(start), Math.round((start % 1) * 60)),
       end: clock(Math.floor(ends) % 24, Math.round((ends % 1) * 60)),
       hours,
       position: employee.position,

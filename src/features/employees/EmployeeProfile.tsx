@@ -549,11 +549,12 @@ export function EmployeeProfile() {
         <div className="flex min-w-0 items-center gap-4">
           {/* Bigger than any size the avatar ships, so it takes the
                 plain one -- the sm and lg classes are data-variants and
-                would out-specify the override. */}
+                would out-specify the override. The dot is sized the same
+                way, and needs the bang for the same reason. */}
           <EmployeeAvatar
             employee={employee}
             size="default"
-            className="size-16 *:data-[slot=avatar-fallback]:text-lg"
+            className="size-16 *:data-[slot=avatar-fallback]:text-lg *:data-[slot=avatar-badge]:size-3!"
           />
           <div className="flex min-w-0 flex-col gap-1">
             <h1 className="font-heading truncate text-2xl font-semibold tracking-tight">

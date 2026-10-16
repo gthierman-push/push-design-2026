@@ -68,6 +68,7 @@ import { TaxSetup } from "@features/settings/tax-setup";
 import { TimeOff as TimeOffSettings } from "@features/settings/time-off";
 import { Tips } from "@features/settings/tips";
 
+import { Alert } from "@features/design/alert";
 import { Badge } from "@features/design/badge";
 import { Button } from "@features/design/button";
 import { Card } from "@features/design/card";
@@ -184,6 +185,7 @@ export const router = createBrowserRouter([
       { path: "button", element: <Button /> },
       { path: "badge", element: <Badge /> },
       { path: "card", element: <Card /> },
+      { path: "alert", element: <Alert /> },
       { path: "fields", element: <Fields /> },
       { path: "table", element: <Table /> },
       { path: "tab-default", element: <TabDefault /> },

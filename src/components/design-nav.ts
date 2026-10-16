@@ -20,6 +20,7 @@ export const designSections = [
       { title: "Button", url: "/design/button" },
       { title: "Badge", url: "/design/badge" },
       { title: "Card", url: "/design/card" },
+      { title: "Alert", url: "/design/alert" },
       { title: "Form fields", url: "/design/fields" },
       { title: "Table", url: "/design/table" },
       { title: "TabDefault", url: "/design/tab-default" },

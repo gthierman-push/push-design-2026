@@ -1,19 +1,23 @@
-import type { ReactNode } from "react";
-import { NavLink, useLocation } from "react-router";
+import { Fragment, type ReactNode } from "react";
+import { NavLink, useLocation, useMatches } from "react-router";
 import { SettingsIcon, ZapIcon } from "lucide-react";
 
+import { useActiveAccount } from "@components/active-account";
 import { askAiPanel } from "@components/ask-ai-panel";
 import { RightPanelTrigger } from "@components/right-panel";
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
+  BreadcrumbSeparator,
 } from "@components/ui/breadcrumb";
 import { Button } from "@components/ui/button";
 import { Separator } from "@components/ui/separator";
 
 import { pageFor } from "./app-nav";
+import { crumbsFor } from "./crumbs";
 
 /**
  * The bar above the page, shared by every nav variation — only the control
@@ -21,17 +25,51 @@ import { pageFor } from "./app-nav";
  */
 export function AppHeader({ trigger }: { trigger: ReactNode }) {
   const { pathname } = useLocation();
+  const { account } = useActiveAccount();
   const current = pageFor(pathname);
+
+  /* What the page under the nav page is showing -- the person on a profile,
+     say. Empty on the nav pages themselves, which are the whole trail, and
+     empty too where the record turned out not to be there to name. */
+  const trail = crumbsFor(useMatches(), account);
+  const title = current?.title ?? "Dashboard";
+  const below = current ? pathname !== current.url : false;
 
   return (
     <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">
       {trigger}
       <Separator orientation="vertical" className="mr-2 h-4 self-center!" />
       <Breadcrumb>
-        <BreadcrumbList>
+        <BreadcrumbList className="flex-nowrap">
           <BreadcrumbItem>
-            <BreadcrumbPage>{current?.title ?? "Dashboard"}</BreadcrumbPage>
+            {/* The page only becomes a link once you are somewhere below
+                it: a link to the page you are already on goes nowhere. It
+                goes by the url rather than by the trail, so a profile that
+                names nobody is still a way back rather than a dead end. */}
+            {below && current ? (
+              <BreadcrumbLink render={<NavLink to={current.url} />}>
+                {title}
+              </BreadcrumbLink>
+            ) : (
+              <BreadcrumbPage>{title}</BreadcrumbPage>
+            )}
           </BreadcrumbItem>
+
+          {trail.map((name, index) => (
+            <Fragment key={`${index}-${name}`}>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem className="min-w-0">
+                {/* Only the last crumb is the page you are on. The ones
+                    above it are records rather than destinations, so they
+                    read as plain text. */}
+                {index === trail.length - 1 ? (
+                  <BreadcrumbPage className="truncate">{name}</BreadcrumbPage>
+                ) : (
+                  <span className="truncate">{name}</span>
+                )}
+              </BreadcrumbItem>
+            </Fragment>
+          ))}
         </BreadcrumbList>
       </Breadcrumb>
 

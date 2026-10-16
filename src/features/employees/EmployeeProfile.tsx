@@ -2,7 +2,6 @@ import { useState } from "react";
 import { NavLink, useParams } from "react-router";
 import { differenceInMonths, isAfter, parse, parseISO } from "date-fns";
 import {
-  ArrowLeftIcon,
   CalendarDaysIcon,
   ClockIcon,
   EllipsisIcon,
@@ -21,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { useActiveAccount } from "@components/active-account";
+import type { Crumb } from "@layouts/crumbs";
 import {
   Avatar,
   AvatarFallback,
@@ -69,6 +69,14 @@ import { ActivityTab, FilesTab, ScheduleTab, TimeOffTab } from "./profile-tabs";
 import { today } from "./records";
 import { employeeFor, type RosterRow } from "./roster";
 
+/**
+ * The person's own crumb in the header, so the bar above the page reads
+ * People > whoever this is. Nobody by that id -- a switched account, a
+ * profile that has gone -- names nothing, and the trail stops at People.
+ */
+export const employeeCrumb: Crumb = ({ params, account }) =>
+  params.id ? employeeFor(account, params.id)?.name : undefined;
+
 const tabs = [
   { value: "overview", label: "Overview", icon: UserRoundIcon },
   { value: "schedule", label: "Schedule", icon: CalendarDaysIcon },
@@ -92,21 +100,6 @@ function panelFor(value: string, employee: RosterRow, profile: Profile) {
     default:
       return <OverviewTab employee={employee} profile={profile} />;
   }
-}
-
-/** The way back to the list, above whatever the page turns out to be. */
-function BackToPeople() {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="-ml-2 self-start"
-      render={<NavLink to="/employees" />}
-    >
-      <ArrowLeftIcon data-icon="inline-start" />
-      People
-    </Button>
-  );
 }
 
 /** How long they have been here, in the units anyone says it in: months
@@ -477,7 +470,6 @@ export function EmployeeProfile() {
   if (!employee) {
     return (
       <div className="flex flex-col gap-6">
-        <BackToPeople />
         <Empty className="border-border rounded-xl border border-dashed">
           <EmptyHeader>
             <EmptyTitle>No such employee</EmptyTitle>
@@ -495,8 +487,6 @@ export function EmployeeProfile() {
 
   return (
     <div className="flex flex-col gap-4">
-      <BackToPeople />
-
       {/* Who they are sits on the page rather than in a card: the rail and
           the cards beside it are the things with edges, and a third one
           across the top only boxed in the name. */}

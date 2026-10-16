@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 
 import { AppLayout } from "@layouts/AppLayout";
+import type { RouteHandle } from "@layouts/crumbs";
 import { AuthLayout } from "@layouts/AuthLayout";
 import { DesignLayout } from "@layouts/DesignLayout";
 import { SettingsLayout } from "@layouts/SettingsLayout";
@@ -11,7 +12,7 @@ import { Candidates } from "@features/candidates";
 import { Chat } from "@features/chat";
 import { Clocks } from "@features/clocks";
 import { Dashboard } from "@features/dashboard";
-import { EmployeeProfile, Employees } from "@features/employees";
+import { EmployeeProfile, Employees, employeeCrumb } from "@features/employees";
 import { Help } from "@features/help";
 import { Interviews } from "@features/interviews";
 import { Jobs } from "@features/jobs";
@@ -99,7 +100,12 @@ export const router = createBrowserRouter([
       { path: "clocks", element: <Clocks /> },
       { path: "shifts", element: <Shifts /> },
       { path: "employees", element: <Employees /> },
-      { path: "employees/:id", element: <EmployeeProfile /> },
+      {
+        path: "employees/:id",
+        element: <EmployeeProfile />,
+        // Names the person in the header's breadcrumb, under People.
+        handle: { crumb: employeeCrumb } satisfies RouteHandle,
+      },
       { path: "milestones", element: <Milestones /> },
       { path: "performance", element: <Performance /> },
       { path: "surveys", element: <Surveys /> },

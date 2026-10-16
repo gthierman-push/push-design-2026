@@ -100,10 +100,10 @@ export const employeeMarks: Marks = ({ params, account }) => {
   return (
     <>
       <StatusBadge status={employee.status} />
-      {/* Plain beside the number rather than filled like the status: up here
-          these two are both labels on the record, not a state to read. */}
+      {/* Plain beside the clock ID rather than filled like the status: up
+          here these two are both labels on the record, not a state to read. */}
       <Badge variant="outline">{employee.employment}</Badge>
-      <Badge variant="outline">{profileFor(employee).employeeNumber}</Badge>
+      <Badge variant="outline">Clock ID {profileFor(employee).clockId}</Badge>
     </>
   );
 };
@@ -392,7 +392,7 @@ function OverviewTab({
           </CardHeader>
           <CardContent>
             <DetailList>
-              <Detail label="Employee number">{profile.employeeNumber}</Detail>
+              <Detail label="Clock ID">{profile.clockId}</Detail>
               <Detail label="Employment">
                 <Badge variant="outline">{employee.employment}</Badge>
               </Detail>

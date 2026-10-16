@@ -109,7 +109,7 @@ export const router = createBrowserRouter([
         path: "employees/:id",
         element: <EmployeeProfile />,
         // Names the person in the header's breadcrumb, under People, and
-        // hangs their status and employee number off the end of it.
+        // hangs their status and clock ID off the end of it.
         handle: {
           crumb: employeeCrumb,
           marks: employeeMarks,

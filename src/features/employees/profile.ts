@@ -136,7 +136,7 @@ export type ActivityEvent = {
 };
 
 export type Profile = {
-  employeeNumber: string;
+  clockId: string;
   personal: Personal;
   contact: Contact;
   emergency: EmergencyContact;
@@ -815,11 +815,7 @@ export function profileFor(employee: RosterRow): Profile {
   const contact = contactFor(employee);
 
   return {
-    employeeNumber: `${
-      accounts
-        .find((item) => item.id === employee.accountId)
-        ?.initials.toUpperCase() ?? "EM"
-    }-${String(between(next, 1000, 9999))}`,
+    clockId: String(between(next, 100000, 999999)),
     personal: personalFor(employee, contact.phone),
     contact,
     emergency: emergencyFor(employee),

@@ -565,6 +565,16 @@ export function rosterFor(account: Account, location: Location | null) {
 }
 
 /**
+ * A row exactly as `rosterFor` hands it back, which is more than `Employee`
+ * promises: the fields only one of the five lists carries -- a start date, a
+ * leave type, a last day -- are still on it. The roster tables want the
+ * common shape, so they take `Employee`; a profile page is about one person
+ * at one point in their time with the company, so it wants all of it, and
+ * narrows on whichever field is there.
+ */
+export type RosterRow = ReturnType<typeof rosterFor>["all"][number];
+
+/**
  * One person, by the id their row carries. Looked up across the whole
  * company rather than the location the app is pointed at: a profile opened
  * from a link is still that person's profile, whichever site they work at.

@@ -14,6 +14,7 @@
 import {
   addDays,
   addMonths,
+  differenceInCalendarDays,
   format,
   isAfter,
   parse,
@@ -63,6 +64,9 @@ export type Position = {
   /** Dollars an hour, or dollars a year where the job is a salaried one. */
   rate: number;
   basis: "Hourly" | "Salary";
+  /** The day they took the job on. The one the roster names started the day
+   *  they were hired; a second job starts whenever they were given it. */
+  startedOn: string;
   /** The one the roster row, the schedule and this page's heading name. */
   primary: boolean;
 };
@@ -359,6 +363,7 @@ function positionsFor(employee: RosterRow): Position[] {
     location: employee.location,
     rate: salary ? salaryFrom(employee.wage) : employee.wage,
     basis: salary ? "Salary" : "Hourly",
+    startedOn: employee.hiredOn,
     primary: true,
   };
 
@@ -383,6 +388,10 @@ function positionsFor(employee: RosterRow): Position[] {
     .map((location) => location.name);
 
   const positions = [primary];
+  /* A second job is given to somebody who has been here a while, so it
+     starts in the back half of their time rather than on their first day. */
+  const hired = parseISO(employee.hiredOn);
+  const since = Math.max(differenceInCalendarDays(today(), hired), 0);
 
   for (let index = 1; index <= extras && choices.length > 0; index += 1) {
     const [job] = choices.splice(between(next, 0, choices.length - 1), 1);
@@ -400,6 +409,9 @@ function positionsFor(employee: RosterRow): Position[] {
           : oneOf(next, elsewhere),
       rate: between(next, low * 4, high * 4) / 4,
       basis: "Hourly",
+      startedOn: iso(
+        addDays(hired, between(next, Math.round(since / 2), since)),
+      ),
       primary: false,
     });
   }

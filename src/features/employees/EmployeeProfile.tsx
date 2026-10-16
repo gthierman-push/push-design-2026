@@ -25,13 +25,6 @@ import {
 
 import { useActiveAccount } from "@components/active-account";
 import type { Crumb, Marks } from "@layouts/crumbs";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
-  AvatarImage,
-} from "@components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
@@ -232,6 +225,52 @@ function StatusNotice({ employee }: { employee: RosterRow }) {
   return null;
 }
 
+/** One person on the team card: a link to their profile, and the same two
+ *  things you would want from a name you recognise -- open them, or message
+ *  them -- tucked behind the overflow rather than spending two buttons a row. */
+function TeamPersonRow({ person }: { person: RosterRow }) {
+  return (
+    <div className="group flex items-center gap-2">
+      <NavLink
+        to={`/employees/${person.id}`}
+        className="flex min-w-0 flex-1 items-center gap-2"
+      >
+        <EmployeeAvatar employee={person} />
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className="truncate font-medium">{person.name}</span>
+          <span className="text-muted-foreground truncate text-xs">
+            {person.position}
+          </span>
+        </span>
+      </NavLink>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-muted-foreground shrink-0"
+              aria-label={`More actions for ${person.name}`}
+            />
+          }
+        >
+          <EllipsisIcon />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem render={<NavLink to={`/employees/${person.id}`} />}>
+            <UserRoundIcon />
+            View profile
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <MessagesSquareIcon />
+            Message
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
 /** Who they answer to and who they work beside, on one card. Both come off
  *  the roster rather than out of the generator, so the faces here are people
  *  you can click through to. */
@@ -248,54 +287,29 @@ function TeamCard({ employee }: { employee: RosterRow }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <span className="text-muted-foreground text-xs">Reports to</span>
+          <span className="text-muted-foreground text-xs">Managers</span>
           {manager ? (
-            <NavLink
-              to={`/employees/${manager.id}`}
-              className="flex items-center gap-2 hover:underline"
-            >
-              <EmployeeAvatar employee={manager} />
-              <span className="flex min-w-0 flex-col leading-tight">
-                <span className="truncate font-medium">{manager.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {manager.position}
-                </span>
-              </span>
-            </NavLink>
+            <TeamPersonRow person={manager} />
           ) : (
             <span className="text-muted-foreground">Nobody — they run it</span>
           )}
         </div>
 
-        <div className="flex flex-col gap-2">
-          <span className="text-muted-foreground text-xs">
-            {employee.department} at {employee.location}
-          </span>
-          {shown.length > 0 ? (
-            <AvatarGroup>
-              {shown.map((person) => (
-                <Avatar key={person.id} title={person.name}>
-                  <AvatarImage src={person.photo} alt={person.name} />
-                  <AvatarFallback>
-                    {person.name
-                      .split(" ")
-                      .map((part) => part[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-              {team.length > shown.length && (
-                <AvatarGroupCount>
-                  +{team.length - shown.length}
-                </AvatarGroupCount>
-              )}
-            </AvatarGroup>
-          ) : (
-            <span className="text-muted-foreground">
-              The only one on this department's roster here
+        {shown.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <span className="text-muted-foreground text-xs">
+              {employee.department} at {employee.location}
             </span>
-          )}
-        </div>
+            {shown.map((person) => (
+              <TeamPersonRow key={person.id} person={person} />
+            ))}
+            {team.length > shown.length && (
+              <span className="text-muted-foreground text-xs">
+                +{team.length - shown.length} more
+              </span>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

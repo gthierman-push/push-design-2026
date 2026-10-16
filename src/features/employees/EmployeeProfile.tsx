@@ -8,12 +8,14 @@ import {
   FileTextIcon,
   HistoryIcon,
   KeyRoundIcon,
+  ListChecksIcon,
   MailIcon,
   PencilIcon,
   PhoneIcon,
   PlaneIcon,
   ReceiptTextIcon,
   TreePalmIcon,
+  TrophyIcon,
   UserRoundCheckIcon,
   UserRoundIcon,
   UserRoundXIcon,
@@ -65,7 +67,14 @@ import {
   daysUntil,
   tint,
 } from "./profile-parts";
-import { ActivityTab, FilesTab, ScheduleTab, TimeOffTab } from "./profile-tabs";
+import {
+  ActivityTab,
+  FilesTab,
+  PerformanceTab,
+  ScheduleTab,
+  TasksTab,
+  TimeOffTab,
+} from "./profile-tabs";
 import { today } from "./records";
 import { employeeFor, type RosterRow } from "./roster";
 
@@ -99,7 +108,9 @@ const tabs = [
   { value: "overview", label: "Overview", icon: UserRoundIcon },
   { value: "schedule", label: "Schedule", icon: CalendarDaysIcon },
   { value: "time-off", label: "Time off", icon: TreePalmIcon },
-  { value: "documents", label: "Documents", icon: FileTextIcon },
+  { value: "performance", label: "Performance", icon: TrophyIcon },
+  { value: "tasks", label: "Tasks", icon: ListChecksIcon },
+  { value: "files", label: "Files", icon: FileTextIcon },
   { value: "activity", label: "Activity", icon: HistoryIcon },
 ];
 
@@ -111,7 +122,11 @@ function panelFor(value: string, employee: RosterRow, profile: Profile) {
       return <ScheduleTab employee={employee} profile={profile} />;
     case "time-off":
       return <TimeOffTab employee={employee} profile={profile} />;
-    case "documents":
+    case "performance":
+      return <PerformanceTab employee={employee} />;
+    case "tasks":
+      return <TasksTab employee={employee} />;
+    case "files":
       return <FilesTab profile={profile} />;
     case "activity":
       return <ActivityTab profile={profile} />;

@@ -17,7 +17,7 @@ import { Button } from "@components/ui/button";
 import { Separator } from "@components/ui/separator";
 
 import { pageFor } from "./app-nav";
-import { crumbsFor } from "./crumbs";
+import { crumbsFor, marksFor } from "./crumbs";
 
 /**
  * The bar above the page, shared by every nav variation — only the control
@@ -31,7 +31,11 @@ export function AppHeader({ trigger }: { trigger: ReactNode }) {
   /* What the page under the nav page is showing -- the person on a profile,
      say. Empty on the nav pages themselves, which are the whole trail, and
      empty too where the record turned out not to be there to name. */
-  const trail = crumbsFor(useMatches(), account);
+  const matches = useMatches();
+  const trail = crumbsFor(matches, account);
+  /* What the record is, beside what it is called -- a profile's status and
+     employee number ride up here rather than repeating under its name. */
+  const marks = marksFor(matches, account);
   const title = current?.title ?? "Dashboard";
   const below = current ? pathname !== current.url : false;
 
@@ -72,6 +76,17 @@ export function AppHeader({ trigger }: { trigger: ReactNode }) {
           ))}
         </BreadcrumbList>
       </Breadcrumb>
+
+      {/* The trail is what gives way when the bar runs out of room, so the
+          badges hold their width beside it. Too narrow for both and they
+          stand down -- the profile still says all of it in the record. */}
+      {marks.length > 0 && (
+        <div className="hidden shrink-0 items-center gap-2 sm:flex">
+          {marks.map((mark, index) => (
+            <Fragment key={index}>{mark}</Fragment>
+          ))}
+        </div>
+      )}
 
       <div className="ml-auto flex items-center gap-2">
         {current?.settingsUrl ? (

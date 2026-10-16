@@ -12,7 +12,12 @@ import { Candidates } from "@features/candidates";
 import { Chat } from "@features/chat";
 import { Clocks } from "@features/clocks";
 import { Dashboard } from "@features/dashboard";
-import { EmployeeProfile, Employees, employeeCrumb } from "@features/employees";
+import {
+  EmployeeProfile,
+  Employees,
+  employeeCrumb,
+  employeeMarks,
+} from "@features/employees";
 import { Help } from "@features/help";
 import { Interviews } from "@features/interviews";
 import { Jobs } from "@features/jobs";
@@ -103,8 +108,12 @@ export const router = createBrowserRouter([
       {
         path: "employees/:id",
         element: <EmployeeProfile />,
-        // Names the person in the header's breadcrumb, under People.
-        handle: { crumb: employeeCrumb } satisfies RouteHandle,
+        // Names the person in the header's breadcrumb, under People, and
+        // hangs their status and employee number off the end of it.
+        handle: {
+          crumb: employeeCrumb,
+          marks: employeeMarks,
+        } satisfies RouteHandle,
       },
       { path: "milestones", element: <Milestones /> },
       { path: "performance", element: <Performance /> },

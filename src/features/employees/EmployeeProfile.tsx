@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import { useActiveAccount } from "@components/active-account";
-import type { Crumb } from "@layouts/crumbs";
+import type { Crumb, Marks } from "@layouts/crumbs";
 import {
   Avatar,
   AvatarFallback,
@@ -76,6 +76,24 @@ import { employeeFor, type RosterRow } from "./roster";
  */
 export const employeeCrumb: Crumb = ({ params, account }) =>
   params.id ? employeeFor(account, params.id)?.name : undefined;
+
+/**
+ * What they are, beside their name up in the bar: the state their record is
+ * in, and the number payroll calls them by. Both sat under the heading on the
+ * page, where they were a third line of small print below the name and the
+ * email; up here they read as what the crumb is pointing at.
+ */
+export const employeeMarks: Marks = ({ params, account }) => {
+  const employee = params.id ? employeeFor(account, params.id) : undefined;
+  if (!employee) return null;
+
+  return (
+    <>
+      <StatusBadge status={employee.status} />
+      <Badge variant="outline">{profileFor(employee).employeeNumber}</Badge>
+    </>
+  );
+};
 
 const tabs = [
   { value: "overview", label: "Overview", icon: UserRoundIcon },
@@ -514,10 +532,6 @@ export function EmployeeProfile() {
             >
               {profile.contact.email}
             </a>
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <StatusBadge status={employee.status} />
-              <Badge variant="outline">{profile.employeeNumber}</Badge>
-            </div>
           </div>
         </div>
 

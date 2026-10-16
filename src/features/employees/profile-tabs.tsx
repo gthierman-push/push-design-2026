@@ -7,7 +7,7 @@
  */
 
 import type { ReactNode } from "react";
-import { format, parseISO } from "date-fns";
+import { format, isAfter, parseISO } from "date-fns";
 import {
   CalendarOffIcon,
   DownloadIcon,
@@ -45,6 +45,7 @@ import {
 } from "@components/ui/table";
 
 import { Detail, DetailList, day, tint } from "./profile-parts";
+import { today } from "./records";
 import { rateOf, type Profile } from "./profile";
 import type { RosterRow } from "./roster";
 
@@ -116,7 +117,6 @@ export function PositionsTab({
         {/* Nobody is given a job to do after they have gone. */}
         {employee.status !== "Inactive" && (
           <Button variant="outline" size="sm">
-            <PlusIcon data-icon="inline-start" />
             Add position
           </Button>
         )}
@@ -125,7 +125,10 @@ export function PositionsTab({
       <div className="flex flex-col gap-4">
         {positions.map((position) => (
           <Card key={position.id}>
-            <CardHeader>
+            {/* The button is taller than the line of text beside it, so the
+                header centres its row rather than hanging both from the top
+                and leaving the title riding high of its own action. */}
+            <CardHeader className="items-center">
               <CardTitle className="flex flex-wrap items-center gap-2">
                 {position.name}
                 {/* Which of them the roster, the schedule and the heading of
@@ -135,14 +138,45 @@ export function PositionsTab({
                   <Badge variant="secondary">Primary</Badge>
                 )}
               </CardTitle>
+              {/* The slot spans two rows by default, for the cards that
+                  carry a description; one row is all there is here, and
+                  spanning the empty second is what hung the button low.
+                  Every card carries the same word, so the job it belongs to
+                  is said to a screen reader rather than left to the order
+                  the cards happen to be in. */}
+              <CardAction className="row-span-1 self-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label={`Edit ${position.name}`}
+                >
+                  Edit
+                </Button>
+              </CardAction>
             </CardHeader>
             <CardContent>
               {/* A card with the page's whole width reads across rather than
                   down: a label and its value a metre apart is harder to read,
-                  not easier, which is what ruled lines would do here. */}
-              <div className="grid grid-cols-2 gap-4 border-t pt-4 sm:grid-cols-3">
+                  not easier, which is what ruled lines would do here. Four
+                  facts only go in a row on a wide page; below that they pair
+                  off rather than squeeze a date onto two lines. */}
+              <div className="grid grid-cols-2 gap-4 border-t pt-4 lg:grid-cols-4">
                 <Fact label="Department">{position.department}</Fact>
                 <Fact label="Location">{position.location}</Fact>
+                {/* The main job starts the day they were hired, so somebody
+                    who has not arrived yet is on their way into it rather
+                    than already doing it. */}
+                <Fact
+                  label={
+                    isAfter(parseISO(position.startedOn), today())
+                      ? "Starts"
+                      : "Started"
+                  }
+                >
+                  <span className="tabular-nums">
+                    {day(position.startedOn)}
+                  </span>
+                </Fact>
                 <Fact
                   label={position.basis === "Salary" ? "Salary" : "Hourly rate"}
                 >

@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@components/ui/dialog"
-import { CheckIcon } from "lucide-react"
+import { CheckIcon } from "@components/icons"
 
 function Command({
   className,

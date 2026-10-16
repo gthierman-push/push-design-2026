@@ -13,7 +13,7 @@
  */
 
 import * as React from "react";
-import { DownloadIcon, UserRoundCheckIcon, UserRoundXIcon } from "lucide-react";
+import { DownloadIcon, UserRoundCheckIcon, UserRoundXIcon } from "@components/icons";
 
 import {
   AlertDialog,

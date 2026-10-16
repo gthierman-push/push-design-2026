@@ -25,6 +25,25 @@ What the model may answer with is generated from the field list in
 about it without touching the prompt or the UI. Everything that comes back is
 validated against that same list before it reaches the table.
 
+## Two icon sets
+
+Every icon comes from `src/components/icons.tsx`, never from an icon package
+directly, and that module hands back either the Lucide or the Phosphor drawing
+depending on what the theme panel (press **t**) is pointed at. Phosphor also
+draws at six weights, from thin to a solid fill, which the panel offers once
+Phosphor is chosen. The choice is kept in `localStorage` beside the themes, so
+it survives a reload, and `/design/icons` shows the whole set at once.
+
+The names are Lucide's either way -- `import { CheckIcon } from
+"@components/icons"` -- and the mapping to Phosphor's rather different naming
+lives in that one file. A few Lucide glyphs have no twin in Phosphor; those
+take the closest reading of what the icon is being used to say, and the ones
+worth arguing about are commented.
+
+Adding an icon means adding a line there, with both drawings. `shadcn add`
+still writes `from "lucide-react"` into whatever it generates, so re-point that
+import when a new component arrives.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

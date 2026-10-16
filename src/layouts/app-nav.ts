@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { IconComponent } from "@components/icons";
 
 import {
   BadgeDollarSignIcon,
@@ -25,7 +25,7 @@ import {
   UserPlusIcon,
   UserSearchIcon,
   UsersIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 /**
  * The app nav, kept beside the layout so the command palette and the sidebar
@@ -34,7 +34,7 @@ import {
 export type NavItem = {
   title: string;
   url: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   notify?: boolean;
   settingsUrl?: string;
 };
@@ -42,7 +42,7 @@ export type NavItem = {
 export type NavSection = {
   label: string;
   /** Stands in for the section where only an icon fits, as on the rail. */
-  icon: LucideIcon;
+  icon: IconComponent;
   /** The rail's label, for sections whose full name is too long to read there. */
   short?: string;
   items: NavItem[];

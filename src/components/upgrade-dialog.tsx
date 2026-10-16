@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckIcon, CornerDownRightIcon, XIcon } from "lucide-react";
+import { CheckIcon, CornerDownRightIcon, XIcon } from "@components/icons";
 
 import {
   currentPlanId,

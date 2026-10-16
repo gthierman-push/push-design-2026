@@ -16,8 +16,8 @@ import {
   PlusIcon,
   TrophyIcon,
   UploadIcon,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@components/icons";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import {
@@ -546,7 +546,7 @@ function Unbuilt({
   title,
   description,
 }: {
-  icon: LucideIcon;
+  icon: IconComponent;
   title: string;
   description: string;
 }) {

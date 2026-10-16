@@ -1,4 +1,4 @@
-import { TrendingDownIcon } from "lucide-react";
+import { TrendingDownIcon } from "@components/icons";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import {

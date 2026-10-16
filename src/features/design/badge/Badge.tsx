@@ -4,7 +4,7 @@ import {
   TagIcon,
   TriangleAlertIcon,
   XIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 import { Badge } from "@components/ui/badge";
 import { DesignPage, Example } from "@features/design/example";

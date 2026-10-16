@@ -21,7 +21,7 @@ import {
   UserRoundCheckIcon,
   UserRoundIcon,
   UserRoundXIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 import { useActiveAccount } from "@components/active-account";
 import type { Crumb, Marks } from "@layouts/crumbs";

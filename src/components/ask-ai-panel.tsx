@@ -1,4 +1,4 @@
-import { ZapIcon } from "lucide-react";
+import { ZapIcon } from "@components/icons";
 
 import type { RightPanelContent } from "@components/right-panel";
 import { Button } from "@components/ui/button";

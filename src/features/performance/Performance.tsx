@@ -9,7 +9,7 @@ import {
   SearchIcon,
   SlidersHorizontalIcon,
   Trash2Icon,
-} from "lucide-react";
+} from "@components/icons";
 
 import { UpgradeButton } from "@components/upgrade-dialog";
 import {

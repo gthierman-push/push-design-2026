@@ -3,7 +3,7 @@ import {
   PlusIcon,
   SlidersHorizontalIcon,
   Trash2Icon,
-} from "lucide-react";
+} from "@components/icons";
 
 import { Button } from "@components/ui/button";
 import { Spinner } from "@components/ui/spinner";

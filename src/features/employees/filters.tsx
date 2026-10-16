@@ -25,8 +25,8 @@ import {
   UsersIcon,
   XIcon,
   ZapIcon,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@components/icons";
 
 import { Button } from "@components/ui/button";
 import { ButtonGroup, ButtonGroupText } from "@components/ui/button-group";
@@ -82,7 +82,7 @@ export type SavedFilter = { name: string; conditions: Condition[] };
 
 /** What each field looks like on a chip and in the menu. A field with no icon
  *  of its own takes the one for the kind of thing it holds. */
-const icons: { [key: string]: LucideIcon } = {
+const icons: { [key: string]: IconComponent } = {
   position: BriefcaseIcon,
   department: UsersIcon,
   location: MapPinIcon,

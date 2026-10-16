@@ -16,7 +16,7 @@ import {
   UserRoundCheckIcon,
   UserRoundIcon,
   UserRoundXIcon,
-} from "lucide-react";
+} from "@components/icons";
 
 import { useActiveAccount } from "@components/active-account";
 import { Badge } from "@components/ui/badge";

@@ -34,7 +34,7 @@ export function AppHeader({ trigger }: { trigger: ReactNode }) {
   const matches = useMatches();
   const trail = crumbsFor(matches, account);
   /* What the record is, beside what it is called -- a profile's status and
-     employee number ride up here rather than repeating under its name. */
+     clock ID ride up here rather than repeating under its name. */
   const marks = marksFor(matches, account);
   const title = current?.title ?? "Dashboard";
   const below = current ? pathname !== current.url : false;

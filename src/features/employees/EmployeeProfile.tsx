@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import { useActiveAccount } from "@components/active-account";
-import type { Crumb } from "@layouts/crumbs";
+import type { Crumb, Marks } from "@layouts/crumbs";
 import {
   Avatar,
   AvatarFallback,
@@ -76,6 +76,24 @@ import { employeeFor, type RosterRow } from "./roster";
  */
 export const employeeCrumb: Crumb = ({ params, account }) =>
   params.id ? employeeFor(account, params.id)?.name : undefined;
+
+/**
+ * What they are, beside their name up in the bar: the state their record is
+ * in, and the number payroll calls them by. Both sat under the heading on the
+ * page, where they were a third line of small print below the name and the
+ * email; up here they read as what the crumb is pointing at.
+ */
+export const employeeMarks: Marks = ({ params, account }) => {
+  const employee = params.id ? employeeFor(account, params.id) : undefined;
+  if (!employee) return null;
+
+  return (
+    <>
+      <StatusBadge status={employee.status} />
+      <Badge variant="outline">{profileFor(employee).employeeNumber}</Badge>
+    </>
+  );
+};
 
 const tabs = [
   { value: "overview", label: "Overview", icon: UserRoundIcon },
@@ -504,13 +522,16 @@ export function EmployeeProfile() {
             <h1 className="font-heading truncate text-2xl font-semibold tracking-tight">
               {employee.name}
             </h1>
-            <p className="text-muted-foreground truncate">
-              {employee.position} · {employee.department} · {employee.location}
-            </p>
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <StatusBadge status={employee.status} />
-              <Badge variant="outline">{profile.employeeNumber}</Badge>
-            </div>
+            {/* Their address rather than their job: position, department
+                and location are all on the Job card a scroll below, and the
+                thing anyone copies off a heading is the email. */}
+            <a
+              href={`mailto:${profile.contact.email}`}
+              title={profile.contact.email}
+              className="text-muted-foreground truncate hover:underline"
+            >
+              {profile.contact.email}
+            </a>
           </div>
         </div>
 

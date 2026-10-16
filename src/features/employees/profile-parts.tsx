@@ -35,8 +35,14 @@ export const daysUntil = (value: string) =>
  * holds the left and the value the right, which is what lets a column of them
  * be read down either side.
  */
-export function DetailList({ children }: { children: ReactNode }) {
-  return <dl className="flex flex-col">{children}</dl>;
+export function DetailList({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <dl className={cn("flex flex-col", className)}>{children}</dl>;
 }
 
 export function Detail({

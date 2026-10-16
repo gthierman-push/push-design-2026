@@ -9,14 +9,11 @@ import type { ReactNode } from "react";
 import { format, parseISO } from "date-fns";
 import {
   CalendarOffIcon,
-  ClockIcon,
   DownloadIcon,
   FileTextIcon,
   PlusIcon,
   UploadIcon,
 } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import {
@@ -27,14 +24,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@components/ui/card";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@components/ui/chart";
 import {
   Empty,
   EmptyDescription,
@@ -51,7 +40,7 @@ import {
   TableRow,
 } from "@components/ui/table";
 
-import { day, tint } from "./profile-parts";
+import { Detail, DetailList, day, tint } from "./profile-parts";
 import type { Profile } from "./profile";
 import type { RosterRow } from "./roster";
 
@@ -86,11 +75,6 @@ function TableCard({
   );
 }
 
-const hoursChart = {
-  scheduled: { label: "Scheduled", color: "var(--chart-1)" },
-  worked: { label: "Worked", color: "var(--chart-3)" },
-} satisfies ChartConfig;
-
 /** Why a schedule is empty, in the words of whatever state they are in --
  *  "no upcoming shifts" is the wrong thing to say about someone on leave. */
 function noShifts(employee: RosterRow) {
@@ -105,24 +89,6 @@ function noShifts(employee: RosterRow) {
   return "Nothing rostered in the next two weeks.";
 }
 
-/** And why there are no hours behind them, which is a different question --
- *  the same four states, read backwards. */
-function noHours(employee: RosterRow) {
-  if (employee.status === "Onboarding" && "starts" in employee) {
-    return `They start ${employee.starts}, so there is nothing on the clock yet.`;
-  }
-
-  if (employee.status === "On leave" && "dates" in employee) {
-    return `Away ${employee.dates}, and the eight weeks before that are past this chart.`;
-  }
-
-  if (employee.status === "Inactive" && "lastDay" in employee) {
-    return `Their last day was ${employee.lastDay}.`;
-  }
-
-  return "No shifts have been clocked in this stretch.";
-}
-
 export function ScheduleTab({
   employee,
   profile,
@@ -131,152 +97,75 @@ export function ScheduleTab({
   profile: Profile;
 }) {
   const total = profile.shifts.reduce((sum, shift) => sum + shift.hours, 0);
-  const worked = profile.weeks.reduce((sum, week) => sum + week.worked, 0);
 
   return (
-    <div className="flex flex-col gap-4">
-      <TableCard
-        title="Upcoming shifts"
-        description={
-          profile.shifts.length > 0
-            ? `${profile.shifts.length} shifts, ${total} hours over the next two weeks`
-            : "The next two weeks"
-        }
-        action={
-          /* Nobody schedules someone who has left, so the one action this
+    <TableCard
+      title="Upcoming shifts"
+      description={
+        profile.shifts.length > 0
+          ? `${profile.shifts.length} shifts, ${total} hours over the next two weeks`
+          : "The next two weeks"
+      }
+      action={
+        /* Nobody schedules someone who has left, so the one action this
              card offers goes with them. */
-          employee.status === "Inactive" ? undefined : (
-            <Button variant="outline" size="sm">
-              <PlusIcon data-icon="inline-start" />
-              Add shift
-            </Button>
-          )
-        }
-      >
-        {profile.shifts.length === 0 ? (
-          <CardContent className="pb-(--card-spacing)">
-            <Empty className="border">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <CalendarOffIcon />
-                </EmptyMedia>
-                <EmptyTitle>No shifts scheduled</EmptyTitle>
-                <EmptyDescription>{noShifts(employee)}</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          </CardContent>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className={edge}>Date</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Hours</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead className={edgeEnd}>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profile.shifts.map((shift) => (
-                <TableRow key={shift.id}>
-                  <TableCell className={`${edge} font-medium`}>
-                    {format(parseISO(shift.on), "EEE, MMM d")}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {shift.start} – {shift.end}
-                  </TableCell>
-                  <TableCell className="tabular-nums">{shift.hours}</TableCell>
-                  <TableCell>{shift.position}</TableCell>
-                  <TableCell>{shift.location}</TableCell>
-                  <TableCell className={edgeEnd}>
-                    {/* A posted shift is one they have been told about; the
-                        far end of the fortnight is still being written. */}
-                    <Badge variant={shift.published ? "secondary" : "outline"}>
-                      {shift.published ? "Published" : "Draft"}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </TableCard>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Hours</CardTitle>
-          <CardDescription>
-            {worked > 0
-              ? `${worked.toLocaleString()} hours worked over the last eight weeks, against what they were rostered for`
-              : "Nothing on the clock in the last eight weeks"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* A chart of eight empty weeks says less than a sentence does. */}
-          {worked === 0 ? (
-            <Empty className="border">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <ClockIcon />
-                </EmptyMedia>
-                <EmptyTitle>No hours to show</EmptyTitle>
-                <EmptyDescription>{noHours(employee)}</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : (
-            <ChartContainer
-              config={hoursChart}
-              className="aspect-auto h-64 w-full"
-            >
-              <BarChart accessibilityLayer data={profile.weeks}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="week"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="dot" />}
-                />
-                <Bar
-                  dataKey="scheduled"
-                  fill="var(--color-scheduled)"
-                  radius={4}
-                />
-                <Bar dataKey="worked" fill="var(--color-worked)" radius={4} />
-                <ChartLegend content={<ChartLegendContent />} />
-              </BarChart>
-            </ChartContainer>
-          )}
+        employee.status === "Inactive" ? undefined : (
+          <Button variant="outline" size="sm">
+            <PlusIcon data-icon="inline-start" />
+            Add shift
+          </Button>
+        )
+      }
+    >
+      {profile.shifts.length === 0 ? (
+        <CardContent className="pb-(--card-spacing)">
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <CalendarOffIcon />
+              </EmptyMedia>
+              <EmptyTitle>No shifts scheduled</EmptyTitle>
+              <EmptyDescription>{noShifts(employee)}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-/** A banked balance, what has already gone and what is still waiting on an
- *  answer -- the three numbers anyone approving a request wants in front of
- *  them before they approve it. */
-function Balance({
-  label,
-  value,
-  note,
-}: {
-  label: string;
-  value: string;
-  note: string;
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <span className="font-heading text-2xl font-medium tabular-nums">
-        {value}
-      </span>
-      <span className="text-muted-foreground text-xs">{note}</span>
-    </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className={edge}>Date</TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Hours</TableHead>
+              <TableHead>Position</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead className={edgeEnd}>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {profile.shifts.map((shift) => (
+              <TableRow key={shift.id}>
+                <TableCell className={`${edge} font-medium`}>
+                  {format(parseISO(shift.on), "EEE, MMM d")}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {shift.start} – {shift.end}
+                </TableCell>
+                <TableCell className="tabular-nums">{shift.hours}</TableCell>
+                <TableCell>{shift.position}</TableCell>
+                <TableCell>{shift.location}</TableCell>
+                <TableCell className={edgeEnd}>
+                  {/* A posted shift is one they have been told about; the
+                        far end of the fortnight is still being written. */}
+                  <Badge variant={shift.published ? "secondary" : "outline"}>
+                    {shift.published ? "Published" : "Draft"}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </TableCard>
   );
 }
 
@@ -310,22 +199,22 @@ export function TimeOffTab({
             </Button>
           </CardAction>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Balance
-            label="Banked"
-            value={`${employee.timeOffDays} days`}
-            note="Available to book now"
-          />
-          <Balance
-            label="Taken"
-            value={`${taken} days`}
-            note="Approved and behind them"
-          />
-          <Balance
-            label="Awaiting approval"
-            value={`${pending} days`}
-            note={pending > 0 ? "Needs a decision" : "Nothing outstanding"}
-          />
+        <CardContent>
+          {/* Three rows do not need the card's whole width -- a label and a
+              number a metre apart is harder to read, not easier. */}
+          <DetailList className="max-w-md">
+            <Detail label="Banked">{employee.timeOffDays} days</Detail>
+            <Detail label="Taken">{taken} days</Detail>
+            <Detail label="Awaiting approval">
+              {pending > 0 ? (
+                `${pending} days`
+              ) : (
+                <span className="text-muted-foreground font-normal">
+                  Nothing outstanding
+                </span>
+              )}
+            </Detail>
+          </DetailList>
         </CardContent>
       </Card>
 

@@ -17,7 +17,6 @@ import {
   isAfter,
   parse,
   parseISO,
-  startOfWeek,
   subYears,
 } from "date-fns";
 
@@ -60,13 +59,6 @@ export type Shift = {
   published: boolean;
 };
 
-/** One bar of the hours chart: a week, and what it came to. */
-export type Week = {
-  week: string;
-  scheduled: number;
-  worked: number;
-};
-
 export type TimeOffRequest = {
   id: string;
   type: string;
@@ -96,7 +88,6 @@ export type Profile = {
   emergency: EmergencyContact;
   pay: Pay;
   shifts: Shift[];
-  weeks: Week[];
   timeOff: TimeOffRequest[];
   files: EmployeeFile[];
   activity: ActivityEvent[];
@@ -336,68 +327,6 @@ function shiftsFor(employee: RosterRow): Shift[] {
   return shifts;
 }
 
-/**
- * The day a leave began, out of the span the roster writes it as. The first
- * half of "Aug 1 – Dec 19, 2026" carries no year of its own, so it borrows
- * the one the second half ends on.
- */
-function leaveStarted(dates: string) {
-  const [start, end] = dates.split("–").map((part) => part.trim());
-  const year = end.match(/\d{4}$/)?.[0] ?? String(today().getFullYear());
-
-  return parse(
-    /\d{4}$/.test(start) ? start : `${start}, ${year}`,
-    "MMM d, yyyy",
-    today(),
-  );
-}
-
-/** The stretch of those eight weeks they were actually on the clock. Nobody
- *  logs hours before their first day, after their last, or while away. */
-function workingBetween(employee: RosterRow) {
-  return {
-    from: parseISO(employee.hiredOn),
-    to:
-      "reason" in employee
-        ? parse(employee.lastDay, "MMM d, yyyy", today())
-        : "dates" in employee
-          ? leaveStarted(employee.dates)
-          : null,
-  };
-}
-
-/** Eight weeks of hours behind them: what they were rostered for, and what
- *  the clocks came back with. Centred on the hours their record carries, so
- *  a part-timer's chart reads like a part-timer's, and flat at nothing for
- *  any week they were not here to work. */
-function weeksFor(employee: RosterRow): Week[] {
-  const next = stream(`${employee.id}:weeks`);
-  const monday = startOfWeek(today(), { weekStartsOn: 1 });
-  const { from, to } = workingBetween(employee);
-
-  return Array.from({ length: 8 }, (_, index) => {
-    const week = addDays(monday, (index - 8) * 7);
-    const scheduled = Math.max(
-      0,
-      employee.weeklyHours + between(next, -6, 6) / 2,
-    );
-    /* Worked lands either side of scheduled: shifts run long more often than
-       they run short, which is where overtime comes from. */
-    const worked = Math.max(0, scheduled + between(next, -3, 7) / 2);
-
-    /* The week is measured by the Friday in it, so a hire date mid-week
-       counts that week and one the week before it does not. */
-    const working =
-      !isAfter(from, addDays(week, 4)) && (to === null || !isAfter(week, to));
-
-    return {
-      week: format(week, "MMM d"),
-      scheduled: working ? scheduled : 0,
-      worked: working ? worked : 0,
-    };
-  });
-}
-
 const timeOffTypes = ["Vacation", "Sick", "Unpaid", "Personal"];
 
 /** What they have asked for lately, newest first: a couple behind them, and
@@ -615,7 +544,6 @@ export function profileFor(employee: RosterRow): Profile {
     emergency: emergencyFor(employee),
     pay,
     shifts: shiftsFor(employee),
-    weeks: weeksFor(employee),
     timeOff: timeOffFor(employee),
     files: filesFor(employee),
     activity: activityFor(employee, pay),

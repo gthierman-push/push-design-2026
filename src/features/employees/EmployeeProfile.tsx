@@ -3,15 +3,20 @@ import { NavLink, useParams } from "react-router";
 import { differenceInMonths, isAfter, parse, parseISO } from "date-fns";
 import {
   ArrowLeftIcon,
+  CalendarDaysIcon,
   ClockIcon,
   EllipsisIcon,
+  FileTextIcon,
+  HistoryIcon,
   KeyRoundIcon,
   MailIcon,
   PencilIcon,
   PhoneIcon,
   PlaneIcon,
   ReceiptTextIcon,
+  TreePalmIcon,
   UserRoundCheckIcon,
+  UserRoundIcon,
   UserRoundXIcon,
 } from "lucide-react";
 
@@ -26,13 +31,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,11 +48,11 @@ import {
 } from "@components/ui/empty";
 import { TabSelect } from "@components/ui/tab-select";
 import {
-  TabHorizontal,
-  TabHorizontalContent,
-  TabHorizontalList,
-  TabHorizontalTrigger,
-} from "@components/ui/tab-horizontal";
+  TabVertical,
+  TabVerticalContent,
+  TabVerticalList,
+  TabVerticalTrigger,
+} from "@components/ui/tab-vertical";
 
 import { EmployeeAvatar } from "./EmployeeAvatar";
 import { managerFor, profileFor, teamOf, type Profile } from "./profile";
@@ -71,12 +70,29 @@ import { today } from "./records";
 import { employeeFor, type RosterRow } from "./roster";
 
 const tabs = [
-  { value: "overview", label: "Overview" },
-  { value: "schedule", label: "Schedule" },
-  { value: "time-off", label: "Time off" },
-  { value: "documents", label: "Documents" },
-  { value: "activity", label: "Activity" },
+  { value: "overview", label: "Overview", icon: UserRoundIcon },
+  { value: "schedule", label: "Schedule", icon: CalendarDaysIcon },
+  { value: "time-off", label: "Time off", icon: TreePalmIcon },
+  { value: "documents", label: "Documents", icon: FileTextIcon },
+  { value: "activity", label: "Activity", icon: HistoryIcon },
 ];
+
+/** What sits behind each tab, so the rail and its panels are written from
+ *  the one list rather than kept in step by hand. */
+function panelFor(value: string, employee: RosterRow, profile: Profile) {
+  switch (value) {
+    case "schedule":
+      return <ScheduleTab employee={employee} profile={profile} />;
+    case "time-off":
+      return <TimeOffTab employee={employee} profile={profile} />;
+    case "documents":
+      return <FilesTab profile={profile} />;
+    case "activity":
+      return <ActivityTab profile={profile} />;
+    default:
+      return <OverviewTab employee={employee} profile={profile} />;
+  }
+}
 
 /** The way back to the list, above whatever the page turns out to be. */
 function BackToPeople() {
@@ -113,27 +129,6 @@ function tenure(hiredOn: string, until: Date | null) {
   const years = Math.floor(months / 12);
   const rest = months % 12;
   return rest === 0 ? `${years} years` : `${years} yr ${rest} mo`;
-}
-
-/** One number on the strip under the header. */
-function Stat({
-  label,
-  value,
-  note,
-}: {
-  label: string;
-  value: string;
-  note: string;
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <span className="font-heading text-lg leading-tight font-medium tabular-nums">
-        {value}
-      </span>
-      <span className="text-muted-foreground truncate text-xs">{note}</span>
-    </div>
-  );
 }
 
 /**
@@ -274,6 +269,11 @@ function OverviewTab({
   profile: Profile;
 }) {
   const { contact, emergency, pay } = profile;
+  /* Tenure stops on the day somebody left, rather than running to today. */
+  const left =
+    "reason" in employee
+      ? { on: parse(employee.lastDay, "MMM d, yyyy", today()) }
+      : null;
 
   return (
     <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
@@ -313,6 +313,26 @@ function OverviewTab({
               </Detail>
               <Detail label="Scheduled hours">
                 {employee.weeklyHours} hrs a week
+              </Detail>
+              {/* Tenure and the last review had nowhere else on the page to
+                  be, so they came down off the strip into the record. */}
+              <Detail label="Tenure">
+                {tenure(employee.hiredOn, left?.on ?? null)}
+              </Detail>
+              <Detail label="Last review">
+                {employee.lastReviewOn ? (
+                  <>
+                    {employee.rating} of 5
+                    <span className="text-muted-foreground font-normal">
+                      {" "}
+                      · {day(employee.lastReviewOn)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground font-normal">
+                    Never reviewed
+                  </span>
+                )}
               </Detail>
             </DetailList>
           </CardContent>
@@ -472,199 +492,152 @@ export function EmployeeProfile() {
 
   const profile = profileFor(employee);
   const inactive = employee.status === "Inactive";
-  /* Tenure, and the dates beside it, stop on the day somebody left. */
-  const left =
-    "reason" in employee
-      ? {
-          on: parse(employee.lastDay, "MMM d, yyyy", today()),
-          day: employee.lastDay,
-        }
-      : null;
 
   return (
     <div className="flex flex-col gap-4">
       <BackToPeople />
 
-      <Card className="gap-0">
-        <CardHeader className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-4">
-            {/* Bigger than any size the avatar ships, so it takes the
+      {/* Who they are sits on the page rather than in a card: the rail and
+          the cards beside it are the things with edges, and a third one
+          across the top only boxed in the name. */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          {/* Bigger than any size the avatar ships, so it takes the
                 plain one -- the sm and lg classes are data-variants and
                 would out-specify the override. */}
-            <EmployeeAvatar
-              employee={employee}
-              size="default"
-              className="size-16 *:data-[slot=avatar-fallback]:text-lg"
-            />
-            <div className="flex min-w-0 flex-col gap-1">
-              <h1 className="font-heading truncate text-2xl font-semibold tracking-tight">
-                {employee.name}
-              </h1>
-              <p className="text-muted-foreground truncate">
-                {employee.position} · {employee.department} ·{" "}
-                {employee.location}
-              </p>
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <StatusBadge status={employee.status} />
-                <Badge
-                  variant={
-                    employee.employment === "Full-time"
-                      ? "secondary"
-                      : "outline"
-                  }
-                >
-                  {employee.employment}
-                </Badge>
-                <Badge variant="outline">{profile.employeeNumber}</Badge>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Real links, not buttons: Base UI needs telling, or it warns
-                that the native button semantics have gone. */}
-            <Button
-              variant="outline"
-              nativeButton={false}
-              render={<a href={`mailto:${profile.contact.email}`} />}
-            >
-              <MailIcon data-icon="inline-start" />
-              Email
-            </Button>
-            <Button
-              variant="outline"
-              nativeButton={false}
-              render={<a href={`tel:${profile.contact.phone}`} />}
-            >
-              <PhoneIcon data-icon="inline-start" />
-              Call
-            </Button>
-            <Button>
-              <PencilIcon data-icon="inline-start" />
-              Edit
-            </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`More actions for ${employee.name}`}
-                  />
+          <EmployeeAvatar
+            employee={employee}
+            size="default"
+            className="size-16 *:data-[slot=avatar-fallback]:text-lg"
+          />
+          <div className="flex min-w-0 flex-col gap-1">
+            <h1 className="font-heading truncate text-2xl font-semibold tracking-tight">
+              {employee.name}
+            </h1>
+            <p className="text-muted-foreground truncate">
+              {employee.position} · {employee.department} · {employee.location}
+            </p>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <StatusBadge status={employee.status} />
+              <Badge
+                variant={
+                  employee.employment === "Full-time" ? "secondary" : "outline"
                 }
               >
-                <EllipsisIcon />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <ClockIcon />
-                    View clocks
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <ReceiptTextIcon />
-                    View pay stubs
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <KeyRoundIcon />
-                    Send password reset
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                {inactive ? (
-                  <DropdownMenuItem>
-                    <UserRoundCheckIcon />
-                    Reactivate
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem variant="destructive">
-                    <UserRoundXIcon />
-                    Deactivate
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                {employee.employment}
+              </Badge>
+              <Badge variant="outline">{profile.employeeNumber}</Badge>
+            </div>
           </div>
-        </CardHeader>
+        </div>
 
-        {/* The five numbers somebody opens a profile to check, on the band
-            the card already draws under its header. */}
-        <CardFooter className="mt-(--card-spacing) grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          <Stat
-            label="Hourly rate"
-            value={`$${employee.wage.toFixed(2)}`}
-            note={`Set ${day(profile.pay.effectiveFrom)}`}
-          />
-          <Stat
-            label="Scheduled"
-            value={`${employee.weeklyHours} hrs`}
-            note={employee.weeklyHours > 40 ? "Into overtime" : "A week"}
-          />
-          <Stat
-            label="Tenure"
-            value={tenure(employee.hiredOn, left?.on ?? null)}
-            note={
-              left
-                ? `${day(employee.hiredOn)} to ${left.day}`
-                : `Since ${day(employee.hiredOn)}`
-            }
-          />
-          <Stat
-            label="Time off banked"
-            value={`${employee.timeOffDays} days`}
-            note="Accrued, not taken"
-          />
-          <Stat
-            label="Last review"
-            value={
-              employee.rating !== null ? `${employee.rating} of 5` : "None"
-            }
-            note={
-              employee.lastReviewOn
-                ? day(employee.lastReviewOn)
-                : "Never reviewed"
-            }
-          />
-        </CardFooter>
-      </Card>
+        <div className="flex items-center gap-2">
+          {/* Real links, not buttons: Base UI needs telling, or it warns
+                that the native button semantics have gone. */}
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<a href={`mailto:${profile.contact.email}`} />}
+          >
+            <MailIcon data-icon="inline-start" />
+            Email
+          </Button>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<a href={`tel:${profile.contact.phone}`} />}
+          >
+            <PhoneIcon data-icon="inline-start" />
+            Call
+          </Button>
+          <Button>
+            <PencilIcon data-icon="inline-start" />
+            Edit
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`More actions for ${employee.name}`}
+                />
+              }
+            >
+              <EllipsisIcon />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  <ClockIcon />
+                  View clocks
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <ReceiptTextIcon />
+                  View pay stubs
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <KeyRoundIcon />
+                  Send password reset
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              {inactive ? (
+                <DropdownMenuItem>
+                  <UserRoundCheckIcon />
+                  Reactivate
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem variant="destructive">
+                  <UserRoundXIcon />
+                  Deactivate
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
 
       <StatusNotice employee={employee} />
 
-      <TabHorizontal
+      {/* Narrow enough and the rail would eat the page, so the picker the
+          roster uses on a phone stands in for it. */}
+      <TabSelect
+        tabs={tabs}
+        value={tab}
+        onValueChange={setTab}
+        className="md:hidden"
+      />
+
+      <TabVertical
         value={tab}
         onValueChange={(value) => setTab(value as string)}
+        className="gap-6"
       >
-        <TabSelect
-          tabs={tabs}
-          value={tab}
-          onValueChange={setTab}
-          className="md:hidden"
-        />
-        <TabHorizontalList className="hidden md:inline-flex">
+        {/* The rail stays with you down a long tab -- the shifts table and
+            the file both run past the fold. */}
+        <TabVerticalList className="hidden w-44 shrink-0 md:sticky md:top-5 md:inline-flex">
           {tabs.map((item) => (
-            <TabHorizontalTrigger key={item.value} value={item.value}>
+            <TabVerticalTrigger key={item.value} value={item.value}>
+              <item.icon data-icon="inline-start" />
               {item.label}
-            </TabHorizontalTrigger>
+            </TabVerticalTrigger>
           ))}
-        </TabHorizontalList>
+        </TabVerticalList>
 
-        <TabHorizontalContent value="overview" className="pt-2">
-          <OverviewTab employee={employee} profile={profile} />
-        </TabHorizontalContent>
-        <TabHorizontalContent value="schedule" className="pt-2">
-          <ScheduleTab employee={employee} profile={profile} />
-        </TabHorizontalContent>
-        <TabHorizontalContent value="time-off" className="pt-2">
-          <TimeOffTab employee={employee} profile={profile} />
-        </TabHorizontalContent>
-        <TabHorizontalContent value="documents" className="pt-2">
-          <FilesTab profile={profile} />
-        </TabHorizontalContent>
-        <TabHorizontalContent value="activity" className="pt-2">
-          <ActivityTab profile={profile} />
-        </TabHorizontalContent>
-      </TabHorizontal>
+        {/* min-w-0 so the tables inside can scroll rather than stretch the
+            rail off the side. */}
+        {tabs.map((item) => (
+          <TabVerticalContent
+            key={item.value}
+            value={item.value}
+            className="min-w-0"
+          >
+            {panelFor(item.value, employee, profile)}
+          </TabVerticalContent>
+        ))}
+      </TabVertical>
     </div>
   );
 }

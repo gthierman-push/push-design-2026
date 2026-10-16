@@ -504,9 +504,16 @@ export function EmployeeProfile() {
             <h1 className="font-heading truncate text-2xl font-semibold tracking-tight">
               {employee.name}
             </h1>
-            <p className="text-muted-foreground truncate">
-              {employee.position} · {employee.department} · {employee.location}
-            </p>
+            {/* Their address rather than their job: position, department
+                and location are all on the Job card a scroll below, and the
+                thing anyone copies off a heading is the email. */}
+            <a
+              href={`mailto:${profile.contact.email}`}
+              title={profile.contact.email}
+              className="text-muted-foreground truncate hover:underline"
+            >
+              {profile.contact.email}
+            </a>
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <StatusBadge status={employee.status} />
               <Badge variant="outline">{profile.employeeNumber}</Badge>
